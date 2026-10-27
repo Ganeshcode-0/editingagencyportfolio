@@ -283,7 +283,7 @@ const ADMIN_PIN = "7075";
 
 // Supabase Cloud Authentication & Realtime Database Configuration
 const SUPABASE_URL = "https://urrvvmmurxjwqocrpxct.supabase.co";
-const SUPABASE_ANON = "sb_publishable_tuMWpP-yiw0a_CN09CTHAQ_i1yTvHeO";
+const SUPABASE_ANON = "sb_publishable_pef_sQ4erO4VhiILPGo6Rw_HgRXR496";
 const MASTER_ADMIN_EMAIL = "designsbygani@gmail.com";
 let globalSupabase = null;
 
