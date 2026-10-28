@@ -367,7 +367,7 @@
           <div style="display:flex; align-items:center; gap:12px;">
             <div class="chat-user-avatar online" style="background:var(--accent-orange); color:#fff; font-weight:800;">G</div>
             <div>
-              <h3 style="font-size:16px; font-weight:800; color:#fff; margin:0;">💬 Direct Chat with Ganesh</h3>
+              <h3 style="font-size:16px; font-weight:800; color:#fff; margin:0;">💬 Direct Chat with Admin (GanaCuts Visuals)</h3>
               <span style="font-size:12px; color:#a0a0ab;">Send project queries, discuss music pacing, or clarify instructions</span>
             </div>
           </div>
@@ -458,39 +458,29 @@
         if (cleanEmail.toLowerCase() === "designsbygani@gmail.com") {
           const adminSession = {
             email: "designsbygani@gmail.com",
-            name: "Ganesh (Admin)",
+            name: "GanaCuts Admin",
             role: "admin",
-            avatar: "assets/ganesh.jpg",
+            avatar: "assets/logo.jpg",
             authProvider: "google_verified",
             loggedInAt: Date.now()
           };
           localStorage.setItem("cutscale_admin_session", JSON.stringify(adminSession));
-          alert("✓ Master Admin recognized (designsbygani@gmail.com). Redirecting to Admin Studio...");
+          alert("✓ Admin account recognized. Redirecting to Admin Studio...");
           window.location.href = "/admin";
           return;
         }
 
         let match = applicants.find(a => a.email && a.email.toLowerCase() === cleanEmail.toLowerCase());
         if (!match) {
-          match = {
-            id: "app_" + Date.now(),
-            name: chosenName,
-            email: cleanEmail,
-            phone: "Google Verified",
-            city: "Remote",
-            tools: "DaVinci Resolve / Premiere Pro / After Effects",
-            portfolio: "Google Registered Account",
-            specialization: "Motion Graphics / Video Editing",
-            rate: "₹800 / reel",
-            password: "1234",
-            authProvider: "google_verified",
-            avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(chosenName)}`,
-            status: "pending",
-            adminFeedback: "Google account connected. Your editor portfolio is queued for review by Ganesh.",
-            appliedAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' })
-          };
-          applicants.unshift(match);
-          saveApplicants();
+          showEditorAuthTab('register');
+          const nameInput = document.getElementById("ed-reg-name");
+          const emailInput = document.getElementById("ed-reg-email");
+          const toolsInput = document.getElementById("ed-reg-tools");
+          if (nameInput) nameInput.value = chosenName;
+          if (emailInput) emailInput.value = cleanEmail;
+          alert("✓ Google Account connected (" + cleanEmail + ")!\nPlease enter your editing tools, portfolio URL, and rate per reel to submit your application.");
+          if (toolsInput) toolsInput.focus();
+          return;
         }
 
         localStorage.setItem("cutscale_editor_session", JSON.stringify({
@@ -539,46 +529,33 @@
             const gName = gUser.user_metadata?.full_name || gUser.user_metadata?.name || gEmail.split('@')[0];
             const gAvatar = gUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(gName)}`;
 
-            // Master Admin Check: If Ganesh signs in here, automatically redirect to Admin Studio!
+            // Master Admin Check: If Admin signs in here, automatically redirect to Admin Studio
             if (gEmail === "designsbygani@gmail.com") {
               const adminSession = {
                 email: "designsbygani@gmail.com",
-                name: "Ganesh (Admin)",
+                name: "GanaCuts Admin",
                 role: "admin",
-                avatar: "assets/ganesh.jpg",
+                avatar: "assets/logo.jpg",
                 authProvider: "supabase_google",
                 loggedInAt: Date.now()
               };
               localStorage.setItem("cutscale_admin_session", JSON.stringify(adminSession));
-              alert("✓ Master Admin recognized (designsbygani@gmail.com). Redirecting to Admin Studio...");
+              alert("✓ Admin account recognized. Redirecting to Admin Studio...");
               window.location.href = "/admin";
               return;
             }
 
             let match = applicants.find(a => a.email && a.email.toLowerCase() === gEmail);
             if (!match) {
-              match = {
-                id: "app_" + Date.now(),
-                name: gName,
-                email: gEmail,
-                phone: gUser.phone || "Google Account",
-                city: "Remote",
-                tools: "DaVinci Resolve / Premiere Pro / After Effects",
-                portfolio: "Registered via Google Auth",
-                specialization: "Motion Graphics / Video Editing",
-                rate: "₹800 / reel",
-                password: "1234",
-                authProvider: "google_supabase",
-                avatarUrl: gAvatar,
-                status: "pending",
-                adminFeedback: "Google account connected. Your editor portfolio is queued for review by Ganesh.",
-                appliedAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' })
-              };
-              applicants.unshift(match);
-              saveApplicants();
-              if (window.syncApplicantToSupabase) {
-                window.syncApplicantToSupabase(match);
-              }
+              showEditorAuthTab('register');
+              const nameInput = document.getElementById("ed-reg-name");
+              const emailInput = document.getElementById("ed-reg-email");
+              const toolsInput = document.getElementById("ed-reg-tools");
+              if (nameInput) nameInput.value = gName;
+              if (emailInput) emailInput.value = gEmail;
+              alert(`✓ Google Account connected (${gEmail})!\nPlease enter your editing tools, portfolio URL, and rate per reel to complete your application.`);
+              if (toolsInput) toolsInput.focus();
+              return;
             }
 
             localStorage.setItem("cutscale_editor_session", JSON.stringify({
@@ -644,17 +621,17 @@
         const errorEl = document.getElementById("ed-login-error");
         if (errorEl) errorEl.textContent = "";
 
-        // 1. If Ganesh enters his admin email or admin username
+        // 1. If Admin enters admin email or admin username
         if (rawInput === "designsbygani@gmail.com" || rawInput === "gani" || rawInput.includes("designsbygani") || rawInput === "admin") {
           const adminSession = {
             email: "designsbygani@gmail.com",
-            name: "Ganesh (Admin)",
+            name: "GanaCuts Admin",
             role: "admin",
-            avatar: "assets/ganesh.jpg",
+            avatar: "assets/logo.jpg",
             loggedInAt: Date.now()
           };
           localStorage.setItem("cutscale_admin_session", JSON.stringify(adminSession));
-          alert("✓ Welcome Master Admin (Ganesh)! Redirecting to Admin Studio...");
+          alert("✓ Admin credentials recognized. Redirecting to Admin Studio...");
           window.location.href = "/admin";
           return;
         }
@@ -699,25 +676,16 @@
             saveApplicants();
           }
         } else {
-          // Auto-create editor candidate profile so user is never stranded
-          const newName = rawInput.includes("@") ? rawInput.split('@')[0] : ("Editor (" + (phone || rawInput) + ")");
-          match = {
-            id: "app_" + Date.now(),
-            name: newName,
-            email: rawInput.includes("@") ? rawInput : `${newName.toLowerCase().replace(/[^a-z0-9]/g, "")}@gmail.com`,
-            phone: phone || rawInput,
-            city: "Remote / Bengaluru",
-            tools: "DaVinci Resolve / Premiere Pro / After Effects",
-            portfolio: "Submitted via Editor Portal",
-            specialization: "Motion Graphics / Reels",
-            rate: "₹800 / reel",
-            password: pwd || "1234",
-            status: "pending",
-            adminFeedback: "Account registered! Your portfolio & profile have been submitted for review by Ganesh.",
-            appliedAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' })
-          };
-          applicants.unshift(match);
-          saveApplicants();
+          // No fake account auto-creation! Prompt them to fill real application
+          if (errorEl) {
+            errorEl.textContent = "No registered application found for this account. Please click 'Apply / Register as Editor' above to submit your portfolio and editing tools.";
+          }
+          showEditorAuthTab('register');
+          const phoneInput = document.getElementById("ed-reg-phone");
+          const emailInput = document.getElementById("ed-reg-email");
+          if (rawInput.includes("@") && emailInput) emailInput.value = rawInput;
+          else if (phoneInput) phoneInput.value = phone || rawInput;
+          return;
         }
 
         localStorage.setItem("cutscale_editor_session", JSON.stringify({
@@ -770,7 +738,7 @@
           rate,
           password: password || "1234",
           status: "pending",
-          adminFeedback: "Account created! Portfolio queued for review by Ganesh.",
+          adminFeedback: "Application received! Portfolio queued for review by GanaCuts Visuals.",
           appliedAt: dateFormatted
         };
 

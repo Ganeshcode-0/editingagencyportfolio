@@ -144,134 +144,20 @@ const DEFAULT_VIDEOS = [
   }
 ];
 
-// Initial Demo Applicants for Ganesh to review
-const DEFAULT_APPLICANTS = [
-  {
-    id: "app_1",
-    name: "Suresh Reddy",
-    email: "suresh.reddy.cuts@gmail.com",
-    phone: "919876543210",
-    city: "Hyderabad (Madhapur)",
-    tools: "Premiere Pro, After Effects",
-    portfolio: "https://drive.google.com/drive/folders/sample",
-    specialization: "Motion Graphics & 3D Typography",
-    rate: "₹800 / reel",
-    notes: "2 years freelance experience, 24h turnaround for shorts",
-    adminFeedback: "Initial portfolio looks strong. Reviewing kinetic typography samples.",
-    status: "pending",
-    password: "1234",
-    appliedAt: "25 Oct 2026, 09:30 PM"
-  },
-  {
-    id: "app_2",
-    name: "Arjun Verma",
-    email: "arjun.verma.visuals@gmail.com",
-    phone: "919811223344",
-    city: "Hyderabad (Ameerpet)",
-    tools: "DaVinci Resolve, CapCut",
-    portfolio: "https://youtube.com/@sample_editor",
-    specialization: "Instagram Talking Head & Hormozi Subtitles",
-    rate: "₹650 / reel",
-    notes: "Expert in dynamic subtitles and sound effects",
-    adminFeedback: "Sent raw test footage on WhatsApp. Submit rough cut by 27 Oct.",
-    status: "trial",
-    password: "1234",
-    assignedProject: {
-      title: "Talking Head Retention Hook Edit (45s)",
-      footageUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-      instructions: "Cut to 128 BPM beat. Include kinetic captions, sound design, and color grading in DaVinci.",
-      payout: "₹650",
-      deadline: "27 Oct, 6:00 PM"
-    },
-    appliedAt: "25 Oct 2026, 08:15 PM"
-  },
-  {
-    id: "app_3",
-    name: "Kavya Sharma",
-    email: "kavya.cinematics@gmail.com",
-    phone: "919844556677",
-    city: "Hyderabad (Gachibowli)",
-    tools: "Premiere Pro, DaVinci Resolve",
-    portfolio: "https://drive.google.com/drive/folders/sample_reels",
-    specialization: "Real Estate & Architecture",
-    rate: "₹1,200 / reel",
-    notes: "Experience editing high-ticket luxury villa tours",
-    adminFeedback: "Cleared paid trial edit with distinction! Onboarded to active agency roster.",
-    status: "selected",
-    password: "1234",
-    assignedProject: {
-      title: "Ultra-Luxury Kokapet Villa Tour",
-      footageUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-      instructions: "Smooth drone transitions, clean architectural pacing, and high-ticket color grade.",
-      payout: "₹1,200",
-      deadline: "Completed"
-    },
-    submittedDraft: {
-      url: "https://drive.google.com/file/d/sample-approved-draft/view",
-      notes: "Color graded in DaVinci Resolve. Added cinematic ambient sound design.",
-      date: "25 Oct 2026, 07:15 PM"
-    },
-    appliedAt: "25 Oct 2026, 06:40 PM"
-  }
-];
+// Real Applicants (Loaded dynamically from Supabase database)
+const DEFAULT_APPLICANTS = [];
 
 const DEFAULT_PROFILE = {
   name: "GANACUTS VISUALS",
   badge: "POST-PRODUCTION & VISUALS",
-  tagline: "High-retention video editing, cinematic color grading, and dynamic motion graphics by <strong>Ganesh</strong>. Crafted with <strong>DaVinci Resolve</strong>, <strong>Premiere Pro</strong> & <strong>After Effects</strong>.",
-  photo: "assets/ganesh.jpg",
+  tagline: "High-retention video editing, cinematic color grading, and dynamic motion graphics by <strong>GanaCuts Visuals</strong>. Crafted with <strong>DaVinci Resolve</strong>, <strong>Premiere Pro</strong> & <strong>After Effects</strong>.",
+  photo: "assets/logo.jpg",
   waUrl: "https://wa.me/917075081947?text=Hi%20Ganesh,%20I%20saw%20your%20portfolio%20on%20GanaCuts%20Visuals%20and%20would%20like%20to%20hire%20you%20for%20a%20video%20editing%20project.",
   instaUrl: "https://www.instagram.com/gana_cuts_visuals?dlrf=aXJlY3lsazhraHl4"
 };
 
-// Initial Seed Messages for In-App Admin-Editor Chat
-const DEFAULT_MESSAGES = [
-  {
-    id: "msg_1",
-    editorId: "app_2", // Arjun Verma
-    sender: "admin",
-    senderName: "Ganesh (GanaCuts Visuals)",
-    text: "Hey Arjun! Checked your portfolio. Really liked your Hormozi captions pacing. I've assigned a trial clip for a talking head reel.",
-    timestamp: Date.now() - 3600000 * 5,
-    timeStr: "Yesterday"
-  },
-  {
-    id: "msg_2",
-    editorId: "app_2",
-    sender: "editor",
-    senderName: "Arjun Verma",
-    text: "Thanks Ganesh bro! Downloaded the raw footage from Drive. DaVinci timeline is setup. Should I keep font Montserrat or Futura?",
-    timestamp: Date.now() - 3600000 * 3,
-    timeStr: "3 hrs ago"
-  },
-  {
-    id: "msg_3",
-    editorId: "app_2",
-    sender: "admin",
-    senderName: "Ganesh (GanaCuts Visuals)",
-    text: "Use The Bold Font or Montserrat Extra Bold with bright yellow highlights and punch sound effects. Let's aim for 40s duration.",
-    timestamp: Date.now() - 3600000,
-    timeStr: "1 hr ago"
-  },
-  {
-    id: "msg_4",
-    editorId: "app_3", // Kavya Sharma
-    sender: "admin",
-    senderName: "Ganesh (GanaCuts Visuals)",
-    text: "Kavya, your Kokapet villa edit is top notch! The color grade matches our high-ticket standard. Payout of ₹1,200 is approved. Ready for the next project?",
-    timestamp: Date.now() - 3600000 * 2,
-    timeStr: "2 hrs ago"
-  },
-  {
-    id: "msg_5",
-    editorId: "app_3",
-    sender: "editor",
-    senderName: "Kavya Sharma",
-    text: "Thank you Ganesh! Yes, definitely. Ready for more luxury architectural projects with GanaCuts Visuals whenever available.",
-    timestamp: Date.now() - 3600000 * 1.5,
-    timeStr: "1.5 hrs ago"
-  }
-];
+// Real Messages (Loaded dynamically from Supabase database)
+const DEFAULT_MESSAGES = [];
 
 // Storage Keys
 const STORAGE_KEY_CATS = "cutscale_cats_v6";
@@ -320,6 +206,12 @@ async function syncApplicantToSupabase(app) {
       admin_feedback: app.adminFeedback || "",
       applied_at: app.appliedAt || new Date().toISOString()
     };
+    if (app.assignedProject) {
+      payload.assigned_project = app.assignedProject;
+    }
+    if (app.submittedDraft) {
+      payload.submitted_draft = app.submittedDraft;
+    }
     await globalSupabase.from('applicants').upsert(payload, { onConflict: 'id' });
   } catch (err) {
     // Non-blocking catch for offline/paused Supabase projects
@@ -352,12 +244,95 @@ async function syncMessageToSupabase(msg) {
   }
 }
 
+async function syncAllCategoriesToSupabase() {
+  if (!globalSupabase || !Array.isArray(categories)) return;
+  try {
+    for (let i = 0; i < categories.length; i++) {
+      const c = categories[i];
+      await globalSupabase.from('categories').upsert({
+        id: c.id,
+        label: c.name || c.label,
+        order_index: c.order || i + 1
+      }, { onConflict: 'id' });
+    }
+  } catch (err) {
+    console.warn("Supabase categories sync notice:", err.message || err);
+  }
+}
+
+async function syncAllVideosToSupabase() {
+  if (!globalSupabase || !Array.isArray(videos)) return;
+  try {
+    for (let i = 0; i < videos.length; i++) {
+      const v = videos[i];
+      await globalSupabase.from('portfolio_videos').upsert({
+        id: v.id,
+        category: v.categoryId,
+        title: v.title,
+        client: v.client || "GanaCuts Visuals",
+        aspect: v.aspect || "9:16",
+        src: v.videoUrl,
+        duration: v.duration || "",
+        views: v.views || "",
+        order_index: i
+      }, { onConflict: 'id' });
+    }
+  } catch (err) {
+    console.warn("Supabase videos sync notice:", err.message || err);
+  }
+}
+
+async function fetchSupabaseCategories() {
+  if (!globalSupabase) return;
+  try {
+    const { data, error } = await globalSupabase.from('categories').select('*').order('order_index', { ascending: true });
+    if (!error && Array.isArray(data) && data.length > 0) {
+      categories = data.map(c => ({
+        id: c.id,
+        name: c.label,
+        subtitle: c.subtitle || "HIGH-RETENTION EDITING & PACING",
+        aspect: c.aspect || "9:16",
+        order: c.order_index
+      }));
+      localStorage.setItem(STORAGE_KEY_CATS, JSON.stringify(categories));
+      if (typeof renderPortfolio === 'function') renderPortfolio();
+      if (typeof updateAdminUI === 'function') updateAdminUI();
+    }
+  } catch (err) {
+    console.warn("Supabase fetch categories notice:", err.message || err);
+  }
+}
+
+async function fetchSupabaseVideos() {
+  if (!globalSupabase) return;
+  try {
+    const { data, error } = await globalSupabase.from('portfolio_videos').select('*').order('order_index', { ascending: true });
+    if (!error && Array.isArray(data) && data.length > 0) {
+      videos = data.map(v => ({
+        id: v.id,
+        categoryId: v.category,
+        title: v.title,
+        duration: v.duration,
+        videoUrl: v.src,
+        thumbnail: v.thumbnail || "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80"
+      }));
+      localStorage.setItem(STORAGE_KEY_VIDS, JSON.stringify(videos));
+      if (typeof renderPortfolio === 'function') renderPortfolio();
+      if (typeof updateAdminUI === 'function') updateAdminUI();
+    }
+  } catch (err) {
+    console.warn("Supabase fetch videos notice:", err.message || err);
+  }
+}
+
 async function fetchSupabaseApplicants() {
   if (!globalSupabase) return;
   try {
     const { data, error } = await globalSupabase.from('applicants').select('*');
     if (!error && Array.isArray(data) && data.length > 0) {
       data.forEach(remote => {
+        // Skip any legacy fake accounts
+        if (remote.id === 'app_1' || remote.id === 'app_2' || remote.id === 'app_3') return;
         const localIdx = applicants.findIndex(a => a.id === remote.id || (remote.email && a.email && a.email.toLowerCase() === remote.email.toLowerCase()));
         const mapped = {
           id: remote.id,
@@ -372,7 +347,9 @@ async function fetchSupabaseApplicants() {
           password: remote.password || "1234",
           status: remote.status,
           adminFeedback: remote.admin_feedback || remote.adminFeedback || "",
-          appliedAt: remote.applied_at || remote.appliedAt
+          appliedAt: remote.applied_at || remote.appliedAt,
+          assignedProject: remote.assigned_project || remote.assignedProject || null,
+          submittedDraft: remote.submitted_draft || remote.submittedDraft || null
         };
         if (localIdx >= 0) {
           applicants[localIdx] = { ...applicants[localIdx], ...mapped };
@@ -380,6 +357,8 @@ async function fetchSupabaseApplicants() {
           applicants.push(mapped);
         }
       });
+      // Purge fake demo entries
+      applicants = applicants.filter(a => a && a.id !== "app_1" && a.id !== "app_2" && a.id !== "app_3");
       localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
       if (typeof updateAdminUI === 'function') updateAdminUI();
     }
@@ -407,19 +386,83 @@ async function fetchSupabaseMessages() {
           });
         }
       });
-      messages = merged;
+      messages = merged.filter(m => m && !["msg_1", "msg_2", "msg_3", "msg_4", "msg_5"].includes(m.id));
       localStorage.setItem(STORAGE_KEY_MSGS, JSON.stringify(messages));
+      if (typeof renderAdminChatMessages === 'function') renderAdminChatMessages();
+      if (typeof renderEditorChat === 'function') renderEditorChat();
     }
   } catch (err) {
     console.warn("Supabase fetch messages notice:", err.message || err);
   }
 }
 
+// Background persist to server disk (data/portfolio.json)
+async function persistPortfolioToServer() {
+  try {
+    const payload = { categories, videos, profile };
+    await fetch('/api/portfolio', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+  } catch (e) {
+    // Non-blocking in serverless/static environments
+  }
+}
+
+async function fetchRemotePortfolioData() {
+  try {
+    const res = await fetch('/api/portfolio');
+    if (res.ok) {
+      const data = await res.json();
+      let changed = false;
+      if (data && Array.isArray(data.videos) && data.videos.length > 0) {
+        videos = data.videos;
+        localStorage.setItem(STORAGE_KEY_VIDS, JSON.stringify(videos));
+        changed = true;
+      }
+      if (data && Array.isArray(data.categories) && data.categories.length > 0) {
+        categories = data.categories;
+        localStorage.setItem(STORAGE_KEY_CATS, JSON.stringify(categories));
+        changed = true;
+      }
+      if (data && data.profile) {
+        profile = { ...DEFAULT_PROFILE, ...data.profile };
+        localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
+        changed = true;
+      }
+      if (changed) {
+        if (typeof renderPortfolio === 'function') renderPortfolio();
+        if (typeof updateAdminUI === 'function') updateAdminUI();
+      }
+    }
+  } catch (e) {
+    try {
+      const res2 = await fetch('/data/portfolio.json');
+      if (res2.ok) {
+        const data2 = await res2.json();
+        if (data2 && Array.isArray(data2.videos) && data2.videos.length > 0 && !localStorage.getItem(STORAGE_KEY_VIDS)) {
+          videos = data2.videos;
+          localStorage.setItem(STORAGE_KEY_VIDS, JSON.stringify(videos));
+        }
+        if (data2 && Array.isArray(data2.categories) && data2.categories.length > 0 && !localStorage.getItem(STORAGE_KEY_CATS)) {
+          categories = data2.categories;
+          localStorage.setItem(STORAGE_KEY_CATS, JSON.stringify(categories));
+        }
+      }
+    } catch (e2) {}
+  }
+}
+
 if (typeof window !== "undefined") {
   window.syncApplicantToSupabase = syncApplicantToSupabase;
   window.syncMessageToSupabase = syncMessageToSupabase;
+  window.syncAllCategoriesToSupabase = syncAllCategoriesToSupabase;
+  window.syncAllVideosToSupabase = syncAllVideosToSupabase;
   window.fetchSupabaseApplicants = fetchSupabaseApplicants;
   window.fetchSupabaseMessages = fetchSupabaseMessages;
+  window.fetchSupabaseVideos = fetchSupabaseVideos;
+  window.fetchSupabaseCategories = fetchSupabaseCategories;
   window.SUPABASE_CLIENT = globalSupabase;
   window.SUPABASE_URL = SUPABASE_URL;
   window.SUPABASE_ANON = SUPABASE_ANON;
@@ -457,45 +500,87 @@ function initData() {
 
   const storedApps = localStorage.getItem(STORAGE_KEY_APPS);
   applicants = storedApps ? JSON.parse(storedApps) : [...DEFAULT_APPLICANTS];
-  // Ensure default feedback, email and password are present if missing from legacy records
-  applicants.forEach(app => {
-    if (!app.password) app.password = "1234";
-    if (!app.email) {
-      if (app.id === "app_1") app.email = "suresh.reddy.cuts@gmail.com";
-      else if (app.id === "app_2") app.email = "arjun.verma.visuals@gmail.com";
-      else if (app.id === "app_3") app.email = "kavya.cinematics@gmail.com";
-      else {
-        const cleanName = (app.name || "editor").toLowerCase().replace(/[^a-z0-9]/g, ".");
-        app.email = `${cleanName}@gmail.com`;
-      }
-    }
-    if (app.adminFeedback === undefined) {
-      if (app.status === 'trial') app.adminFeedback = 'Sent raw test footage on WhatsApp. Submit rough cut by 27 Oct.';
-      else if (app.status === 'selected') app.adminFeedback = 'Cleared trial edit with distinction! Onboarded to active team roster.';
-      else app.adminFeedback = 'Portfolio queued for review by Ganesh.';
-    }
-  });
-  saveApplicants();
+  // Purge any legacy fake applicants (Suresh, Arjun, Kavya)
+  applicants = applicants.filter(a => a && a.id !== "app_1" && a.id !== "app_2" && a.id !== "app_3");
+  localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
 
   const storedMsgs = localStorage.getItem(STORAGE_KEY_MSGS);
   messages = storedMsgs ? JSON.parse(storedMsgs) : [...DEFAULT_MESSAGES];
-  if (!storedMsgs) saveStoredMessages();
+  messages = messages.filter(m => m && !["msg_1", "msg_2", "msg_3", "msg_4", "msg_5"].includes(m.id));
+  localStorage.setItem(STORAGE_KEY_MSGS, JSON.stringify(messages));
 
-  // Asynchronously fetch latest records from Supabase Cloud
+  // Asynchronously fetch latest permanent data from Server Disk & Supabase Cloud
+  fetchRemotePortfolioData();
+  fetchSupabaseCategories();
+  fetchSupabaseVideos();
   fetchSupabaseApplicants();
   fetchSupabaseMessages();
+
+  // Set up live real-time listeners on Supabase
+  if (globalSupabase) {
+    try {
+      globalSupabase
+        .channel('realtime_live_chat')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+          const remote = payload.new;
+          if (remote && !messages.some(m => m.id === remote.id)) {
+            messages.push({
+              id: remote.id,
+              editorId: remote.editor_id,
+              sender: remote.sender,
+              senderName: remote.sender_name,
+              text: remote.text,
+              timestamp: remote.timestamp,
+              timeStr: remote.time_str
+            });
+            localStorage.setItem(STORAGE_KEY_MSGS, JSON.stringify(messages));
+            if (typeof renderAdminChatMessages === 'function') renderAdminChatMessages();
+            if (typeof renderEditorChat === 'function') renderEditorChat();
+          }
+        })
+        .subscribe();
+
+      globalSupabase
+        .channel('realtime_applicants_tracker')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'applicants' }, () => {
+          fetchSupabaseApplicants();
+        })
+        .subscribe();
+    } catch (rtErr) {
+      console.warn("Supabase realtime subscription notice:", rtErr);
+    }
+  }
 }
 
-function saveCategories() { localStorage.setItem(STORAGE_KEY_CATS, JSON.stringify(categories)); }
-function saveVideos() { localStorage.setItem(STORAGE_KEY_VIDS, JSON.stringify(videos)); }
-function saveProfile() { localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile)); }
+function saveCategories() {
+  localStorage.setItem(STORAGE_KEY_CATS, JSON.stringify(categories));
+  syncAllCategoriesToSupabase();
+  persistPortfolioToServer();
+}
+
+function saveVideos() {
+  localStorage.setItem(STORAGE_KEY_VIDS, JSON.stringify(videos));
+  syncAllVideosToSupabase();
+  persistPortfolioToServer();
+}
+
+function saveProfile() {
+  localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
+  persistPortfolioToServer();
+}
+
 function saveApplicants() {
+  applicants = applicants.filter(a => a && a.id !== "app_1" && a.id !== "app_2" && a.id !== "app_3");
   localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
   if (typeof syncAllApplicantsToSupabase === 'function') {
     syncAllApplicantsToSupabase();
   }
 }
-function saveStoredMessages() { localStorage.setItem(STORAGE_KEY_MSGS, JSON.stringify(messages)); }
+
+function saveStoredMessages() {
+  messages = messages.filter(m => m && !["msg_1", "msg_2", "msg_3", "msg_4", "msg_5"].includes(m.id));
+  localStorage.setItem(STORAGE_KEY_MSGS, JSON.stringify(messages));
+}
 
 function getStoredMessages() {
   const stored = localStorage.getItem(STORAGE_KEY_MSGS);
@@ -961,7 +1046,7 @@ function updateAdminUI() {
   const profTaglineInput = document.getElementById("profile-tagline");
   if (profTaglineInput) profTaglineInput.value = profile.tagline || "";
   const profPhotoInput = document.getElementById("profile-photo-url");
-  if (profPhotoInput) profPhotoInput.value = profile.photo || "assets/ganesh.jpg";
+  if (profPhotoInput) profPhotoInput.value = profile.photo || "assets/logo.jpg";
   const profWaInput = document.getElementById("profile-wa-url");
   if (profWaInput) profWaInput.value = profile.waUrl || "";
   const profInstaInput = document.getElementById("profile-insta-url");

@@ -215,9 +215,9 @@
     <div class="admin-login-card">
       <div class="admin-login-header">
         <img src="assets/logo.jpg" alt="GanaCuts Visuals Logo" class="brand-logo-img admin-logo" style="margin: 0 auto 16px;">
-        <div class="hiring-badge" style="margin-bottom:8px;">MASTER ADMIN STUDIO</div>
+        <div class="hiring-badge" style="margin-bottom:8px;">SECURE ADMIN STUDIO</div>
         <h1 class="admin-login-title">Admin Studio Sign In</h1>
-        <p class="admin-login-sub">Command center for <strong>GanaCuts Visuals</strong> led by Ganesh (<span style="color:var(--accent-orange);">designsbygani@gmail.com</span>).</p>
+        <p class="admin-login-sub">Command center for <strong>GanaCuts Visuals</strong>. Authorized team access only.</p>
       </div>
 
       <!-- Google Sign-In via Supabase OAuth -->
@@ -228,7 +228,7 @@
           <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
           <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
         </svg>
-        <span>Sign In with Google (Master Admin)</span>
+        <span>Sign In with Google</span>
       </button>
 
       <div class="auth-divider-row">
@@ -237,8 +237,8 @@
 
       <form id="real-admin-login-form" class="admin-form">
         <div class="form-group">
-          <label for="admin-email">Admin Email (Verified Master: designsbygani@gmail.com)</label>
-          <input type="text" id="admin-email" placeholder="designsbygani@gmail.com" required autocomplete="username">
+          <label for="admin-email">Admin Email Address</label>
+          <input type="text" id="admin-email" placeholder="admin@ganacutsvisuals.com" required autocomplete="username">
         </div>
 
         <div class="form-group">
@@ -289,7 +289,7 @@
         <img src="assets/logo.jpg" alt="GanaCuts Visuals" class="brand-logo-img">
         <div>
           <span class="admin-brand-title">GANACUTS VISUALS</span>
-          <span style="font-size:11px; color:#888894; display:block;">Admin Studio • Master Account (designsbygani@gmail.com)</span>
+          <span style="font-size:11px; color:#888894; display:block;">Admin Studio • Master Command Center</span>
         </div>
       </div>
 
@@ -405,7 +405,7 @@
             <div>
               <div style="display:flex; align-items:center; gap:8px;">
                 <h3 style="font-size:18px; font-weight:800; color:#fff; margin:0;">Agency Editors Google Sheet</h3>
-                <span class="badge-mini" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); font-size:11px; padding:2px 8px; border-radius:12px;">designsbygani@gmail.com</span>
+                <span class="badge-mini" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); font-size:11px; padding:2px 8px; border-radius:12px;">Admin Verified</span>
               </div>
               <p style="font-size:12px; color:#94949e; margin:4px 0 0;">
                 Live agency roster database. Track who is in the agency, how many editors are selected & hired, and sync with your Google account.
@@ -422,9 +422,9 @@
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
               <span>Copy for Google Sheets (Ctrl+V)</span>
             </button>
-            <button type="button" class="secondary-btn light-btn" onclick="sendSheetEmailToGani()" title="Email summary report to designsbygani@gmail.com">
+            <button type="button" class="secondary-btn light-btn" onclick="sendSheetEmailToGani()" title="Email summary report to administrator">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-              <span>Email to designsbygani@gmail.com</span>
+              <span>Email Agency Report</span>
             </button>
           </div>
         </div>
@@ -499,7 +499,7 @@
           </table>
         </div>
 
-        <!-- Auto-Sync to Google Drive / Google Sheets under designsbygani@gmail.com -->
+        <!-- Auto-Sync to Google Drive / Google Sheets -->
         <div class="google-sync-config-box">
           <div style="display:flex; justify-content:space-between; align-items:center; cursor:pointer;" onclick="toggleGoogleSyncInstructions()">
             <div style="display:flex; align-items:center; gap:12px;">
@@ -507,7 +507,7 @@
                 ⊞
               </div>
               <div>
-                <h4 style="font-size:14px; font-weight:700; color:#fff; margin:0;">Auto-Sync to Google Sheets under designsbygani@gmail.com</h4>
+                <h4 style="font-size:14px; font-weight:700; color:#fff; margin:0;">Auto-Sync to your Google Sheets</h4>
                 <p style="font-size:11px; color:#888894; margin:2px 0 0;">Want new editor submissions to automatically appear in your Google Sheet? (Click to view 2-minute setup)</p>
               </div>
             </div>
@@ -516,7 +516,7 @@
 
           <div id="google-sync-instructions" class="hidden" style="margin-top:16px; padding-top:16px; border-top:1px solid rgba(255,255,255,0.08);">
             <div style="font-size:12px; color:#d4d4d8; line-height:1.6;">
-              <p><strong>Step 1:</strong> In your Google Drive (<span style="color:var(--accent-orange);">designsbygani@gmail.com</span>), open or create a Google Sheet named <strong>"GanaCuts Visuals — Agency Editors"</strong>.</p>
+              <p><strong>Step 1:</strong> In your Google Drive, open or create a Google Sheet named <strong>"GanaCuts Visuals — Agency Editors"</strong>.</p>
               <p><strong>Step 2:</strong> Go to <strong>Extensions > Apps Script</strong>, replace the code with the script below, and click <strong>Deploy > New deployment > Web app</strong> (Access: Anyone):</p>
               
               <pre style="background:#0d0d11; padding:12px; border-radius:8px; font-family:monospace; font-size:11px; color:#34d399; overflow-x:auto; border:1px solid rgba(255,255,255,0.1);">function doPost(e) {
@@ -718,12 +718,12 @@
 
             <div class="form-group">
               <label for="profile-tagline">Studio Bio / Description</label>
-              <input type="text" id="profile-tagline" value="High-retention video editing, cinematic color grading, and dynamic motion graphics by Ganesh. Crafted with DaVinci Resolve, Premiere Pro & After Effects." required>
+              <input type="text" id="profile-tagline" value="High-retention video editing, cinematic color grading, and dynamic motion graphics by GanaCuts Visuals. Crafted with DaVinci Resolve, Premiere Pro & After Effects." required>
             </div>
 
             <div class="form-group">
-              <label for="profile-photo-url">Founder Photo Path</label>
-              <input type="text" id="profile-photo-url" value="assets/ganesh.jpg">
+              <label for="profile-photo-url">Brand Logo / Avatar Path</label>
+              <input type="text" id="profile-photo-url" value="assets/logo.jpg">
             </div>
 
             <div class="form-group">
@@ -826,9 +826,9 @@
       if (!oauthRedirectTriggered) {
         const sessionData = {
           email: MASTER_ADMIN_EMAIL,
-          name: "Ganesh (Master Admin)",
+          name: "GanaCuts Admin",
           role: "admin",
-          avatar: "assets/ganesh.jpg",
+          avatar: "assets/logo.jpg",
           authProvider: "google_verified_master",
           loggedInAt: Date.now()
         };
@@ -851,9 +851,9 @@
           if (userEmail === MASTER_ADMIN_EMAIL.toLowerCase()) {
             const userObj = {
               email: MASTER_ADMIN_EMAIL,
-              name: session.user.user_metadata?.full_name || "Ganesh (Master Admin)",
+              name: session.user.user_metadata?.full_name || "GanaCuts Admin",
               role: "admin",
-              avatar: session.user.user_metadata?.avatar_url || "assets/ganesh.jpg",
+              avatar: session.user.user_metadata?.avatar_url || "assets/logo.jpg",
               authProvider: "supabase_google",
               loggedInAt: Date.now()
             };
@@ -863,7 +863,7 @@
             await supabaseClient.auth.signOut();
             const errorEl = document.getElementById("admin-login-error");
             if (errorEl) {
-              errorEl.textContent = `Access Denied: ${userEmail} is not the Master Admin. Please sign in with ${MASTER_ADMIN_EMAIL}.`;
+              errorEl.textContent = "Access Denied: Account not authorized for Admin Studio.";
             }
             return false;
           }
@@ -886,9 +886,9 @@
             if (userEmail === MASTER_ADMIN_EMAIL.toLowerCase()) {
               const userObj = {
                 email: MASTER_ADMIN_EMAIL,
-                name: session.user.user_metadata?.full_name || "Ganesh (Master Admin)",
+                name: session.user.user_metadata?.full_name || "GanaCuts Admin",
                 role: "admin",
-                avatar: session.user.user_metadata?.avatar_url || "assets/ganesh.jpg",
+                avatar: session.user.user_metadata?.avatar_url || "assets/logo.jpg",
                 authProvider: "supabase_oauth",
                 loggedInAt: Date.now()
               };
@@ -949,9 +949,9 @@
         if (errorEl) errorEl.textContent = "";
 
         // Verify Master Admin Email
-        const isMaster = email === MASTER_ADMIN_EMAIL || email.includes("gani") || email.includes("designsbygani") || email === "admin";
+        const isMaster = email === MASTER_ADMIN_EMAIL || email.includes("gani") || email.includes("designsbygani") || email === "admin" || email.endsWith("@ganacutsvisuals.com");
         if (!isMaster) {
-          if (errorEl) errorEl.textContent = `Access Denied: Only master administrator (${MASTER_ADMIN_EMAIL}) can sign in.`;
+          if (errorEl) errorEl.textContent = "Access Denied: Invalid administrator credentials.";
           return;
         }
 
@@ -988,9 +988,9 @@
 
           const sessionData = {
             email: MASTER_ADMIN_EMAIL,
-            name: "Ganesh (Admin)",
+            name: "GanaCuts Admin",
             role: "admin",
-            avatar: "assets/ganesh.jpg",
+            avatar: "assets/logo.jpg",
             authProvider: supaVerified ? "supabase_password" : "verified_master",
             loggedInAt: Date.now()
           };
