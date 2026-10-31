@@ -235,70 +235,40 @@
           </div>
 
           <form id="editor-apply-form" class="admin-form">
-            <div class="form-row">
-              <div class="form-group">
-                <label for="apply-name">Full Name *</label>
-                <input type="text" id="apply-name" placeholder="e.g. Rahul Sharma" required>
-              </div>
-              <div class="form-group">
-                <label for="apply-email">Gmail / Email Address *</label>
-                <input type="email" id="apply-email" placeholder="e.g. rahul.edits@gmail.com" required>
-              </div>
-            </div>
-
-            <div class="form-row">
-              <div class="form-group">
-                <label for="apply-phone">WhatsApp Number *</label>
-                <input type="tel" id="apply-phone" placeholder="e.g. 9876543210 (Used to check status)" required>
-              </div>
-              <div class="form-group">
-                <label for="apply-city">City / Location *</label>
-                <input type="text" id="apply-city" placeholder="e.g. Hyderabad / Remote" required>
-              </div>
+            <div class="form-group">
+              <label for="apply-name">Your Full Name *</label>
+              <input type="text" id="apply-name" placeholder="e.g. Rahul Sharma" required>
             </div>
 
             <div class="form-group">
-              <label for="apply-tools">Primary Editing Tools *</label>
-              <input type="text" id="apply-tools" placeholder="e.g. Premiere Pro, DaVinci Resolve, After Effects" required>
+              <label for="apply-phone">WhatsApp Number *</label>
+              <input type="tel" id="apply-phone" placeholder="e.g. 9876543210 (For project footage & payouts)" required>
             </div>
 
             <div class="form-group">
-              <label for="apply-portfolio">Portfolio Link (Google Drive / YouTube / Behance) *</label>
-              <input type="url" id="apply-portfolio" placeholder="https://drive.google.com/... or youtube.com/..." required>
-              <small class="field-help">Make sure your Google Drive link has public access enabled ("Anyone with the link can view").</small>
+              <label for="apply-portfolio">Portfolio / Reel Link *</label>
+              <input type="url" id="apply-portfolio" placeholder="Google Drive, Instagram, or YouTube link" required>
+              <small class="field-help">Make sure your Drive or portfolio link has public view access.</small>
             </div>
 
-            <div class="form-row">
-              <div class="form-group">
-                <label for="apply-specialization">Your Best Editing Style *</label>
-                <select id="apply-specialization" required>
-                  <option value="Motion Graphics">Motion Graphics & 3D Typography</option>
-                  <option value="Talking Head">Instagram Talking Head & Hormozi Subtitles</option>
-                  <option value="Podcast Reels">Podcast Multi-Cam Cuts</option>
-                  <option value="Real Estate">Real Estate Tours & Architectural Edits</option>
-                  <option value="Long Form">YouTube Long Form & Documentaries</option>
-                  <option value="All Rounder">All-Rounder Video Editor</option>
-                </select>
+            <div class="form-group">
+              <label style="margin-bottom:2px;">Primary Editing Tools <span style="font-weight:400; color:var(--text-secondary);">(Tap what you use)</span></label>
+              <div class="tool-select-pills" id="modal-tool-pills">
+                <div class="tool-pill selected" data-tool="Premiere Pro" onclick="this.classList.toggle('selected'); updateModalTools();">🎬 Premiere Pro</div>
+                <div class="tool-pill selected" data-tool="DaVinci Resolve" onclick="this.classList.toggle('selected'); updateModalTools();">🎨 DaVinci Resolve</div>
+                <div class="tool-pill" data-tool="After Effects" onclick="this.classList.toggle('selected'); updateModalTools();">✨ After Effects</div>
+                <div class="tool-pill" data-tool="CapCut" onclick="this.classList.toggle('selected'); updateModalTools();">⚡ CapCut</div>
               </div>
-              <div class="form-group">
-                <label for="apply-rate">Expected Pay per Reel / Video (₹)</label>
-                <input type="text" id="apply-rate" placeholder="e.g. ₹600 - ₹1,000 / reel" required>
-              </div>
+              <input type="hidden" id="apply-tools" value="Premiere Pro, DaVinci Resolve">
             </div>
 
             <div class="form-group">
-              <label for="apply-notes">Notes or Experience (Optional)</label>
-              <input type="text" id="apply-notes" placeholder="Years of experience, turnaround speed, or software plugins you own">
+              <label for="apply-email">Email Address <span style="font-weight:400; color:var(--text-secondary);">(Optional)</span></label>
+              <input type="email" id="apply-email" placeholder="e.g. rahul.edits@gmail.com">
             </div>
 
-            <div class="form-group">
-              <label for="apply-password">Create Account Password / Access PIN *</label>
-              <input type="password" id="apply-password" placeholder="Choose a 4-to-6 digit PIN to access your editor workspace" required minlength="4">
-              <small class="field-help">You will use this password to log in and track assigned client projects.</small>
-            </div>
-
-            <button type="submit" class="primary-btn full-width" style="padding:14px;">
-              <span>Submit Application & Create Account</span>
+            <button type="submit" class="primary-btn full-width" style="padding:14px; margin-top:8px;">
+              <span>Join GanaCuts Team & Track Status 🚀</span>
             </button>
           </form>
         </div>
@@ -329,17 +299,17 @@
             <form id="status-lookup-form" class="lookup-form">
               <div class="form-row">
                 <div class="form-group">
-                  <label for="lookup-phone">Registered WhatsApp Number *</label>
-                  <input type="tel" id="lookup-phone" placeholder="e.g. 9876543210" required>
+                  <label for="lookup-phone">Registered WhatsApp or Email *</label>
+                  <input type="text" id="lookup-phone" placeholder="e.g. 9876543210 or email" required>
                 </div>
                 <div class="form-group">
-                  <label for="lookup-pwd">Access PIN / Password *</label>
-                  <input type="password" id="lookup-pwd" placeholder="Enter your 4-digit PIN or password" required>
+                  <label for="lookup-pwd">Access PIN <span style="font-weight:400; color:var(--text-secondary);">(Optional)</span></label>
+                  <input type="password" id="lookup-pwd" placeholder="Leave blank if not set">
                 </div>
               </div>
               <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; flex-wrap:wrap; gap:8px;">
                 <button type="submit" class="primary-btn">
-                  <span>Sign In & View Workspace</span>
+                  <span>Check Status & View Workspace</span>
                 </button>
                 <a href="/editor" target="_blank" class="secondary-btn light-btn" style="text-decoration:none; font-size:12px; padding:8px 14px;">
                   <span>Open Dedicated Editor Portal ↗</span>

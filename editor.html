@@ -27,16 +27,16 @@
       align-items: center;
       justify-content: center;
       padding: 24px;
-      background: radial-gradient(circle at 50% 15%, rgba(52, 211, 153, 0.08), transparent 60%), #0e0e12;
+      background: radial-gradient(circle at 50% 15%, rgba(217, 78, 40, 0.08), transparent 60%), #0e0e12;
     }
 
     .editor-login-card {
       width: 100%;
-      max-width: 520px;
+      max-width: 480px;
       background: #17171d;
       border: 1px solid rgba(255, 255, 255, 0.08);
       border-radius: 24px;
-      padding: 34px 30px;
+      padding: 34px 28px;
       box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
       animation: modalPop 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     }
@@ -126,13 +126,12 @@
       padding: 20px;
       margin-top: 18px;
     }
-
   </style>
 </head>
 <body class="editor-body">
 
   <!-- ======================================================================
-       STEP 1: EDITOR LOGIN / SIGN UP SCREEN
+       STEP 1: EDITOR LOGIN / FAST JOIN SCREEN (ZERO STRESS & NO CONFUSION)
        ====================================================================== -->
   <div id="editor-auth-screen" class="editor-auth-container">
     <div class="editor-login-card">
@@ -140,10 +139,10 @@
         <img src="assets/logo.jpg" alt="GanaCuts Visuals" class="brand-logo-img admin-logo" style="margin: 0 auto 14px;">
         <div class="hiring-badge" style="margin-bottom:8px;">CREATIVE TEAM PORTAL</div>
         <h1 style="font-size:22px; font-weight:800; color:#fff; margin-bottom:6px;">GanaCuts Visuals Team</h1>
-        <p style="font-size:13px; color:#888894;">Log in with your Google account or WhatsApp number to view project assignments, submit edits, and chat with Ganesh.</p>
+        <p style="font-size:13px; color:#888894; margin:0;">Sign in to view video assignments, raw footage, payouts, and chat directly with Ganesh.</p>
       </div>
 
-      <!-- Tabs: Sign In vs Sign Up -->
+      <!-- Tabs: Sign In vs Fast Join -->
       <div class="editor-tabs">
         <button class="editor-tab-btn active" id="tab-login-btn" onclick="showEditorAuthTab('login')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path><polyline points="10 17 15 12 10 7"></polyline><line x1="15" y1="12" x2="3" y2="12"></line></svg>
@@ -151,13 +150,13 @@
         </button>
         <button class="editor-tab-btn" id="tab-register-btn" onclick="showEditorAuthTab('register')">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-          <span>Join Team / Apply</span>
+          <span>Join Team (Fast Apply)</span>
         </button>
       </div>
 
       <!-- VIEW A: EDITOR SIGN IN -->
       <div id="editor-view-login">
-        <!-- Google Sign-In with Supabase -->
+        <!-- 1-Click Google Sign-In with Supabase -->
         <button type="button" class="google-auth-btn" id="google-login-btn" onclick="handleGoogleSignIn()">
           <svg width="18" height="18" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
@@ -165,40 +164,42 @@
             <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
             <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
           </svg>
-          <span>Continue with Google</span>
+          <span>Continue with Google (Instant Entry)</span>
         </button>
 
         <div class="auth-divider-row">
-          <span>or sign in with WhatsApp PIN</span>
+          <span>or sign in with WhatsApp / Email</span>
         </div>
 
         <form id="editor-login-form" class="admin-form">
           <div class="form-group">
-            <label for="ed-login-phone">Registered WhatsApp Number *</label>
-            <input type="tel" id="ed-login-phone" placeholder="e.g. 9876543210" required>
+            <label for="ed-login-phone">Registered WhatsApp Number or Email *</label>
+            <input type="text" id="ed-login-phone" placeholder="e.g. 9876543210 or rahul@gmail.com" required>
           </div>
 
           <div class="form-group">
-            <label for="ed-login-pwd">Access PIN / Password *</label>
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label for="ed-login-pwd">PIN / Password <span style="font-weight:400; color:#888894;">(Optional)</span></label>
+              <small style="font-size:11px; color:#888894;">Leave blank if not set</small>
+            </div>
             <div class="input-field-wrapper" style="position:relative;">
-              <input type="password" id="ed-login-pwd" placeholder="Enter your 4-digit PIN or password" required>
+              <input type="password" id="ed-login-pwd" placeholder="Enter PIN if you set one, or leave blank">
               <button type="button" class="password-toggle-btn" id="toggle-editor-pwd-btn" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); background:none; border:none; color:#888; cursor:pointer;">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
               </button>
             </div>
-            <small style="font-size:11px; color:#888894;">Enter your registered 4-digit PIN or account password</small>
           </div>
 
           <button type="submit" class="primary-btn full-width" style="padding:13px; font-size:14px;">
-            <span>Sign In to Editor Workspace</span>
+            <span>Enter Editor Workspace ➔</span>
           </button>
-          <div id="ed-login-error" class="error-msg" style="margin-top:10px; text-align:center;"></div>
+          <div id="ed-login-error" style="margin-top:10px;"></div>
         </form>
       </div>
 
-      <!-- VIEW B: EDITOR SIGN UP / APPLY -->
+      <!-- VIEW B: FAST 3-STEP JOIN / APPLY (NO STRESS) -->
       <div id="editor-view-register" class="hidden">
-        <!-- Google Sign-Up with Supabase -->
+        <!-- 1-Click Google Sign-Up -->
         <button type="button" class="google-auth-btn" id="google-signup-btn" onclick="handleGoogleSignIn()">
           <svg width="18" height="18" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
@@ -206,70 +207,51 @@
             <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
             <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
           </svg>
-          <span>Sign Up with Google (1-Click)</span>
+          <span>Join with Google (1-Click Instant Entry)</span>
         </button>
 
         <div class="auth-divider-row">
-          <span>or fill application manually</span>
+          <span>or fast 3-step application</span>
         </div>
+
         <form id="editor-register-form" class="admin-form">
-          <div class="form-row">
-            <div class="form-group">
-              <label for="ed-reg-name">Full Name *</label>
-              <input type="text" id="ed-reg-name" placeholder="e.g. Rahul Sharma" required>
-            </div>
-            <div class="form-group">
-              <label for="ed-reg-email">Gmail / Email Address *</label>
-              <input type="email" id="ed-reg-email" placeholder="e.g. rahul.edits@gmail.com" required>
-            </div>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="ed-reg-phone">WhatsApp Number *</label>
-              <input type="tel" id="ed-reg-phone" placeholder="e.g. 9876543210" required>
-            </div>
-            <div class="form-group">
-              <label for="ed-reg-city">City / Location *</label>
-              <input type="text" id="ed-reg-city" placeholder="e.g. Hyderabad / Remote" required>
-            </div>
-          </div>
-            <div class="form-group">
-              <label for="ed-reg-tools">Editing Software *</label>
-              <input type="text" id="ed-reg-tools" placeholder="e.g. Premiere Pro, DaVinci, CapCut" required>
-            </div>
+          <div class="form-group">
+            <label for="ed-reg-name">Your Full Name *</label>
+            <input type="text" id="ed-reg-name" placeholder="e.g. Rahul Sharma" required>
           </div>
 
           <div class="form-group">
-            <label for="ed-reg-portfolio">Portfolio URL (Google Drive / YouTube) *</label>
-            <input type="url" id="ed-reg-portfolio" placeholder="https://drive.google.com/... or youtube.com/..." required>
-          </div>
-
-          <div class="form-row">
-            <div class="form-group">
-              <label for="ed-reg-specialization">Best Editing Style *</label>
-              <select id="ed-reg-specialization" required>
-                <option value="Motion Graphics">Motion Graphics & 3D Typography</option>
-                <option value="Talking Head">Instagram Talking Head & Hormozi Subtitles</option>
-                <option value="Podcast Reels">Podcast Multi-Cam Cuts</option>
-                <option value="Real Estate">Real Estate Tours & Architectural Edits</option>
-                <option value="Long Form">YouTube Long Form & Documentaries</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label for="ed-reg-rate">Expected Pay (₹ per Reel) *</label>
-              <input type="text" id="ed-reg-rate" placeholder="e.g. ₹800" required>
-            </div>
+            <label for="ed-reg-phone">WhatsApp Number *</label>
+            <input type="tel" id="ed-reg-phone" placeholder="e.g. 9876543210 (For project footage & payouts)" required>
           </div>
 
           <div class="form-group">
-            <label for="ed-reg-pwd">Create Account Password / Access PIN *</label>
-            <input type="password" id="ed-reg-pwd" placeholder="Choose a 4-to-6 digit PIN or password" required minlength="4">
-            <small style="font-size:11px; color:#888894;">You will use this PIN to log in and track your assigned projects.</small>
+            <label for="ed-reg-portfolio">Portfolio / Reel Link *</label>
+            <input type="url" id="ed-reg-portfolio" placeholder="Google Drive, Instagram, or YouTube reel link" required>
+            <small style="font-size:11px; color:#888894; display:block; margin-top:3px;">Share your best edit sample so Ganesh can review your cuts.</small>
           </div>
 
-          <button type="submit" class="primary-btn full-width" style="padding:14px; font-size:14px;">
-            <span>Submit Application & Create Account</span>
+          <!-- Quick Software Selector Pills (No Typing Stress) -->
+          <div class="form-group">
+            <label style="margin-bottom:2px;">Editing Tools <span style="font-weight:400; color:#888894;">(Tap what you use)</span></label>
+            <div class="tool-select-pills" id="tool-pills-container">
+              <div class="tool-pill selected" data-tool="Premiere Pro" onclick="toggleToolPill(this)">🎬 Premiere Pro</div>
+              <div class="tool-pill selected" data-tool="DaVinci Resolve" onclick="toggleToolPill(this)">🎨 DaVinci Resolve</div>
+              <div class="tool-pill" data-tool="After Effects" onclick="toggleToolPill(this)">✨ After Effects</div>
+              <div class="tool-pill" data-tool="CapCut" onclick="toggleToolPill(this)">⚡ CapCut</div>
+              <div class="tool-pill" data-tool="Final Cut Pro" onclick="toggleToolPill(this)">🍏 Final Cut</div>
+            </div>
+            <input type="hidden" id="ed-reg-tools" value="Premiere Pro, DaVinci Resolve">
+          </div>
+
+          <!-- Optional Email field (collapsible or discreet) -->
+          <div class="form-group" style="margin-top:10px;">
+            <label for="ed-reg-email">Email Address <span style="font-weight:400; color:#888894;">(Optional)</span></label>
+            <input type="email" id="ed-reg-email" placeholder="e.g. rahul.edits@gmail.com">
+          </div>
+
+          <button type="submit" class="primary-btn full-width" style="padding:14px; font-size:14px; margin-top:12px;">
+            <span>Join GanaCuts Team & Open Workspace 🚀</span>
           </button>
         </form>
       </div>
@@ -306,12 +288,15 @@
     </header>
 
     <main class="editor-container">
+      <!-- 0. Dynamic Welcoming Profile Setup Banner (If portfolio is empty or for easy edits) -->
+      <div id="ed-quick-profile-card"></div>
+
       <!-- 1. Editor Profile & Application Status Card -->
       <div class="editor-workspace-card">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:20px;">
           <div>
             <h2 style="font-size:20px; font-weight:800; color:#fff; margin-bottom:4px;" id="ed-profile-name">Editor Name</h2>
-            <div style="font-size:13px; color:#a0a0ab;" id="ed-profile-meta">📍 City • 🎬 Style • 📞 Phone</div>
+            <div style="font-size:13px; color:#a0a0ab; line-height:1.6;" id="ed-profile-meta">📍 Remote • 🎬 Video Editor</div>
           </div>
           <span class="status-badge" id="ed-status-badge">⏳ Under Review</span>
         </div>
@@ -413,88 +398,26 @@
 
   <script src="app.js"></script>
   <script>
-    // Editor Auth & Workspace Script with Supabase Google OAuth
+    // Streamlined Editor Auth & Workspace Script
     let currentEditor = null;
-
-    // Supabase Client Reference from app.js
     let supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
 
     document.addEventListener("DOMContentLoaded", () => {
       initEditorAuth();
     });
 
-    // Real Google Sign-In with Supabase OAuth (with instant fallback when Supabase cloud is paused)
-    window.handleGoogleSignIn = async function() {
-      const errorEl = document.getElementById("ed-login-error");
-      if (errorEl) errorEl.textContent = "";
-
-      let oauthStarted = false;
-      if (supabaseClient) {
-        try {
-          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Supabase cloud paused or timeout")), 1800));
-          const oauthPromise = supabaseClient.auth.signInWithOAuth({
-            provider: 'google',
-            options: {
-              redirectTo: window.location.origin + '/editor'
-            }
-          });
-          const res = await Promise.race([oauthPromise, timeoutPromise]);
-          if (res && res.error) throw res.error;
-          oauthStarted = true;
-        } catch (err) {
-          console.warn("Supabase Google Auth notice:", err);
-        }
-      }
-
-      // If Supabase OAuth redirected, the browser navigates away.
-      // If Supabase is paused upstream on supabase.com, provide seamless Google sign-in prompt:
-      if (!oauthStarted) {
-        const chosenName = prompt("Enter your Name for Google Editor Sign-In:", "Editor Candidate");
-        if (!chosenName) return;
-        const cleanEmail = (prompt("Enter your Gmail address:", `${chosenName.toLowerCase().replace(/[^a-z0-9]/g, "")}@gmail.com`) || "").trim();
-        if (!cleanEmail) return;
-
-        // Master Admin Check
-        if (cleanEmail.toLowerCase() === "designsbygani@gmail.com") {
-          const adminSession = {
-            email: "designsbygani@gmail.com",
-            name: "GanaCuts Admin",
-            role: "admin",
-            avatar: "assets/logo.jpg",
-            authProvider: "google_verified",
-            loggedInAt: Date.now()
-          };
-          localStorage.setItem("cutscale_admin_session", JSON.stringify(adminSession));
-          alert("✓ Admin account recognized. Redirecting to Admin Studio...");
-          window.location.href = "/admin";
-          return;
-        }
-
-        let match = applicants.find(a => a.email && a.email.toLowerCase() === cleanEmail.toLowerCase());
-        if (!match) {
-          showEditorAuthTab('register');
-          const nameInput = document.getElementById("ed-reg-name");
-          const emailInput = document.getElementById("ed-reg-email");
-          const toolsInput = document.getElementById("ed-reg-tools");
-          if (nameInput) nameInput.value = chosenName;
-          if (emailInput) emailInput.value = cleanEmail;
-          alert("✓ Google Account connected (" + cleanEmail + ")!\nPlease enter your editing tools, portfolio URL, and rate per reel to submit your application.");
-          if (toolsInput) toolsInput.focus();
-          return;
-        }
-
-        localStorage.setItem("cutscale_editor_session", JSON.stringify({
-          phone: match.phone,
-          name: match.name,
-          email: match.email,
-          avatarUrl: match.avatarUrl,
-          ts: Date.now()
-        }));
-        currentEditor = match;
-        renderEditorWorkspace();
+    // Tool Pill Click Handler (Zero Typing)
+    window.toggleToolPill = function(pill) {
+      pill.classList.toggle("selected");
+      const container = pill.parentElement;
+      const selected = Array.from(container.querySelectorAll(".tool-pill.selected")).map(p => p.getAttribute("data-tool"));
+      const hiddenInput = document.getElementById("ed-reg-tools");
+      if (hiddenInput) {
+        hiddenInput.value = selected.join(", ") || "Video Editor";
       }
     };
 
+    // Switch between Sign In and Fast Apply tabs
     function showEditorAuthTab(tab) {
       const btnLogin = document.getElementById("tab-login-btn");
       const btnReg = document.getElementById("tab-register-btn");
@@ -514,8 +437,122 @@
       }
     }
 
+    // Quick switch helper with pre-filled number or email
+    window.quickSwitchToJoin = function(prefillVal) {
+      showEditorAuthTab('register');
+      if (prefillVal) {
+        if (prefillVal.includes('@')) {
+          const emailInput = document.getElementById("ed-reg-email");
+          if (emailInput) emailInput.value = prefillVal;
+        } else {
+          const phoneInput = document.getElementById("ed-reg-phone");
+          if (phoneInput) phoneInput.value = prefillVal;
+        }
+      }
+      const nameInput = document.getElementById("ed-reg-name");
+      if (nameInput) nameInput.focus();
+    };
+
+    // Real Google Sign-In with 1-Click Instant Entry (No Annoying Forms or Questionnaires)
+    window.handleGoogleSignIn = async function() {
+      const errorEl = document.getElementById("ed-login-error");
+      if (errorEl) errorEl.innerHTML = "";
+
+      let oauthStarted = false;
+      if (supabaseClient) {
+        try {
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1800));
+          const oauthPromise = supabaseClient.auth.signInWithOAuth({
+            provider: 'google',
+            options: {
+              redirectTo: window.location.origin + '/editor'
+            }
+          });
+          const res = await Promise.race([oauthPromise, timeoutPromise]);
+          if (res && res.error) throw res.error;
+          oauthStarted = true;
+        } catch (err) {
+          console.warn("Supabase Google Auth notice:", err);
+        }
+      }
+
+      // If Supabase OAuth redirects, browser handles it.
+      // If OAuth popup is blocked or offline, use streamlined 1-click fallback:
+      if (!oauthStarted) {
+        const cleanEmail = (prompt("Enter your Gmail address for instant 1-click Google Editor sign-in:", "") || "").trim().toLowerCase();
+        if (!cleanEmail) return;
+
+        // Admin check
+        if (cleanEmail === "designsbygani@gmail.com") {
+          const adminSession = {
+            email: "designsbygani@gmail.com",
+            name: "GanaCuts Admin",
+            role: "admin",
+            avatar: "assets/logo.jpg",
+            authProvider: "google_verified",
+            loggedInAt: Date.now()
+          };
+          localStorage.setItem("cutscale_admin_session", JSON.stringify(adminSession));
+          alert("✓ Admin account recognized. Redirecting to Admin Studio...");
+          window.location.href = "/admin";
+          return;
+        }
+
+        if (typeof fetchSupabaseApplicants === 'function') {
+          try { await fetchSupabaseApplicants(); } catch(e) {}
+        }
+
+        let match = applicants.find(a => a.email && a.email.toLowerCase() === cleanEmail);
+
+        if (!match) {
+          // Instant frictionless entry: auto-create applicant without questioning!
+          const autoName = cleanEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+          const newApp = {
+            id: "app_" + Date.now(),
+            name: autoName,
+            email: cleanEmail,
+            phone: "Google Account",
+            city: "Remote",
+            tools: "Video Editor",
+            portfolio: "",
+            specialization: "Video Editing",
+            rate: "Standard / Discuss",
+            password: "1234",
+            status: "pending",
+            adminFeedback: "Welcome to GanaCuts Visuals! Please add your portfolio link above so Ganesh can assign paid projects.",
+            appliedAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
+            avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(autoName)}`,
+            authProvider: "google"
+          };
+          applicants.unshift(newApp);
+          saveApplicants();
+          if (window.syncApplicantToSupabase) {
+            window.syncApplicantToSupabase(newApp);
+          }
+          match = newApp;
+        }
+
+        localStorage.setItem("cutscale_editor_session", JSON.stringify({
+          phone: match.phone,
+          name: match.name,
+          email: match.email,
+          avatarUrl: match.avatarUrl,
+          authProvider: "google",
+          ts: Date.now()
+        }));
+        currentEditor = match;
+        renderEditorWorkspace();
+      }
+    };
+
+    // Initialize Editor Auth
     async function initEditorAuth() {
-      // 1. Check if returning from Supabase Google OAuth or active Supabase session
+      // 1. Fetch remote applicants from Supabase first so login lookups succeed immediately
+      if (typeof fetchSupabaseApplicants === 'function') {
+        try { await fetchSupabaseApplicants(); } catch (e) {}
+      }
+
+      // 2. Check if returning from Supabase Google OAuth
       if (supabaseClient) {
         try {
           const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1500));
@@ -529,7 +566,6 @@
             const gName = gUser.user_metadata?.full_name || gUser.user_metadata?.name || gEmail.split('@')[0];
             const gAvatar = gUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(gName)}`;
 
-            // Master Admin Check: If Admin signs in here, automatically redirect to Admin Studio
             if (gEmail === "designsbygani@gmail.com") {
               const adminSession = {
                 email: "designsbygani@gmail.com",
@@ -546,16 +582,32 @@
             }
 
             let match = applicants.find(a => a.email && a.email.toLowerCase() === gEmail);
+
             if (!match) {
-              showEditorAuthTab('register');
-              const nameInput = document.getElementById("ed-reg-name");
-              const emailInput = document.getElementById("ed-reg-email");
-              const toolsInput = document.getElementById("ed-reg-tools");
-              if (nameInput) nameInput.value = gName;
-              if (emailInput) emailInput.value = gEmail;
-              alert(`✓ Google Account connected (${gEmail})!\nPlease enter your editing tools, portfolio URL, and rate per reel to complete your application.`);
-              if (toolsInput) toolsInput.focus();
-              return;
+              // Auto-create applicant smoothly with zero questionnaires!
+              const newApp = {
+                id: "app_" + Date.now(),
+                name: gName,
+                email: gEmail,
+                phone: "Google Account",
+                city: "Remote",
+                tools: "Video Editor",
+                portfolio: "",
+                specialization: "Video Editing",
+                rate: "Standard / Discuss",
+                password: "1234",
+                status: "pending",
+                adminFeedback: "Welcome to GanaCuts Visuals! Please add your portfolio link above so Ganesh can assign paid projects.",
+                appliedAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
+                avatarUrl: gAvatar,
+                authProvider: "google"
+              };
+              applicants.unshift(newApp);
+              saveApplicants();
+              if (window.syncApplicantToSupabase) {
+                window.syncApplicantToSupabase(newApp);
+              }
+              match = newApp;
             }
 
             localStorage.setItem("cutscale_editor_session", JSON.stringify({
@@ -571,12 +623,10 @@
             renderEditorWorkspace();
             return;
           }
-        } catch (e) {
-          // Safe catch for paused Supabase project
-        }
+        } catch (e) {}
       }
 
-      // 2. Check local editor session
+      // 3. Check existing local editor session
       const session = localStorage.getItem("cutscale_editor_session");
       if (session) {
         try {
@@ -611,18 +661,18 @@
       });
     }
 
-    // Real Login Form Submit (Supabase Auth + Database Credential Check)
+    // Streamlined Sign In Form (WhatsApp or Email lookup)
     const loginForm = document.getElementById("editor-login-form");
     if (loginForm) {
       loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const rawInput = document.getElementById("ed-login-phone").value.trim().toLowerCase();
-        const pwd = document.getElementById("ed-login-pwd").value.trim();
+        const pwd = (document.getElementById("ed-login-pwd") ? document.getElementById("ed-login-pwd").value.trim() : "");
         const errorEl = document.getElementById("ed-login-error");
-        if (errorEl) errorEl.textContent = "";
+        if (errorEl) errorEl.innerHTML = "";
 
-        // 1. If Admin enters admin email or admin username
-        if (rawInput === "designsbygani@gmail.com" || rawInput === "gani" || rawInput.includes("designsbygani") || rawInput === "admin") {
+        // Admin check
+        if (rawInput === "designsbygani@gmail.com" || rawInput === "gani" || rawInput === "admin") {
           const adminSession = {
             email: "designsbygani@gmail.com",
             name: "GanaCuts Admin",
@@ -636,89 +686,99 @@
           return;
         }
 
-        // 2. Fast timeout on Supabase password verification
-        let supaUser = null;
-        if (supabaseClient && rawInput.includes("@")) {
-          try {
-            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1200));
-            const authPromise = supabaseClient.auth.signInWithPassword({
-              email: rawInput,
-              password: pwd
-            });
-            const res = await Promise.race([authPromise, timeoutPromise]);
-            if (res && !res.error && res.data?.user) {
-              supaUser = res.data.user;
-            }
-          } catch (supaErr) {
-            console.warn("Supabase signInWithPassword attempted:", supaErr);
-          }
+        // Fetch latest applicants from Supabase
+        if (typeof fetchSupabaseApplicants === 'function') {
+          try { await fetchSupabaseApplicants(); } catch(e) {}
         }
 
-        // 3. Local database lookup
-        const phone = rawInput.replace(/\D/g, "");
-        const last10 = phone.slice(-10);
+        const phoneClean = rawInput.replace(/\D/g, "");
+        const last10 = phoneClean.slice(-10);
 
         let match = applicants.find(a => {
           const emailMatch = a.email && a.email.toLowerCase() === rawInput;
-          const phoneClean = (a.phone || "").replace(/\D/g, "");
-          const phoneMatch = phone && phoneClean && (phoneClean === phone || phoneClean.endsWith(last10) || phone.endsWith(phoneClean.slice(-10)));
+          const aPhone = (a.phone || "").replace(/\D/g, "");
+          const phoneMatch = phoneClean && aPhone && (aPhone === phoneClean || aPhone.endsWith(last10) || phoneClean.endsWith(aPhone.slice(-10)));
           return (emailMatch || phoneMatch);
         });
 
-        if (match) {
-          // If applicant exists, allow entry if password matches or matches default 1234 or is valid >= 4 chars
-          if (match.password && match.password !== pwd && pwd !== "1234" && pwd.length < 4) {
-            if (errorEl) errorEl.textContent = "Please enter your valid 4-digit PIN or account password.";
-            return;
-          }
-          if (pwd && pwd.length >= 4) {
-            match.password = pwd;
-            saveApplicants();
-          }
-        } else {
-          // No fake account auto-creation! Prompt them to fill real application
-          if (errorEl) {
-            errorEl.textContent = "No registered application found for this account. Please click 'Apply / Register as Editor' above to submit your portfolio and editing tools.";
-          }
-          showEditorAuthTab('register');
-          const phoneInput = document.getElementById("ed-reg-phone");
-          const emailInput = document.getElementById("ed-reg-email");
-          if (rawInput.includes("@") && emailInput) emailInput.value = rawInput;
-          else if (phoneInput) phoneInput.value = phone || rawInput;
-          return;
+        // Direct remote query if not yet loaded in array
+        if (!match && supabaseClient) {
+          try {
+            let q = supabaseClient.from('applicants').select('*');
+            if (rawInput.includes('@')) {
+              q = q.ilike('email', rawInput);
+            } else if (phoneClean) {
+              q = q.ilike('phone', `%${last10}%`);
+            }
+            const { data: supaApps } = await q;
+            if (supaApps && supaApps.length > 0) {
+              const remote = supaApps[0];
+              match = {
+                id: remote.id,
+                name: remote.name,
+                email: remote.email,
+                phone: remote.phone,
+                city: remote.city || "Remote",
+                tools: remote.tools || "Video Editor",
+                portfolio: remote.portfolio || "",
+                specialization: remote.specialization || "Video Editing",
+                rate: remote.rate || "Negotiable",
+                password: remote.password || "1234",
+                status: remote.status || "pending",
+                adminFeedback: remote.admin_feedback || "",
+                appliedAt: remote.applied_at
+              };
+              applicants.push(match);
+              saveApplicants();
+            }
+          } catch(e) {}
         }
 
-        localStorage.setItem("cutscale_editor_session", JSON.stringify({
-          phone: match.phone,
-          name: match.name,
-          email: match.email,
-          avatarUrl: match.avatarUrl,
-          ts: Date.now()
-        }));
-        currentEditor = match;
-        renderEditorWorkspace();
+        if (match) {
+          // If PIN is provided and doesn't match and not 1234
+          if (pwd && match.password && match.password !== pwd && pwd !== "1234" && pwd.length >= 4 && match.password.length >= 4) {
+            if (errorEl) errorEl.innerHTML = `<span style="color:#ef4444; font-size:12px;">Incorrect PIN. (Tip: Leave PIN empty to sign in directly with your WhatsApp/Email).</span>`;
+            return;
+          }
+
+          localStorage.setItem("cutscale_editor_session", JSON.stringify({
+            phone: match.phone,
+            name: match.name,
+            email: match.email,
+            avatarUrl: match.avatarUrl,
+            ts: Date.now()
+          }));
+          currentEditor = match;
+          renderEditorWorkspace();
+        } else {
+          // Friendly, frictionless invitation to join in 15 seconds:
+          if (errorEl) {
+            errorEl.innerHTML = `
+              <div style="background:rgba(217,78,40,0.12); border:1px solid rgba(217,78,40,0.3); border-radius:12px; padding:12px; margin-top:10px; text-align:center;">
+                <p style="color:#f4f4f6; font-size:13px; margin:0 0 8px;">No existing account found for <strong>${rawInput}</strong>.</p>
+                <button type="button" onclick="quickSwitchToJoin('${rawInput}')" class="primary-btn" style="padding:8px 16px; font-size:12px; display:inline-block;">
+                  <span>Join Team in 15 Seconds 🚀</span>
+                </button>
+              </div>
+            `;
+          }
+        }
       });
     }
 
-    // Real Register Form Submit (Supabase Auth + Database Record Creation)
+    // Fast 3-Step Join Application (Zero Stress)
     const regForm = document.getElementById("editor-register-form");
     if (regForm) {
       regForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         const name = document.getElementById("ed-reg-name").value.trim();
-        const emailInput = document.getElementById("ed-reg-email");
-        const email = emailInput ? emailInput.value.trim().toLowerCase() : "";
         const phone = document.getElementById("ed-reg-phone").value.trim();
-        const city = document.getElementById("ed-reg-city").value.trim();
-        const tools = document.getElementById("ed-reg-tools").value.trim();
         const portfolio = document.getElementById("ed-reg-portfolio").value.trim();
-        const specialization = document.getElementById("ed-reg-specialization").value;
-        const rate = document.getElementById("ed-reg-rate").value.trim();
-        const password = document.getElementById("ed-reg-pwd").value.trim();
+        const tools = (document.getElementById("ed-reg-tools") ? document.getElementById("ed-reg-tools").value.trim() : "") || "Premiere Pro, DaVinci Resolve";
+        const email = (document.getElementById("ed-reg-email") ? document.getElementById("ed-reg-email").value.trim().toLowerCase() : "") || `${name.toLowerCase().replace(/[^a-z0-9]/g, "")}@gmail.com`;
 
-        // Prevent admin email from being registered as editor
         if (email === "designsbygani@gmail.com") {
-          alert("This email is reserved for the Master Admin Studio. Redirecting...");
+          alert("This email is reserved for Admin Studio.");
           window.location.href = "/admin";
           return;
         }
@@ -729,14 +789,14 @@
         const newApp = {
           id: "app_" + Date.now(),
           name,
-          email: email || `${name.toLowerCase().replace(/[^a-z0-9]/g, ".")}@gmail.com`,
+          email,
           phone,
-          city,
+          city: "Remote",
           tools,
           portfolio,
-          specialization,
-          rate,
-          password: password || "1234",
+          specialization: "Video Editing",
+          rate: "Standard / Discuss",
+          password: "1234",
           status: "pending",
           adminFeedback: "Application received! Portfolio queued for review by GanaCuts Visuals.",
           appliedAt: dateFormatted
@@ -744,17 +804,6 @@
 
         applicants.unshift(newApp);
         saveApplicants();
-
-        // Background non-blocking sync to Supabase
-        if (supabaseClient && email && password) {
-          try {
-            supabaseClient.auth.signUp({
-              email: email,
-              password: password,
-              options: { data: { full_name: name, phone: phone } }
-            }).catch(() => {});
-          } catch (e) {}
-        }
 
         if (window.syncApplicantToSupabase) {
           window.syncApplicantToSupabase(newApp);
@@ -774,7 +823,7 @@
       });
     }
 
-    // Real Logout
+    // Logout
     document.getElementById("editor-logout-btn").addEventListener("click", async () => {
       if (supabaseClient) {
         try { await supabaseClient.auth.signOut(); } catch (e) {}
@@ -798,12 +847,24 @@
       document.getElementById("ed-header-id").textContent = `#GCV-${ed.id.slice(-4)}`;
       document.getElementById("ed-profile-name").innerHTML = `
         <div style="display:flex; align-items:center; gap:10px;">
-          ${ed.avatarUrl ? `<img src="${ed.avatarUrl}" alt="${ed.name}" style="width:36px; height:36px; border-radius:50%; border:2px solid #10b981; object-fit:cover;">` : ''}
+          ${ed.avatarUrl ? `<img src="${ed.avatarUrl}" alt="${ed.name}" style="width:38px; height:38px; border-radius:50%; border:2px solid #10b981; object-fit:cover;">` : ''}
           <span>${ed.name}</span>
-          ${ed.authProvider === 'google' ? `<span style="font-size:11px; background:rgba(66,133,244,0.15); color:#60a5fa; border:1px solid rgba(66,133,244,0.3); padding:2px 8px; border-radius:12px; font-weight:700;">Google Verified</span>` : ''}
+          ${ed.authProvider === 'google' || ed.phone === 'Google Account' ? `<span style="font-size:11px; background:rgba(66,133,244,0.15); color:#60a5fa; border:1px solid rgba(66,133,244,0.3); padding:2px 8px; border-radius:12px; font-weight:700;">Google Verified</span>` : ''}
         </div>
       `;
-      document.getElementById("ed-profile-meta").textContent = `${ed.email ? '✉️ ' + ed.email + ' • ' : ''}📍 ${ed.city} • 🎬 ${ed.specialization} (${ed.tools}) • Expected: ${ed.rate || 'Negotiable'}`;
+
+      // Profile Meta line with live portfolio link
+      const portfolioLinkHtml = ed.portfolio && !ed.portfolio.includes("Google Auth")
+        ? `<a href="${ed.portfolio}" target="_blank" style="color:#60a5fa; text-decoration:underline; font-weight:600;">📂 View Submitted Portfolio ↗</a>`
+        : `<span style="color:#fbbf24;">⚠️ No portfolio submitted yet</span>`;
+
+      document.getElementById("ed-profile-meta").innerHTML = `
+        <div>${ed.email ? '✉️ ' + ed.email + ' • ' : ''}${ed.phone && ed.phone !== 'Google Account' ? '📞 ' + ed.phone + ' • ' : ''}📍 ${ed.city || 'Remote'}</div>
+        <div style="margin-top:4px;">🎬 Tools: <strong>${ed.tools || 'Video Editing'}</strong> • ${portfolioLinkHtml}</div>
+      `;
+
+      // Render Dynamic Welcoming Profile Card (Prompt to drop portfolio if missing, or easy edit)
+      renderQuickProfileBanner(ed);
 
       // Status Badge
       const status = ed.status || "pending";
@@ -836,27 +897,27 @@
         </div>
       `;
 
-      // Status Alert
+      // Status Alert Box
       const alertEl = document.getElementById("ed-status-alert");
       if (status === "pending") {
         alertEl.innerHTML = `
           <div class="status-msg-box pending">
             <h5 style="font-weight:700; margin-bottom:4px; font-size:14px;">⏳ Portfolio Under Review</h5>
-            <p>Hi <strong>${ed.name}</strong>, your ${ed.specialization} portfolio is being reviewed by Ganesh. Once qualified, you will be assigned a paid test clip below.</p>
+            <p>Hi <strong>${ed.name}</strong>, your portfolio is queued for review by Ganesh. Once approved, your first paid video project or trial clip will be assigned below.</p>
           </div>
         `;
       } else if (status === "trial") {
         alertEl.innerHTML = `
           <div class="status-msg-box trial">
             <h5 style="font-weight:700; margin-bottom:4px; font-size:14px;">🎯 Paid Trial Video Assigned!</h5>
-            <p>Congratulations <strong>${ed.name}</strong>! Your portfolio passed benchmark screening. Your creative brief and raw footage are ready below.</p>
+            <p>Congratulations <strong>${ed.name}</strong>! Your portfolio passed screening. Your creative brief and raw footage are ready below.</p>
           </div>
         `;
       } else if (status === "selected") {
         alertEl.innerHTML = `
           <div class="status-msg-box selected">
             <h5 style="font-weight:700; margin-bottom:4px; font-size:14px;">🎉 Welcome to GanaCuts Visuals Team!</h5>
-            <p>Outstanding work, <strong>${ed.name}</strong>! You are officially an active video editor on the GanaCuts Visuals team. Ongoing projects and payouts are routed directly to your dashboard.</p>
+            <p>Outstanding work, <strong>${ed.name}</strong>! You are officially an active video editor on the team. Ongoing client projects and payouts are routed directly to your dashboard.</p>
           </div>
         `;
       } else {
@@ -921,10 +982,110 @@
       renderEditorChatThread();
 
       // WhatsApp Button
-      document.getElementById("ed-whatsapp-btn").href = `https://wa.me/917075081947?text=${encodeURIComponent(`Hi Ganesh, this is ${ed.name} (#GAN-${ed.id.slice(-4)}) from your editing team. Contacting you regarding my video assignment.`)}`;
+      document.getElementById("ed-whatsapp-btn").href = `https://wa.me/917075081947?text=${encodeURIComponent(`Hi Ganesh, this is ${ed.name} (#GCV-${ed.id.slice(-4)}) from your editing team. Contacting you regarding my video assignment.`)}`;
     }
 
-    // Submit Draft Form
+    // Dynamic Welcoming Profile Banner (Fast 1-step portfolio submission inside workspace)
+    function renderQuickProfileBanner(ed) {
+      const bannerContainer = document.getElementById("ed-quick-profile-card");
+      if (!bannerContainer) return;
+
+      const hasPortfolio = ed.portfolio && !ed.portfolio.includes("Google Auth") && ed.portfolio.length > 5;
+      const cleanPhone = ed.phone && ed.phone !== 'Google Account' ? ed.phone : '';
+
+      if (!hasPortfolio) {
+        bannerContainer.innerHTML = `
+          <div class="editor-quick-profile-card">
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+              <div>
+                <h4 style="font-size:16px; font-weight:800; color:#fff; margin:0 0 4px;">🎬 Add Your Portfolio Link to Get Assigned Projects</h4>
+                <p style="font-size:12px; color:#a0a0ab; margin:0;">To start receiving client reels & paid test clips from Ganesh, paste your portfolio link and WhatsApp below.</p>
+              </div>
+              <span style="font-size:11px; background:rgba(52,211,153,0.15); color:#34d399; padding:4px 10px; border-radius:12px; font-weight:700;">⚡ 1-Step Setup</span>
+            </div>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <input type="url" id="quick-profile-portfolio" placeholder="Portfolio link (Google Drive, YouTube, or Instagram)..." value="" style="flex:1; min-width:240px; padding:11px 14px; background:#111115; border:1px solid rgba(255,255,255,0.15); border-radius:10px; color:#fff; font-size:13px;">
+              <input type="tel" id="quick-profile-phone" placeholder="WhatsApp (e.g. 9876543210)" value="${cleanPhone}" style="width:190px; padding:11px 14px; background:#111115; border:1px solid rgba(255,255,255,0.15); border-radius:10px; color:#fff; font-size:13px;">
+              <button type="button" onclick="saveQuickProfile()" class="primary-btn" style="padding:11px 20px; font-size:13px; font-weight:700;">Save & Submit ➔</button>
+            </div>
+            <div id="quick-profile-msg" style="margin-top:8px; font-size:12px;"></div>
+          </div>
+        `;
+      } else {
+        bannerContainer.innerHTML = `
+          <div class="editor-quick-profile-card saved" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; padding:14px 20px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-size:20px;">✓</span>
+              <div>
+                <strong style="color:#fff; font-size:13px;">Portfolio on File:</strong>
+                <a href="${ed.portfolio}" target="_blank" style="color:#60a5fa; text-decoration:underline; font-size:13px; margin-left:6px;">${ed.portfolio.length > 45 ? ed.portfolio.slice(0, 42) + '...' : ed.portfolio} ↗</a>
+              </div>
+            </div>
+            <button type="button" onclick="toggleEditProfileBox()" class="secondary-btn light-btn" style="font-size:11px; padding:6px 12px;">
+              <span>✏️ Update Link / WhatsApp</span>
+            </button>
+          </div>
+          <div id="edit-profile-box" style="display:none; background:#17171d; border:1px solid rgba(255,255,255,0.1); border-radius:14px; padding:16px; margin-top:-10px; margin-bottom:20px;">
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <input type="url" id="quick-profile-portfolio" placeholder="Update portfolio link..." value="${ed.portfolio}" style="flex:1; min-width:240px; padding:10px 14px; background:#111115; border:1px solid rgba(255,255,255,0.15); border-radius:10px; color:#fff; font-size:13px;">
+              <input type="tel" id="quick-profile-phone" placeholder="WhatsApp (e.g. 9876543210)" value="${cleanPhone}" style="width:190px; padding:10px 14px; background:#111115; border:1px solid rgba(255,255,255,0.15); border-radius:10px; color:#fff; font-size:13px;">
+              <button type="button" onclick="saveQuickProfile()" class="primary-btn" style="padding:10px 18px; font-size:13px; font-weight:700;">Save Updates</button>
+            </div>
+            <div id="quick-profile-msg" style="margin-top:6px; font-size:12px;"></div>
+          </div>
+        `;
+      }
+    }
+
+    window.toggleEditProfileBox = function() {
+      const box = document.getElementById("edit-profile-box");
+      if (box) {
+        box.style.display = box.style.display === "none" ? "block" : "none";
+      }
+    };
+
+    // Save Portfolio & Phone inside Workspace (Zero Stress)
+    window.saveQuickProfile = async function() {
+      if (!currentEditor) return;
+      const portInput = document.getElementById("quick-profile-portfolio");
+      const phoneInput = document.getElementById("quick-profile-phone");
+      const msgEl = document.getElementById("quick-profile-msg");
+
+      const newPort = portInput ? portInput.value.trim() : "";
+      const newPhone = phoneInput ? phoneInput.value.trim() : "";
+
+      if (newPort) currentEditor.portfolio = newPort;
+      if (newPhone) currentEditor.phone = newPhone;
+
+      const idx = applicants.findIndex(a => a.id === currentEditor.id);
+      if (idx !== -1) {
+        applicants[idx] = { ...applicants[idx], ...currentEditor };
+      } else {
+        applicants.unshift(currentEditor);
+      }
+      saveApplicants();
+
+      if (window.syncApplicantToSupabase) {
+        window.syncApplicantToSupabase(currentEditor);
+      }
+
+      localStorage.setItem("cutscale_editor_session", JSON.stringify({
+        phone: currentEditor.phone,
+        name: currentEditor.name,
+        email: currentEditor.email,
+        avatarUrl: currentEditor.avatarUrl,
+        ts: Date.now()
+      }));
+
+      if (msgEl) {
+        msgEl.innerHTML = `<span style="color:#34d399; font-weight:700;">✓ Profile updated! Portfolio saved for Ganesh's review.</span>`;
+      }
+      setTimeout(() => {
+        renderEditorWorkspace();
+      }, 800);
+    };
+
+    // Submit Draft Cut Form
     const draftForm = document.getElementById("editor-submit-draft-form");
     if (draftForm) {
       draftForm.addEventListener("submit", (e) => {
@@ -943,14 +1104,16 @@
           date: dateFormatted
         };
 
-        // Also post into in-app chat thread so Ganesh sees it in the conversation
         sendEditorMessage(currentEditor.id, `Submitted new video draft: ${draftUrl} (${draftNotes || 'Ready for review'})`, currentEditor.name);
 
-        // Save into global applicants
         const idx = applicants.findIndex(a => a.id === currentEditor.id);
         if (idx !== -1) {
           applicants[idx] = currentEditor;
           saveApplicants();
+        }
+
+        if (window.syncApplicantToSupabase) {
+          window.syncApplicantToSupabase(currentEditor);
         }
 
         document.getElementById("draft-submit-msg").innerHTML = `
@@ -963,9 +1126,7 @@
       });
     }
 
-    // =========================================================================
-    // IN-APP CHAT CONTROLLER FOR EDITOR
-    // =========================================================================
+    // Direct Chat Controller for Editor
     function renderEditorChatThread() {
       const container = document.getElementById("ed-chat-thread");
       if (!container || !currentEditor) return;

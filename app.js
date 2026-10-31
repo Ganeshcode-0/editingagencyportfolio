@@ -1078,15 +1078,15 @@ function renderApplicantsManager() {
         <div class="applicant-details-grid">
           <div class="applicant-detail-item">
             <strong>Location & Contact</strong>
-            <span>📍 ${app.city} • 📞 ${app.phone}</span>
+            <span>📍 ${app.city || 'Remote'} • 📞 ${app.phone || 'Google Account'}</span>
           </div>
           <div class="applicant-detail-item">
             <strong>Specialization & Tools</strong>
-            <span>🎬 ${app.specialization} (${app.tools})</span>
+            <span>🎬 ${app.specialization || 'Video Editing'} (${app.tools || 'Video Editor'})</span>
           </div>
           <div class="applicant-detail-item">
             <strong>Expected Pay</strong>
-            <span>💰 ${app.rate || 'Negotiable'}</span>
+            <span>💰 ${app.rate || 'Standard / Discuss'}</span>
           </div>
         </div>
 
@@ -1904,8 +1904,8 @@ function performStatusLookup(query) {
     statusBadgeClass = "status-selected";
     alertMessage = `
       <div class="status-msg-box selected">
-        <h5 style="font-weight:700; margin-bottom:4px; font-size:14px;">🎉 Step 4: Welcome to CutScale Media Roster!</h5>
-        <p>Outstanding work, <strong>${match.name}</strong>! You are officially onboarded to the CutScale Media editor roster. We route paying creator and corporate video projects to you with guaranteed project-based or monthly payouts.</p>
+        <h5 style="font-weight:700; margin-bottom:4px; font-size:14px;">🎉 Step 4: Welcome to GanaCuts Visuals Roster!</h5>
+        <p>Outstanding work, <strong>${match.name}</strong>! You are officially onboarded to the GanaCuts Visuals editor roster. We route paying creator and corporate video projects to you with guaranteed project-based or monthly payouts.</p>
       </div>
     `;
   } else if (status === "rejected") {
@@ -1920,7 +1920,7 @@ function performStatusLookup(query) {
   }
 
   const cleanPhone = (match.phone || "").replace(/\D/g, "");
-  const waContactLink = `https://wa.me/917075081947?text=${encodeURIComponent(`Hi Ganesh, I am checking the status of my CutScale editor application (${match.name} - ${cleanPhone}).`)}`;
+  const waContactLink = `https://wa.me/917075081947?text=${encodeURIComponent(`Hi Ganesh, I am checking the status of my GanaCuts Visuals editor application (${match.name} - ${cleanPhone}).`)}`;
 
   resultArea.innerHTML = `
     <div class="status-tracker-card">
@@ -1998,6 +1998,16 @@ function performStatusLookup(query) {
   `;
 }
 
+window.updateModalTools = function() {
+  const container = document.getElementById("modal-tool-pills");
+  if (!container) return;
+  const selected = Array.from(container.querySelectorAll(".tool-pill.selected")).map(p => p.getAttribute("data-tool"));
+  const hiddenInput = document.getElementById("apply-tools");
+  if (hiddenInput) {
+    hiddenInput.value = selected.join(", ") || "Video Editor";
+  }
+};
+
 // DOM Handlers
 document.addEventListener("DOMContentLoaded", () => {
   initData();
@@ -2056,47 +2066,59 @@ document.addEventListener("DOMContentLoaded", () => {
   // Editor Application Submit
   const applyForm = document.getElementById("editor-apply-form");
   if (applyForm) {
-    applyForm.addEventListener("submit", (e) => {
+    applyForm.addEventListener("submit", async (e) => {
       e.preventDefault();
       const name = document.getElementById("apply-name").value.trim();
-      const emailInput = document.getElementById("apply-email");
-      const email = emailInput ? emailInput.value.trim() : "";
       const phone = document.getElementById("apply-phone").value.trim();
-      const city = document.getElementById("apply-city").value.trim();
-      const tools = document.getElementById("apply-tools").value.trim();
       const portfolio = document.getElementById("apply-portfolio").value.trim();
-      const specialization = document.getElementById("apply-specialization").value;
-      const rate = document.getElementById("apply-rate") ? document.getElementById("apply-rate").value.trim() : "";
+      const emailInput = document.getElementById("apply-email");
+      const email = (emailInput ? emailInput.value.trim().toLowerCase() : "") || `${name.toLowerCase().replace(/[^a-z0-9]/g, ".")}@gmail.com`;
+      const toolsInput = document.getElementById("apply-tools");
+      const tools = (toolsInput ? toolsInput.value.trim() : "") || "Premiere Pro, DaVinci Resolve";
+      const city = document.getElementById("apply-city") ? document.getElementById("apply-city").value.trim() : "Remote";
+      const specialization = document.getElementById("apply-specialization") ? document.getElementById("apply-specialization").value : "Video Editing";
+      const rate = document.getElementById("apply-rate") ? document.getElementById("apply-rate").value.trim() : "Standard / Discuss";
       const notes = document.getElementById("apply-notes") ? document.getElementById("apply-notes").value.trim() : "";
+      const password = (document.getElementById("apply-password") ? document.getElementById("apply-password").value.trim() : "1234") || "1234";
 
       const now = new Date();
-      const dateFormatted = now.toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }) + ", " + now.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
+      const dateFormatted = now.toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' });
 
       const newApp = {
         id: "app_" + Date.now(),
         name,
-        email: email || `${name.toLowerCase().replace(/[^a-z0-9]/g, ".")}@gmail.com`,
+        email,
         phone,
-        city,
-        tools,
+        city: city || "Remote",
+        tools: tools || "Video Editor",
         portfolio,
-        specialization,
-        rate,
+        specialization: specialization || "Video Editing",
+        rate: rate || "Standard / Discuss",
         notes,
-        password: (document.getElementById("apply-password") ? document.getElementById("apply-password").value.trim() : "1234") || "1234",
-        adminFeedback: "Application received. Portfolio queued for review.",
+        password: password || "1234",
+        adminFeedback: "Application received. Portfolio queued for review by GanaCuts Visuals.",
         status: "pending",
         appliedAt: dateFormatted
       };
 
       applicants.unshift(newApp);
       saveApplicants();
+
+      // Sync to Supabase cloud immediately
+      if (typeof syncApplicantToSupabase === 'function') {
+        syncApplicantToSupabase(newApp);
+      }
       syncApplicantToGoogleSheet(newApp);
       updateAdminUI();
       applyForm.reset();
 
       // Save editor session
-      localStorage.setItem("cutscale_editor_session", JSON.stringify({ phone: newApp.phone, name: newApp.name, ts: Date.now() }));
+      localStorage.setItem("cutscale_editor_session", JSON.stringify({
+        phone: newApp.phone,
+        name: newApp.name,
+        email: newApp.email,
+        ts: Date.now()
+      }));
 
       // Automatically transition to track tab and immediately display applicant status!
       switchPortalTab('track');
