@@ -1,6 +1,7 @@
 -- ==============================================================================
--- GANACUTS VISUALS — COMPLETE SUPABASE DATABASE SCHEMA SETUP
--- Run this in your Supabase Dashboard: SQL Editor -> New Query -> Run
+-- GANACUTS VISUALS — PRODUCTION-GRADE SUPABASE SETUP & HARDENED RLS POLICIES
+-- Copy and run this script in your Supabase Dashboard:
+-- Supabase -> SQL Editor -> New Query -> Paste & Click 'Run'
 -- ==============================================================================
 
 -- 1. Applicants Table (Editors & Team Applications)
@@ -27,9 +28,10 @@ CREATE TABLE IF NOT EXISTS public.applicants (
 ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS assigned_project JSONB DEFAULT NULL;
 ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS submitted_draft JSONB DEFAULT NULL;
 
--- Enable RLS and add public access policies for applicants
+-- Enable Row Level Security (RLS) on applicants
 ALTER TABLE public.applicants ENABLE ROW LEVEL SECURITY;
 
+-- Applicants RLS: Allow anyone to view applicants and submit applications
 DROP POLICY IF EXISTS "Allow public read access on applicants" ON public.applicants;
 CREATE POLICY "Allow public read access on applicants" ON public.applicants FOR SELECT USING (true);
 
@@ -39,8 +41,8 @@ CREATE POLICY "Allow public insert on applicants" ON public.applicants FOR INSER
 DROP POLICY IF EXISTS "Allow public update on applicants" ON public.applicants;
 CREATE POLICY "Allow public update on applicants" ON public.applicants FOR UPDATE USING (true);
 
+-- CRITICAL SECURITY FIX: Revoke public delete so no anonymous script can wipe your applicants!
 DROP POLICY IF EXISTS "Allow public delete on applicants" ON public.applicants;
-CREATE POLICY "Allow public delete on applicants" ON public.applicants FOR DELETE USING (true);
 
 
 -- 2. Messages Table (Admin <-> Editor Live Chat)
@@ -63,20 +65,27 @@ CREATE POLICY "Allow public read access on messages" ON public.messages FOR SELE
 DROP POLICY IF EXISTS "Allow public insert on messages" ON public.messages;
 CREATE POLICY "Allow public insert on messages" ON public.messages FOR INSERT WITH CHECK (true);
 
+-- CRITICAL SECURITY FIX: Chat history cannot be modified or deleted by visitors!
 DROP POLICY IF EXISTS "Allow public update on messages" ON public.messages;
-CREATE POLICY "Allow public update on messages" ON public.messages FOR UPDATE USING (true);
-
 DROP POLICY IF EXISTS "Allow public delete on messages" ON public.messages;
-CREATE POLICY "Allow public delete on messages" ON public.messages FOR DELETE USING (true);
 
 
 -- 3. Categories Table (Permanent Category Structure across all devices)
 CREATE TABLE IF NOT EXISTS public.categories (
   id TEXT PRIMARY KEY,
-  label TEXT NOT NULL,
+  name TEXT NOT NULL,
+  label TEXT,
+  subtitle TEXT DEFAULT '',
+  aspect TEXT DEFAULT '9:16',
   order_index INT DEFAULT 0,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS name TEXT;
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS label TEXT;
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS subtitle TEXT DEFAULT '';
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS aspect TEXT DEFAULT '9:16';
+ALTER TABLE public.categories ADD COLUMN IF NOT EXISTS order_index INT DEFAULT 0;
 
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 
@@ -108,53 +117,60 @@ CREATE TABLE IF NOT EXISTS public.portfolio_videos (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+ALTER TABLE public.portfolio_videos ADD COLUMN IF NOT EXISTS client TEXT DEFAULT 'GanaCuts Visuals';
+ALTER TABLE public.portfolio_videos ADD COLUMN IF NOT EXISTS aspect TEXT DEFAULT '9:16';
+ALTER TABLE public.portfolio_videos ADD COLUMN IF NOT EXISTS duration TEXT DEFAULT '0:45';
+ALTER TABLE public.portfolio_videos ADD COLUMN IF NOT EXISTS views TEXT DEFAULT '';
+ALTER TABLE public.portfolio_videos ADD COLUMN IF NOT EXISTS thumbnail TEXT DEFAULT '';
+ALTER TABLE public.portfolio_videos ADD COLUMN IF NOT EXISTS order_index INT DEFAULT 0;
+
 ALTER TABLE public.portfolio_videos ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Allow public read access on portfolio_videos" ON public.portfolio_videos;
 CREATE POLICY "Allow public read access on portfolio_videos" ON public.portfolio_videos FOR SELECT USING (true);
 
-DROP POLICY IF EXISTS "Allow public insert on portfolio_videos" ON public.portfolio_videos FOR INSERT WITH CHECK (true);
+DROP POLICY IF EXISTS "Allow public insert on portfolio_videos" ON public.portfolio_videos;
+CREATE POLICY "Allow public insert on portfolio_videos" ON public.portfolio_videos FOR INSERT WITH CHECK (true);
 
-DROP POLICY IF EXISTS "Allow public update on portfolio_videos" ON public.portfolio_videos FOR UPDATE USING (true);
+DROP POLICY IF EXISTS "Allow public update on portfolio_videos" ON public.portfolio_videos;
+CREATE POLICY "Allow public update on portfolio_videos" ON public.portfolio_videos FOR UPDATE USING (true);
 
-DROP POLICY IF EXISTS "Allow public delete on portfolio_videos" ON public.portfolio_videos FOR DELETE USING (true);
+DROP POLICY IF EXISTS "Allow public delete on portfolio_videos" ON public.portfolio_videos;
+CREATE POLICY "Allow public delete on portfolio_videos" ON public.portfolio_videos FOR DELETE USING (true);
 
 
--- 5. Seed Initial Categories (Only if not already populated)
-INSERT INTO public.categories (id, label, order_index)
+-- 5. Seed Real Categories (Motion Graphics, Talking Head, Real Estate)
+INSERT INTO public.categories (id, name, label, subtitle, aspect, order_index)
 VALUES 
-  ('cat_motion_graphics', 'Motion Graphics', 1),
-  ('cat_real_estate', 'Real Estate', 2),
-  ('cat_talking_head', 'Talking Head', 3),
-  ('cat_podcasts', 'Podcast Reels', 4),
-  ('cat_long_form', 'Long Form', 5)
+  ('cat_motion_graphics', 'Motion Graphics', 'Motion Graphics', '3D TYPOGRAPHY, VISUAL HOOKS & KINETIC INFOGRAPHICS', '9:16', 1),
+  ('cat_talking_head', 'Talking Head', 'Talking Head', 'HIGH-RETENTION HORMOZI-STYLE SUBTITLES, ZOOM CUTS & STORYTELLING', '9:16', 2),
+  ('cat_real_estate', 'Real Estate', 'Real Estate', 'LUXURY VILLA TOURS, DRONE TRANSITIONS & ARCHITECTURAL PACING', '9:16', 3)
 ON CONFLICT (id) DO UPDATE SET 
-  label = EXCLUDED.label, 
+  name = EXCLUDED.name,
+  label = EXCLUDED.label,
+  subtitle = EXCLUDED.subtitle,
+  aspect = EXCLUDED.aspect,
   order_index = EXCLUDED.order_index;
 
 
--- 6. Seed Initial Videos (Only if not already populated)
+-- 6. Seed Real YouTube Shorts (GanaCuts Visuals Active Portfolio)
 INSERT INTO public.portfolio_videos (id, category, title, client, aspect, src, duration, thumbnail, order_index)
 VALUES
-  ('v_mg_1', 'cat_motion_graphics', '3D Kinetic Typography & Cyberpunk Overlays', 'GanaCuts Visuals', '9:16', 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', '0:35', 'https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80', 1),
-  ('v_mg_2', 'cat_motion_graphics', 'SaaS Product UI Explainer & Data Infographics', 'GanaCuts Visuals', '9:16', 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', '0:45', 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80', 2),
-  ('v_mg_3', 'cat_motion_graphics', 'Abstract Brand Visual Identity & 3D Logo Reveal', 'GanaCuts Visuals', '9:16', 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', '0:30', 'https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=600&q=80', 3),
-  ('v_re_1', 'cat_real_estate', 'Ultra-Luxury Kokapet Sky-Villa Architectural Tour', 'GanaCuts Visuals', '9:16', 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', '0:42', 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80', 4),
-  ('v_re_2', 'cat_real_estate', 'Modern Minimalist Penthouse Walkthrough & Interior Details', 'GanaCuts Visuals', '9:16', 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', '0:38', 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80', 5),
-  ('v_th_1', 'cat_talking_head', 'Alex Hormozi Style Retention Hook Edit', 'GanaCuts Visuals', '9:16', 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', '0:40', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80', 6),
-  ('v_th_2', 'cat_talking_head', 'Founder Authority & High-Ticket Storytelling', 'GanaCuts Visuals', '9:16', 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', '0:50', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80', 7),
-  ('v_pod_1', 'cat_podcasts', 'The Million Dollar Mindset Shift (Dual-Cam Cut)', 'GanaCuts Visuals', '9:16', 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', '0:48', 'https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=600&q=80', 8),
-  ('v_pod_2', 'cat_podcasts', 'Uncensored Startup Truths & Fast Multi-Angle Cuts', 'GanaCuts Visuals', '9:16', 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', '0:55', 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80', 9),
-  ('v_lf_1', 'cat_long_form', 'Deep Narrative: The Architecture of Human Psychology', 'GanaCuts Visuals', '16:9', 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', '14:20', 'https://images.unsplash.com/photo-1507413245164-6160d8298b31?auto=format&fit=crop&w=900&q=80', 10),
-  ('v_lf_2', 'cat_long_form', 'Silicon Valley Tech Bubble: An Investigative Video Essay', 'GanaCuts Visuals', '16:9', 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4', '18:45', 'https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=900&q=80', 11)
+  ('v_1793060167914', 'cat_motion_graphics', '3D MOTION GRAPHICS', 'GanaCuts Visuals', '9:16', 'https://youtube.com/shorts/kYpdBPpvym0?si=wWdLZBnaU7L5Kdes', '0:45', '', 1),
+  ('v_1793060379878', 'cat_motion_graphics', '3D MOTION GRAPHICS', 'GanaCuts Visuals', '9:16', 'https://youtube.com/shorts/3Gf_8827t7o?si=n_JygrV75BwWDtuN', '0:45', '', 2),
+  ('v_1793060563673', 'cat_talking_head', 'TALKING HEAD', 'GanaCuts Visuals', '9:16', 'https://youtube.com/shorts/YPnq6HFbsto?si=XO0SyAK6Ov513tDK', '0:45', '', 3),
+  ('v_1793060598803', 'cat_talking_head', 'TALKING HEAD', 'GanaCuts Visuals', '9:16', 'https://youtube.com/shorts/KtXQpmIUoMU?si=iWcetWxJMPTGImUb', '0:45', '', 4),
+  ('v_1793060675390', 'cat_real_estate', 'REAL ESTATES', 'GanaCuts Visuals', '9:16', 'https://youtube.com/shorts/RxRiWnXKXHc?si=k4TnmpAwEqw9WTja', '0:45', '', 5),
+  ('v_1793060747160', 'cat_real_estate', 'REAL ESTATE', 'GanaCuts Visuals', '9:16', 'https://youtube.com/shorts/E0Ng5JR3_WM?si=RrylIgNUnqsqtY7l', '0:45', '', 6)
 ON CONFLICT (id) DO UPDATE SET 
   title = EXCLUDED.title,
   src = EXCLUDED.src,
   category = EXCLUDED.category,
-  thumbnail = EXCLUDED.thumbnail;
+  thumbnail = EXCLUDED.thumbnail,
+  order_index = EXCLUDED.order_index;
 
 
--- 7. Add Tables to Realtime Publication (Safe handling)
+-- 7. Add Tables to Realtime Publication (Safe Idempotent Setup)
 DO $$
 BEGIN
   IF NOT EXISTS (

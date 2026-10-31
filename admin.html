@@ -910,13 +910,17 @@
         try {
           const user = JSON.parse(session);
           if (user && user.role === "admin" && (user.email === MASTER_ADMIN_EMAIL || user.email.includes("gani"))) {
-            if (authScreen) authScreen.classList.add("hidden");
-            if (appScreen) appScreen.classList.remove("hidden");
-            const displayEl = document.getElementById("admin-user-display");
-            if (displayEl) displayEl.textContent = `${user.email.split('@')[0]} (Master Admin)`;
-            updateAdminUI();
-            initAdminChat();
-            return;
+            const storedPwd = localStorage.getItem("cutscale_admin_password") || "admin123";
+            const expectedToken = btoa(MASTER_ADMIN_EMAIL + ":" + (user.authProvider || "verified_master") + ":" + storedPwd.slice(0, 3));
+            if (user.token === expectedToken || user.authProvider === "supabase_google" || user.authProvider === "supabase_oauth" || user.authProvider === "google_verified_master") {
+              if (authScreen) authScreen.classList.add("hidden");
+              if (appScreen) appScreen.classList.remove("hidden");
+              const displayEl = document.getElementById("admin-user-display");
+              if (displayEl) displayEl.textContent = "GanaCuts Admin";
+              updateAdminUI();
+              initAdminChat();
+              return;
+            }
           }
         } catch (e) {}
       }
@@ -978,20 +982,22 @@
         }
 
         const storedPwd = localStorage.getItem("cutscale_admin_password") || "admin123";
-        // Allow: Supabase verification, or previously saved password, or default admin123/7075, or any password entered by Ganesh (>=4 chars)
-        const isPwdValid = supaVerified || pwd === storedPwd || pwd === "admin123" || pwd === "7075" || pwd.length >= 4;
+        // Verify against Supabase, stored password, or default admin123/7075
+        const isPwdValid = supaVerified || pwd === storedPwd || pwd === "admin123" || pwd === "7075";
 
         if (isPwdValid) {
           if (pwd && pwd.length >= 4 && pwd !== storedPwd) {
             localStorage.setItem("cutscale_admin_password", pwd);
           }
 
+          const token = btoa(MASTER_ADMIN_EMAIL + ":" + (supaVerified ? "supabase_password" : "verified_master") + ":" + (pwd || storedPwd).slice(0, 3));
           const sessionData = {
             email: MASTER_ADMIN_EMAIL,
             name: "GanaCuts Admin",
             role: "admin",
             avatar: "assets/logo.jpg",
             authProvider: supaVerified ? "supabase_password" : "verified_master",
+            token: token,
             loggedInAt: Date.now()
           };
           localStorage.setItem("cutscale_admin_session", JSON.stringify(sessionData));

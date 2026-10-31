@@ -14,133 +14,70 @@ const DEFAULT_CATEGORIES = [
     order: 1
   },
   {
-    id: "cat_real_estate",
-    name: "Real Estate",
-    subtitle: "LUXURY VILLA TOURS, DRONE TRANSITIONS & ARCHITECTURAL PACING",
-    aspect: "9:16",
-    order: 2
-  },
-  {
     id: "cat_talking_head",
     name: "Talking Head",
     subtitle: "HIGH-RETENTION HORMOZI-STYLE SUBTITLES, ZOOM CUTS & STORYTELLING",
     aspect: "9:16",
-    order: 3
+    order: 2
   },
   {
-    id: "cat_podcasts",
-    name: "Podcast Reels",
-    subtitle: "STUDIO INTERVIEWS, DUAL-SPEAKER SWITCHING & DRAMATIC PACING",
+    id: "cat_real_estate",
+    name: "Real Estate",
+    subtitle: "LUXURY VILLA TOURS, DRONE TRANSITIONS & ARCHITECTURAL PACING",
     aspect: "9:16",
-    order: 4
-  },
-  {
-    id: "cat_long_form",
-    name: "Long Form",
-    subtitle: "DEEP NARRATIVE EXPERIENCES & DOCUMENTARY YOUTUBE EDITS",
-    aspect: "16:9",
-    order: 5
+    order: 3
   }
 ];
 
-// Default Videos
+// Default Real Videos (GanaCuts Visuals Live Portfolio)
 const DEFAULT_VIDEOS = [
-  // 1. Motion Graphics (3 Edits)
   {
-    id: "v_mg_1",
+    id: "v_1793060167914",
     categoryId: "cat_motion_graphics",
-    title: "3D Kinetic Typography & Cyberpunk Overlays",
-    duration: "0:35",
-    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-    thumbnail: "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80"
-  },
-  {
-    id: "v_mg_2",
-    categoryId: "cat_motion_graphics",
-    title: "SaaS Product UI Explainer & Data Infographics",
+    title: "3D MOTION GRAPHICS",
     duration: "0:45",
-    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-    thumbnail: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&w=600&q=80"
+    videoUrl: "https://youtube.com/shorts/kYpdBPpvym0?si=wWdLZBnaU7L5Kdes",
+    thumbnail: ""
   },
   {
-    id: "v_mg_3",
+    id: "v_1793060379878",
     categoryId: "cat_motion_graphics",
-    title: "Abstract Brand Visual Identity & 3D Logo Reveal",
-    duration: "0:30",
-    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-    thumbnail: "https://images.unsplash.com/photo-1634017839464-5c339ebe3cb4?auto=format&fit=crop&w=600&q=80"
-  },
-
-  // 2. Real Estate (2 Edits)
-  {
-    id: "v_re_1",
-    categoryId: "cat_real_estate",
-    title: "Ultra-Luxury Kokapet Sky-Villa Architectural Tour",
-    duration: "0:42",
-    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-    thumbnail: "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&w=600&q=80"
+    title: "3D MOTION GRAPHICS",
+    duration: "0:45",
+    videoUrl: "https://youtube.com/shorts/3Gf_8827t7o?si=n_JygrV75BwWDtuN",
+    thumbnail: ""
   },
   {
-    id: "v_re_2",
-    categoryId: "cat_real_estate",
-    title: "Modern Minimalist Penthouse Walkthrough & Interior Details",
-    duration: "0:38",
-    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-    thumbnail: "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&w=600&q=80"
-  },
-
-  // 3. Talking Head (2 Edits)
-  {
-    id: "v_th_1",
+    id: "v_1793060563673",
     categoryId: "cat_talking_head",
-    title: "Alex Hormozi Style Retention Hook Edit",
-    duration: "0:40",
-    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-    thumbnail: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=600&q=80"
+    title: "TALKING HEAD",
+    duration: "0:45",
+    videoUrl: "https://youtube.com/shorts/YPnq6HFbsto?si=XO0SyAK6Ov513tDK",
+    thumbnail: ""
   },
   {
-    id: "v_th_2",
+    id: "v_1793060598803",
     categoryId: "cat_talking_head",
-    title: "Founder Authority & High-Ticket Storytelling",
-    duration: "0:50",
-    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-    thumbnail: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=600&q=80"
-  },
-
-  // 4. Podcasts (2 Edits)
-  {
-    id: "v_pod_1",
-    categoryId: "cat_podcasts",
-    title: "The Million Dollar Mindset Shift (Dual-Cam Cut)",
-    duration: "0:48",
-    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-    thumbnail: "https://images.unsplash.com/photo-1590602847861-f357a9332bbc?auto=format&fit=crop&w=600&q=80"
+    title: "TALKING HEAD",
+    duration: "0:45",
+    videoUrl: "https://youtube.com/shorts/KtXQpmIUoMU?si=iWcetWxJMPTGImUb",
+    thumbnail: ""
   },
   {
-    id: "v_pod_2",
-    categoryId: "cat_podcasts",
-    title: "Uncensored Startup Truths & Fast Multi-Angle Cuts",
-    duration: "0:55",
-    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-    thumbnail: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=600&q=80"
-  },
-
-  // 5. Long Form (2 Edits)
-  {
-    id: "v_lf_1",
-    categoryId: "cat_long_form",
-    title: "Deep Narrative: The Architecture of Human Psychology",
-    duration: "14:20",
-    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-    thumbnail: "https://images.unsplash.com/photo-1507413245164-6160d8298b31?auto=format&fit=crop&w=900&q=80"
+    id: "v_1793060675390",
+    categoryId: "cat_real_estate",
+    title: "REAL ESTATES",
+    duration: "0:45",
+    videoUrl: "https://youtube.com/shorts/RxRiWnXKXHc?si=k4TnmpAwEqw9WTja",
+    thumbnail: ""
   },
   {
-    id: "v_lf_2",
-    categoryId: "cat_long_form",
-    title: "Silicon Valley Tech Bubble: An Investigative Video Essay",
-    duration: "18:45",
-    videoUrl: "https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4",
-    thumbnail: "https://images.unsplash.com/photo-1492691527719-9d1e07e534b4?auto=format&fit=crop&w=900&q=80"
+    id: "v_1793060747160",
+    categoryId: "cat_real_estate",
+    title: "REAL ESTATE",
+    duration: "0:45",
+    videoUrl: "https://youtube.com/shorts/E0Ng5JR3_WM?si=RrylIgNUnqsqtY7l",
+    thumbnail: ""
   }
 ];
 
@@ -149,8 +86,8 @@ const DEFAULT_APPLICANTS = [];
 
 const DEFAULT_PROFILE = {
   name: "GANACUTS VISUALS",
-  badge: "POST-PRODUCTION & VISUALS",
-  tagline: "High-retention video editing, cinematic color grading, and dynamic motion graphics by <strong>GanaCuts Visuals</strong>. Crafted with <strong>DaVinci Resolve</strong>, <strong>Premiere Pro</strong> & <strong>After Effects</strong>.",
+  badge: "AGENCY TEAM",
+  tagline: "STOP THE SCROLL. KEEP THEM WATCHING.",
   photo: "assets/logo.jpg",
   waUrl: "https://wa.me/917075081947?text=Hi%20Ganesh,%20I%20saw%20your%20portfolio%20on%20GanaCuts%20Visuals%20and%20would%20like%20to%20hire%20you%20for%20a%20video%20editing%20project.",
   instaUrl: "https://www.instagram.com/gana_cuts_visuals?dlrf=aXJlY3lsazhraHl4"
@@ -251,7 +188,10 @@ async function syncAllCategoriesToSupabase() {
       const c = categories[i];
       await globalSupabase.from('categories').upsert({
         id: c.id,
+        name: c.name || c.label,
         label: c.name || c.label,
+        subtitle: c.subtitle || "",
+        aspect: c.aspect || "9:16",
         order_index: c.order || i + 1
       }, { onConflict: 'id' });
     }
@@ -274,6 +214,7 @@ async function syncAllVideosToSupabase() {
         src: v.videoUrl,
         duration: v.duration || "",
         views: v.views || "",
+        thumbnail: v.thumbnail || "",
         order_index: i
       }, { onConflict: 'id' });
     }
@@ -289,7 +230,7 @@ async function fetchSupabaseCategories() {
     if (!error && Array.isArray(data) && data.length > 0) {
       categories = data.map(c => ({
         id: c.id,
-        name: c.label,
+        name: c.name || c.label,
         subtitle: c.subtitle || "HIGH-RETENTION EDITING & PACING",
         aspect: c.aspect || "9:16",
         order: c.order_index
@@ -314,7 +255,7 @@ async function fetchSupabaseVideos() {
         title: v.title,
         duration: v.duration,
         videoUrl: v.src,
-        thumbnail: v.thumbnail || "https://images.unsplash.com/photo-1550745165-9bc0b252726f?auto=format&fit=crop&w=600&q=80"
+        thumbnail: v.thumbnail || ""
       }));
       localStorage.setItem(STORAGE_KEY_VIDS, JSON.stringify(videos));
       if (typeof renderPortfolio === 'function') renderPortfolio();
@@ -428,6 +369,9 @@ async function fetchRemotePortfolioData() {
       }
       if (data && data.profile) {
         profile = { ...DEFAULT_PROFILE, ...data.profile };
+        if (!profile.photo || profile.photo.includes("ganesh.jpg")) {
+          profile.photo = "assets/logo.jpg";
+        }
         localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
         changed = true;
       }
@@ -480,12 +424,40 @@ let currentlyPlayingCardId = null;
 // Initialize Storage
 function initData() {
   const storedCats = localStorage.getItem(STORAGE_KEY_CATS);
-  categories = storedCats ? JSON.parse(storedCats) : [...DEFAULT_CATEGORIES];
-  if (!storedCats) saveCategories();
+  if (storedCats) {
+    try {
+      const parsed = JSON.parse(storedCats);
+      if (parsed.some(c => c.id === 'cat_podcasts' || c.id === 'cat_long_form')) {
+        categories = [...DEFAULT_CATEGORIES];
+        saveCategories();
+      } else {
+        categories = parsed;
+      }
+    } catch (e) {
+      categories = [...DEFAULT_CATEGORIES];
+    }
+  } else {
+    categories = [...DEFAULT_CATEGORIES];
+    saveCategories();
+  }
 
   const storedVids = localStorage.getItem(STORAGE_KEY_VIDS);
-  videos = storedVids ? JSON.parse(storedVids) : [...DEFAULT_VIDEOS];
-  if (!storedVids) saveVideos();
+  if (storedVids) {
+    try {
+      const parsedV = JSON.parse(storedVids);
+      if (parsedV.some(v => v.videoUrl && v.videoUrl.includes('flower.mp4'))) {
+        videos = [...DEFAULT_VIDEOS];
+        saveVideos();
+      } else {
+        videos = parsedV;
+      }
+    } catch (e) {
+      videos = [...DEFAULT_VIDEOS];
+    }
+  } else {
+    videos = [...DEFAULT_VIDEOS];
+    saveVideos();
+  }
 
   const storedProf = localStorage.getItem(STORAGE_KEY_PROF);
   profile = storedProf ? JSON.parse(storedProf) : { ...DEFAULT_PROFILE };
@@ -495,6 +467,9 @@ function initData() {
   if (!profile.name || profile.name === "CUTSCALE MEDIA") {
     profile.name = DEFAULT_PROFILE.name;
     profile.tagline = DEFAULT_PROFILE.tagline;
+  }
+  if (!profile.photo || profile.photo.includes("ganesh.jpg")) {
+    profile.photo = "assets/logo.jpg";
   }
   saveProfile();
 
@@ -649,7 +624,7 @@ function extractYouTubeId(url) {
 function getThumbnail(video) {
   if (video.thumbnail && video.thumbnail.trim() !== "") return video.thumbnail;
   const ytId = extractYouTubeId(video.videoUrl);
-  if (ytId) return `https://img.youtube.com/vi/${ytId}/hqdefault.jpg`;
+  if (ytId) return `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`;
   return "https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?auto=format&fit=crop&w=600&q=80";
 }
 
@@ -826,7 +801,7 @@ function playVideoInCard(id, card) {
       <div class="clean-yt-crop-box">
         <iframe 
           id="yt-player-${id}"
-          src="https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&fs=0&playsinline=1" 
+          src="https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&fs=0&playsinline=1&enablejsapi=1" 
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
           allowfullscreen>
         </iframe>
@@ -841,7 +816,9 @@ function playVideoInCard(id, card) {
           </button>
         </div>
         <div class="video-control-bottom">
-          <span class="playing-badge">▶ Playing</span>
+          <button type="button" class="ctrl-btn" onclick="openCinemaModal('${id}')" style="font-size:11px; padding:5px 9px; gap:5px; display:inline-flex; align-items:center; background:rgba(0,0,0,0.75); border:1px solid rgba(255,255,255,0.2);">
+            <span>🔊 Sound / Cinema</span>
+          </button>
           <a href="${profile.instaUrl || 'https://www.instagram.com/gana_cuts_visuals?dlrf=aXJlY3lsazhraHl4'}" target="_blank" rel="noopener" class="modal-hire-btn insta-modal-btn">
             <span>Hire ↗</span>
           </a>
@@ -1711,10 +1688,20 @@ window.deleteCategory = function(id) {
   const vCount = videos.filter(v => v.categoryId === id).length;
   if (confirm(`Delete category "${cat.name}" and remove its section from the website? (${vCount} video(s) will also be removed)`)) {
     categories = categories.filter(c => c.id !== id);
+    const removedVideos = videos.filter(v => v.categoryId === id);
     videos = videos.filter(v => v.categoryId !== id);
     categories.forEach((c, i) => c.order = i + 1);
     saveCategories();
     saveVideos();
+    if (globalSupabase) {
+      globalSupabase.from('categories').delete().eq('id', id).then(() => {
+        console.log("Category removed from Supabase cloud:", id);
+      }).catch(err => console.warn("Supabase category delete notice:", err));
+      if (removedVideos.length > 0) {
+        const removedIds = removedVideos.map(v => v.id);
+        globalSupabase.from('portfolio_videos').delete().in('id', removedIds).catch(() => {});
+      }
+    }
     renderPortfolio();
   }
 };
@@ -1766,6 +1753,11 @@ window.deleteVideo = function(id) {
   if (confirm("Remove this video from your live portfolio?")) {
     videos = videos.filter(v => v.id !== id);
     saveVideos();
+    if (globalSupabase) {
+      globalSupabase.from('portfolio_videos').delete().eq('id', id).then(() => {
+        console.log("Video removed from Supabase cloud:", id);
+      }).catch(err => console.warn("Supabase video delete notice:", err));
+    }
     renderPortfolio();
   }
 };
