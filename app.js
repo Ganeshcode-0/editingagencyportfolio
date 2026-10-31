@@ -1,3 +1,32 @@
+
+// Universal 1-Click Google Sign-In Handler
+window.handleGoogleSignIn = async function() {
+  const sb = window.supabaseClient || window.globalSupabase;
+  const redirectTarget = window.location.origin + '/editor';
+  if (sb && sb.auth) {
+    try {
+      const { data, error } = await sb.auth.signInWithOAuth({
+        provider: 'google',
+        options: {
+          redirectTo: redirectTarget
+        }
+      });
+      if (!error) return;
+      console.warn("Supabase Google Auth warning:", error);
+    } catch (e) {
+      console.warn("Supabase OAuth error:", e);
+    }
+  }
+  window.location.href = '/editor';
+};
+
+window.toggleModalPhoneLookup = function() {
+  const box = document.getElementById("modal-phone-lookup-box");
+  if (box) {
+    box.style.display = box.style.display === "none" ? "block" : "none";
+  }
+};
+
 /**
  * CUTSCALE MEDIA — Video Editing Agency & Creative Operations Engine
  * Founder: Ganesh

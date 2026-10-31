@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=3.0">
+  <link rel="stylesheet" href="styles.css?v=3.1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body.editor-body {
@@ -129,45 +129,85 @@
        STEP 1: UNIVERSAL 1-CLICK GOOGLE SIGN IN (ZERO FORMS OR EXAMS)
        ====================================================================== -->
   <div id="editor-auth-screen" class="editor-auth-container">
-    <div class="editor-login-card">
+    <div class="editor-login-card" style="max-width: 480px;">
       <img src="assets/logo.jpg" alt="GanaCuts Visuals" class="brand-logo-img admin-logo" style="margin: 0 auto 14px;">
-      <div class="hiring-badge" style="margin-bottom:8px;">CREATIVE TEAM PORTAL</div>
-      <h1 style="font-size:24px; font-weight:800; color:#fff; margin-bottom:8px;">GanaCuts Visuals Team</h1>
-      <p style="font-size:13.5px; color:#a0a0ab; line-height:1.5; margin:0 auto; max-width:380px;">
-        Sign in with Google to enter your creative workspace, submit your editing tools & portfolio, view video assignments, and chat with Ganesh.
-      </p>
 
-      <!-- 1-Click Universal Google Sign In Button -->
-      <button type="button" class="google-hero-btn" id="google-login-btn" onclick="handleGoogleSignIn()">
-        <svg width="20" height="20" viewBox="0 0 24 24">
-          <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
-          <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
-          <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
-          <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-        </svg>
-        <span>Continue with Google</span>
-      </button>
-
-      <div style="font-size:12px; color:#71717a; margin-bottom:16px;">
-        ⚡ Instant 1-Click Access • No password needed
+      <!-- Clean Switcher Tabs: Apply to Team vs Already a Member -->
+      <div class="editor-portal-tabs" style="justify-content:center; margin-bottom: 22px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 12px;">
+        <button type="button" class="portal-tab active" id="auth-tab-apply" onclick="switchAuthTab('apply')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+          <span>Apply to Team</span>
+        </button>
+        <button type="button" class="portal-tab" id="auth-tab-member" onclick="switchAuthTab('member')">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+          <span>Already a Member</span>
+        </button>
       </div>
 
-      <!-- Subtle phone/email fallback toggle -->
-      <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:16px; margin-top:14px;">
-        <button type="button" onclick="togglePhoneLoginBox()" style="background:none; border:none; color:#888894; font-size:12px; text-decoration:underline; cursor:pointer; font-family:inherit;">
-          Signed up with WhatsApp number earlier? Click here
+      <!-- TAB 1: APPLY TO TEAM (ONLY GOOGLE LOGIN - ZERO FORMS) -->
+      <div id="auth-view-apply">
+        <div class="hiring-badge" style="margin-bottom:8px;">CREATIVE TEAM PORTAL</div>
+        <h1 style="font-size:23px; font-weight:800; color:#fff; margin-bottom:8px;">Join GanaCuts Visuals</h1>
+        <p style="font-size:13.5px; color:#a0a0ab; line-height:1.5; margin:0 auto; max-width:380px;">
+          Sign in with Google to enter your creative workspace, submit your editing tools & portfolio, view video assignments, and chat with Ganesh.
+        </p>
+
+        <!-- 1-Click Universal Google Sign In Button -->
+        <button type="button" class="google-hero-btn" id="google-apply-btn" onclick="handleGoogleSignIn()">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+          </svg>
+          <span>Continue with Google</span>
         </button>
 
-        <form id="editor-phone-login-form" style="display:none; margin-top:14px; text-align:left;" onsubmit="handlePhoneLogin(event)">
-          <div class="form-group">
-            <label for="ed-phone-input">Registered WhatsApp or Email</label>
-            <input type="text" id="ed-phone-input" placeholder="e.g. 9876543210 or your email" required>
-          </div>
-          <button type="submit" class="primary-btn full-width" style="padding:10px; font-size:13px;">
-            <span>Enter Workspace ➔</span>
+        <div style="font-size:12px; color:#71717a; margin-bottom:16px;">
+          ⚡ Instant 1-Click Access • No password needed
+        </div>
+      </div>
+
+      <!-- TAB 2: ALREADY A MEMBER (ONLY GOOGLE LOGIN) -->
+      <div id="auth-view-member" style="display:none;">
+        <div class="hiring-badge" style="margin-bottom:8px;">MEMBER SIGN IN</div>
+        <h1 style="font-size:23px; font-weight:800; color:#fff; margin-bottom:8px;">Welcome Back</h1>
+        <p style="font-size:13.5px; color:#a0a0ab; line-height:1.5; margin:0 auto; max-width:380px;">
+          Sign in with your Google account to access your assigned video projects, submit video drafts, and chat with Ganesh.
+        </p>
+
+        <!-- 1-Click Universal Google Sign In Button -->
+        <button type="button" class="google-hero-btn" id="google-login-btn" onclick="handleGoogleSignIn()">
+          <svg width="20" height="20" viewBox="0 0 24 24">
+            <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
+            <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
+            <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
+            <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+          </svg>
+          <span>Continue with Google</span>
+        </button>
+
+        <div style="font-size:12px; color:#71717a; margin-bottom:16px;">
+          ⚡ Instant 1-Click Access • No password needed
+        </div>
+
+        <!-- Subtle phone/email fallback toggle -->
+        <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:16px; margin-top:14px;">
+          <button type="button" onclick="togglePhoneLoginBox()" style="background:none; border:none; color:#888894; font-size:12px; text-decoration:underline; cursor:pointer; font-family:inherit;">
+            Signed up with WhatsApp number earlier? Click here
           </button>
-          <div id="ed-phone-login-error" style="margin-top:8px; font-size:12px; text-align:center;"></div>
-        </form>
+
+          <form id="editor-phone-login-form" style="display:none; margin-top:14px; text-align:left;" onsubmit="handlePhoneLogin(event)">
+            <div class="form-group">
+              <label for="ed-phone-input" style="font-size:12px; color:#a0a0ab;">Registered WhatsApp or Email</label>
+              <input type="text" id="ed-phone-input" placeholder="e.g. 9876543210 or your email" required style="padding:10px; width:100%; box-sizing:border-box;">
+            </div>
+            <button type="submit" class="primary-btn full-width" style="padding:10px; font-size:13px;">
+              <span>Enter Workspace ➔</span>
+            </button>
+            <div id="ed-phone-login-error" style="margin-top:8px; font-size:12px; text-align:center;"></div>
+          </form>
+        </div>
       </div>
 
       <div style="text-align:center; margin-top:24px;">
@@ -324,7 +364,7 @@
     </main>
   </div>
 
-  <script src="app.js?v=3.0"></script>
+  <script src="app.js?v=3.1"></script>
   <script>
     // Streamlined Editor Auth, In-Dashboard Setup & Instagram Messaging Engine
     let currentEditor = null;
@@ -343,90 +383,60 @@
       }
     };
 
-    // Real Google Sign-In with Instant Entry to Dashboard
+    // Switch between Apply to Team and Already a Member
+    window.switchAuthTab = function(tab) {
+      const tabApply = document.getElementById("auth-tab-apply");
+      const tabMember = document.getElementById("auth-tab-member");
+      const viewApply = document.getElementById("auth-view-apply");
+      const viewMember = document.getElementById("auth-view-member");
+      if (!tabApply || !tabMember || !viewApply || !viewMember) return;
+
+      if (tab === 'apply') {
+        tabApply.classList.add("active");
+        tabMember.classList.remove("active");
+        viewApply.style.display = "block";
+        viewMember.style.display = "none";
+      } else {
+        tabMember.classList.add("active");
+        tabApply.classList.remove("active");
+        viewMember.style.display = "block";
+        viewApply.style.display = "none";
+      }
+    };
+
+    // Clean Google Sign-In with Instant OAuth Redirect (No prompt, no questions)
     window.handleGoogleSignIn = async function() {
-      let oauthStarted = false;
-      if (supabaseClient) {
+      const btn = document.getElementById("google-apply-btn") || document.getElementById("google-login-btn");
+      if (btn) {
+        btn.innerHTML = `<span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span> Connecting to Google...`;
+        btn.disabled = true;
+      }
+
+      if (supabaseClient && supabaseClient.auth) {
         try {
-          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1800));
-          const oauthPromise = supabaseClient.auth.signInWithOAuth({
+          const { data, error } = await supabaseClient.auth.signInWithOAuth({
             provider: 'google',
             options: {
               redirectTo: window.location.origin + '/editor'
             }
           });
-          const res = await Promise.race([oauthPromise, timeoutPromise]);
-          if (res && res.error) throw res.error;
-          oauthStarted = true;
-        } catch (err) {
-          console.warn("Supabase Google Auth notice:", err);
-        }
-      }
-
-      // Fast 1-click fallback if OAuth redirect is blocked or local:
-      if (!oauthStarted) {
-        const cleanEmail = (prompt("Enter your Gmail address for 1-click Google Sign-In:", "") || "").trim().toLowerCase();
-        if (!cleanEmail) return;
-
-        if (cleanEmail === "designsbygani@gmail.com") {
-          const adminSession = {
-            email: "designsbygani@gmail.com",
-            name: "GanaCuts Admin",
-            role: "admin",
-            avatar: "assets/logo.jpg",
-            authProvider: "google_verified",
-            loggedInAt: Date.now()
-          };
-          localStorage.setItem("cutscale_admin_session", JSON.stringify(adminSession));
-          alert("✓ Admin account recognized. Redirecting to Admin Studio...");
-          window.location.href = "/admin";
-          return;
-        }
-
-        if (typeof fetchSupabaseApplicants === 'function') {
-          try { await fetchSupabaseApplicants(); } catch(e) {}
-        }
-
-        let match = applicants.find(a => a.email && a.email.toLowerCase() === cleanEmail);
-
-        if (!match) {
-          const autoName = cleanEmail.split('@')[0].replace(/[._-]/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
-          const newApp = {
-            id: "app_" + Date.now(),
-            name: autoName,
-            email: cleanEmail,
-            phone: "",
-            city: "Remote",
-            tools: "Video Editor",
-            otherTools: "",
-            portfolio: "",
-            specialization: "Talking Head",
-            rate: "Standard / Discuss",
-            password: "1234",
-            status: "pending",
-            adminFeedback: "Welcome to GanaCuts Visuals! Please complete your profile above with your editing tools & portfolio.",
-            appliedAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
-            avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(autoName)}`,
-            authProvider: "google"
-          };
-          applicants.unshift(newApp);
-          saveApplicants();
-          if (window.syncApplicantToSupabase) {
-            window.syncApplicantToSupabase(newApp);
+          if (error) {
+            console.error("Supabase Google Auth Error:", error);
+            alert("Google Sign-In notice: " + (error.message || "Could not connect to Google."));
+            if (btn) {
+              btn.innerHTML = `<span>Continue with Google</span>`;
+              btn.disabled = false;
+            }
           }
-          match = newApp;
+          return;
+        } catch (err) {
+          console.error("Supabase Google Auth exception:", err);
+          alert("Could not reach Google Auth. Please check your internet connection.");
+          if (btn) {
+            btn.innerHTML = `<span>Continue with Google</span>`;
+            btn.disabled = false;
+          }
         }
-
-        localStorage.setItem("cutscale_editor_session", JSON.stringify({
-          phone: match.phone,
-          name: match.name,
-          email: match.email,
-          avatarUrl: match.avatarUrl,
-          authProvider: "google",
-          ts: Date.now()
-        }));
-        currentEditor = match;
-        renderEditorWorkspace();
       }
     };
 
@@ -475,6 +485,15 @@
 
     // Initialize Auth state
     async function initEditorAuth() {
+      // Check URL parameters for tab selection or instant auth
+      const urlParams = new URLSearchParams(window.location.search);
+      if (urlParams.get('tab') === 'member') {
+        switchAuthTab('member');
+      }
+      if (urlParams.get('auth') === 'google') {
+        setTimeout(() => handleGoogleSignIn(), 200);
+      }
+
       if (typeof fetchSupabaseApplicants === 'function') {
         try { await fetchSupabaseApplicants(); } catch (e) {}
       }

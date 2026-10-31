@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Space+Grotesk:wght@600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=3.0">
+  <link rel="stylesheet" href="styles.css?v=3.1">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -132,25 +132,15 @@
               <line x1="20" y1="8" x2="20" y2="14"></line>
               <line x1="23" y1="11" x2="17" y2="11"></line>
             </svg>
-            <span>Apply to Join Team</span>
+            <span>Apply to Team</span>
           </button>
           
-          <a href="/editor" class="secondary-btn light-btn" id="hiring-portal-link" style="text-decoration:none;">
-            <svg width="15" height="15" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
-              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
-              <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
-              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-            </svg>
-            <span>Google Sign-In</span>
-          </a>
-
           <button class="secondary-btn light-btn" id="hiring-track-btn">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
             </svg>
-            <span>Check Status</span>
+            <span>Already a Member</span>
           </button>
         </div>
       </div>
@@ -193,133 +183,97 @@
        EDITOR PORTAL MODAL (Apply + Status Tracking Tabs)
        ====================================================================== -->
   <div id="join-modal" class="modal-overlay" aria-hidden="true">
-    <div class="admin-panel-card" style="max-width: 660px;">
+    <div class="admin-panel-card" style="max-width: 580px;">
       <div class="admin-header">
         <div class="admin-header-title">
-          <span class="admin-badge">CREATIVE TEAM ONBOARDING</span>
-          <h2>Work with Ganesh</h2>
+          <span class="admin-badge">CREATIVE ROSTER</span>
+          <h2>Join GanaCuts Visuals</h2>
         </div>
         <button class="modal-close-btn" id="join-close-btn" aria-label="Close">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
       </div>
 
-      <div class="admin-screen">
-        <!-- Switcher Tabs: Apply or Track -->
-        <div class="editor-portal-tabs">
+      <div class="admin-screen" style="padding: 10px 4px 6px;">
+        <!-- Switcher Tabs: Apply to Team vs Already a Member -->
+        <div class="editor-portal-tabs" style="justify-content:center; margin-bottom: 22px;">
           <button class="portal-tab active" id="tab-btn-apply" onclick="switchPortalTab('apply')">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
-            <span>Submit New Application</span>
+            <span>Apply to Team</span>
           </button>
           <button class="portal-tab" id="tab-btn-track" onclick="switchPortalTab('track')">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-            <span>Check Application Status</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+            <span>Already a Member</span>
           </button>
         </div>
 
-        <!-- VIEW 1: APPLY FORM -->
-        <div id="portal-view-apply" class="portal-view active">
-          <!-- Google Sign-Up with Supabase -->
-          <a href="/editor" target="_blank" class="google-auth-btn" style="text-decoration:none;">
-            <svg width="18" height="18" viewBox="0 0 24 24">
-              <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
-              <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
-              <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
-              <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-            </svg>
-            <span>Sign Up with Google (1-Click)</span>
-          </a>
-
-          <div class="auth-divider-row">
-            <span>or submit application manually</span>
-          </div>
-
-          <form id="editor-apply-form" class="admin-form">
-            <div class="form-group">
-              <label for="apply-name">Your Full Name *</label>
-              <input type="text" id="apply-name" placeholder="e.g. Rahul Sharma" required>
-            </div>
-
-            <div class="form-group">
-              <label for="apply-phone">WhatsApp Number *</label>
-              <input type="tel" id="apply-phone" placeholder="e.g. 9876543210 (For project footage & payouts)" required>
-            </div>
-
-            <div class="form-group">
-              <label for="apply-portfolio">Portfolio / Reel Link *</label>
-              <input type="url" id="apply-portfolio" placeholder="Google Drive, Instagram, or YouTube link" required>
-              <small class="field-help">Make sure your Drive or portfolio link has public view access.</small>
-            </div>
-
-            <div class="form-group">
-              <label style="margin-bottom:2px;">Primary Editing Tools <span style="font-weight:400; color:var(--text-secondary);">(Tap what you use)</span></label>
-              <div class="tool-select-pills" id="modal-tool-pills">
-                <div class="tool-pill selected" data-tool="Premiere Pro" onclick="this.classList.toggle('selected'); updateModalTools();">🎬 Premiere Pro</div>
-                <div class="tool-pill selected" data-tool="DaVinci Resolve" onclick="this.classList.toggle('selected'); updateModalTools();">🎨 DaVinci Resolve</div>
-                <div class="tool-pill" data-tool="After Effects" onclick="this.classList.toggle('selected'); updateModalTools();">✨ After Effects</div>
-                <div class="tool-pill" data-tool="CapCut" onclick="this.classList.toggle('selected'); updateModalTools();">⚡ CapCut</div>
-              </div>
-              <input type="hidden" id="apply-tools" value="Premiere Pro, DaVinci Resolve">
-            </div>
-
-            <div class="form-group">
-              <label for="apply-email">Email Address <span style="font-weight:400; color:var(--text-secondary);">(Optional)</span></label>
-              <input type="email" id="apply-email" placeholder="e.g. rahul.edits@gmail.com">
-            </div>
-
-            <button type="submit" class="primary-btn full-width" style="padding:14px; margin-top:8px;">
-              <span>Join GanaCuts Team & Track Status 🚀</span>
-            </button>
-          </form>
-        </div>
-
-        <!-- VIEW 2: TRACK STATUS & EDITOR LOGIN SYSTEM -->
-        <div id="portal-view-track" class="portal-view hidden">
-          <div class="status-lookup-box">
-            <h4>Editor Sign In & Application Status</h4>
-            <p style="font-size:13px; color:var(--text-secondary); margin-bottom:14px;">
-              Log in with your Google account or WhatsApp number to view project assignments, submit video drafts, and track progress.
+        <!-- TAB 1: APPLY TO TEAM (ONLY GOOGLE LOGIN - ZERO FORMS) -->
+        <div id="portal-view-apply" class="portal-view active" style="text-align:center; padding: 10px 14px 24px;">
+          <div style="max-width: 440px; margin: 0 auto;">
+            <div class="hiring-badge" style="margin-bottom: 12px; display:inline-block;">NEW EDITORS WELCOME</div>
+            <h3 style="font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 8px;">Join GanaCuts Visuals Team</h3>
+            <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px;">
+              No stressful forms or questionnaires. Sign in with Google to enter your creative dashboard, pick your editing software, and submit your portfolio directly to Ganesh.
             </p>
 
-            <!-- Google OAuth with Supabase Button -->
-            <a href="/editor" target="_blank" class="google-auth-btn" style="text-decoration:none;">
-              <svg width="18" height="18" viewBox="0 0 24 24">
+            <button type="button" class="google-hero-btn" onclick="handleGoogleSignIn()">
+              <svg width="20" height="20" viewBox="0 0 24 24">
                 <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
                 <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
                 <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
                 <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
               </svg>
               <span>Continue with Google</span>
-            </a>
+            </button>
 
-            <div class="auth-divider-row">
-              <span>or sign in with WhatsApp</span>
+            <div style="font-size: 12px; color: var(--text-muted); margin-top: 10px;">
+              ⚡ Instant 1-Click Access • No password needed
+            </div>
+          </div>
+        </div>
+
+        <!-- TAB 2: ALREADY A MEMBER (ONLY GOOGLE LOGIN) -->
+        <div id="portal-view-track" class="portal-view hidden" style="text-align:center; padding: 10px 14px 24px;">
+          <div style="max-width: 440px; margin: 0 auto;">
+            <div class="hiring-badge" style="margin-bottom: 12px; display:inline-block;">RETURNING MEMBERS</div>
+            <h3 style="font-size: 20px; font-weight: 800; color: #fff; margin-bottom: 8px;">Welcome Back to Workspace</h3>
+            <p style="font-size: 13.5px; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px;">
+              Sign in with your Google account to access your assigned video projects, submit video cuts, and chat directly with Ganesh.
+            </p>
+
+            <button type="button" class="google-hero-btn" onclick="handleGoogleSignIn()">
+              <svg width="20" height="20" viewBox="0 0 24 24">
+                <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
+                <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
+                <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
+                <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
+              </svg>
+              <span>Continue with Google</span>
+            </button>
+
+            <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 16px;">
+              ⚡ Instant 1-Click Access • No password needed
             </div>
 
-            <form id="status-lookup-form" class="lookup-form">
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="lookup-phone">Registered WhatsApp or Email *</label>
-                  <input type="text" id="lookup-phone" placeholder="e.g. 9876543210 or email" required>
-                </div>
-                <div class="form-group">
-                  <label for="lookup-pwd">Access PIN <span style="font-weight:400; color:var(--text-secondary);">(Optional)</span></label>
-                  <input type="password" id="lookup-pwd" placeholder="Leave blank if not set">
-                </div>
+            <!-- Discrete WhatsApp fallback for legacy applicants -->
+            <div style="border-top:1px solid rgba(255,255,255,0.06); padding-top:14px; margin-top:12px;">
+              <button type="button" onclick="toggleModalPhoneLookup()" style="background:none; border:none; color:var(--text-muted); font-size:11.5px; text-decoration:underline; cursor:pointer; font-family:inherit;">
+                Signed up with WhatsApp number earlier? Click here
+              </button>
+              <div id="modal-phone-lookup-box" style="display:none; margin-top:14px; text-align:left;">
+                <form id="status-lookup-form" class="lookup-form" style="padding:14px; background:rgba(0,0,0,0.3); border-radius:12px;">
+                  <div class="form-group" style="margin-bottom:10px;">
+                    <label for="lookup-phone" style="font-size:12px; color:#a0a0ab;">Registered WhatsApp or Email</label>
+                    <input type="text" id="lookup-phone" placeholder="e.g. 9876543210 or email" style="padding:10px; width:100%; box-sizing:border-box;" required>
+                  </div>
+                  <button type="submit" class="primary-btn full-width" style="padding:10px; font-size:12px;">
+                    <span>Check Status ➔</span>
+                  </button>
+                </form>
+                <div id="status-result-area" class="status-result-area" style="margin-top:10px;"></div>
               </div>
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-top:10px; flex-wrap:wrap; gap:8px;">
-                <button type="submit" class="primary-btn">
-                  <span>Check Status & View Workspace</span>
-                </button>
-                <a href="/editor" target="_blank" class="secondary-btn light-btn" style="text-decoration:none; font-size:12px; padding:8px 14px;">
-                  <span>Open Dedicated Editor Portal ↗</span>
-                </a>
-              </div>
-            </form>
+            </div>
           </div>
-
-          <!-- Status Result Card (Rendered Dynamically) -->
-          <div id="status-result-area" class="status-result-area"></div>
         </div>
       </div>
     </div>
@@ -361,6 +315,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=3.0"></script>
+  <script src="app.js?v=3.1"></script>
 </body>
 </html>
