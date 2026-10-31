@@ -134,7 +134,7 @@ async function syncApplicantToSupabase(app) {
       email: app.email,
       phone: app.phone,
       city: app.city || "Remote",
-      tools: app.tools || "",
+      tools: [app.tools, app.otherTools].filter(Boolean).join(", ") || "Video Editor",
       portfolio: app.portfolio || "",
       specialization: app.specialization || "Video Editing",
       rate: app.rate || "Negotiable",
@@ -496,21 +496,31 @@ function initData() {
     try {
       globalSupabase
         .channel('realtime_live_chat')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-          const remote = payload.new;
-          if (remote && !messages.some(m => m.id === remote.id)) {
-            messages.push({
-              id: remote.id,
-              editorId: remote.editor_id,
-              sender: remote.sender,
-              senderName: remote.sender_name,
-              text: remote.text,
-              timestamp: remote.timestamp,
-              timeStr: remote.time_str
-            });
-            localStorage.setItem(STORAGE_KEY_MSGS, JSON.stringify(messages));
-            if (typeof renderAdminChatMessages === 'function') renderAdminChatMessages();
-            if (typeof renderEditorChat === 'function') renderEditorChat();
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'messages' }, payload => {
+          if (payload.eventType === 'INSERT') {
+            const remote = payload.new;
+            if (remote && !messages.some(m => m.id === remote.id)) {
+              messages.push({
+                id: remote.id,
+                editorId: remote.editor_id,
+                sender: remote.sender,
+                senderName: remote.sender_name,
+                text: remote.text,
+                timestamp: remote.timestamp,
+                timeStr: remote.time_str
+              });
+              localStorage.setItem(STORAGE_KEY_MSGS, JSON.stringify(messages));
+              if (typeof renderAdminConversation === 'function') renderAdminConversation();
+              if (typeof renderEditorChatThread === 'function') renderEditorChatThread();
+            }
+          } else if (payload.eventType === 'DELETE') {
+            const deletedId = payload.old?.id;
+            if (deletedId) {
+              messages = messages.filter(m => m.id !== deletedId);
+              localStorage.setItem(STORAGE_KEY_MSGS, JSON.stringify(messages));
+              if (typeof renderAdminConversation === 'function') renderAdminConversation();
+              if (typeof renderEditorChatThread === 'function') renderEditorChatThread();
+            }
           }
         })
         .subscribe();
@@ -562,17 +572,69 @@ function getStoredMessages() {
   return stored ? JSON.parse(stored) : [...DEFAULT_MESSAGES];
 }
 
-function sendAdminMessage(editorId, text) {
+// Parse Instagram-style reply metadata from text payload
+function parseMessageContent(rawText) {
+  if (typeof rawText === "string" && rawText.startsWith('{"replyTo":')) {
+    try {
+      const parsed = JSON.parse(rawText);
+      return {
+        replyTo: parsed.replyTo || null,
+        body: parsed.body || parsed.text || ""
+      };
+    } catch (e) {}
+  }
+  return { replyTo: null, body: rawText || "" };
+}
+
+// Convert direct URLs into clickable link badges (Google Drive, YouTube, Instagram)
+function renderMessageBodyHtml(text) {
+  if (!text) return "";
+  const safe = escapeHtml(text);
+  const urlRegex = /(https?:\/\/[^\s<]+)/gi;
+  return safe.replace(urlRegex, (url) => {
+    let icon = "🔗";
+    let label = "Link";
+    if (url.includes("drive.google.com")) {
+      icon = "📁";
+      label = "Google Drive Link";
+    } else if (url.includes("youtube.com") || url.includes("youtu.be")) {
+      icon = "▶";
+      label = "YouTube Video / Reel";
+    } else if (url.includes("instagram.com")) {
+      icon = "📸";
+      label = "Instagram Reel / Post";
+    } else if (url.includes("canva.com")) {
+      icon = "🎨";
+      label = "Canva Portfolio";
+    }
+    return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="chat-link-badge"><span>${icon} ${label} ↗</span></a>`;
+  });
+}
+
+// Send Admin Message (with optional quoted reply)
+function sendAdminMessage(editorId, text, replyToObj = null) {
   const all = getStoredMessages();
   const now = new Date();
   const timeStr = now.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
+
+  let textPayload = text;
+  if (replyToObj) {
+    textPayload = JSON.stringify({
+      replyTo: {
+        id: replyToObj.id,
+        sender: replyToObj.senderName || replyToObj.sender,
+        text: (replyToObj.body || replyToObj.text || "").slice(0, 120)
+      },
+      body: text
+    });
+  }
 
   const newMsg = {
     id: "msg_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
     editorId,
     sender: "admin",
     senderName: "Ganesh (Admin)",
-    text,
+    text: textPayload,
     timestamp: Date.now(),
     timeStr
   };
@@ -584,17 +646,30 @@ function sendAdminMessage(editorId, text) {
   return newMsg;
 }
 
-function sendEditorMessage(editorId, text, senderName = "Editor") {
+// Send Editor Message (with optional quoted reply)
+function sendEditorMessage(editorId, text, senderName = "Editor", replyToObj = null) {
   const all = getStoredMessages();
   const now = new Date();
   const timeStr = now.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
+
+  let textPayload = text;
+  if (replyToObj) {
+    textPayload = JSON.stringify({
+      replyTo: {
+        id: replyToObj.id,
+        sender: replyToObj.senderName || replyToObj.sender,
+        text: (replyToObj.body || replyToObj.text || "").slice(0, 120)
+      },
+      body: text
+    });
+  }
 
   const newMsg = {
     id: "msg_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
     editorId,
     sender: "editor",
     senderName,
-    text,
+    text: textPayload,
     timestamp: Date.now(),
     timeStr
   };
@@ -606,10 +681,56 @@ function sendEditorMessage(editorId, text, senderName = "Editor") {
   return newMsg;
 }
 
+// Unsend / Delete Message (Instagram Style — removes locally and deletes from Supabase)
+function deleteStoredMessage(msgId) {
+  const all = getStoredMessages();
+  const filtered = all.filter(m => m.id !== msgId);
+  messages = filtered;
+  localStorage.setItem(STORAGE_KEY_MSGS, JSON.stringify(filtered));
+
+  if (globalSupabase) {
+    globalSupabase.from('messages').delete().eq('id', msgId).then(() => {}).catch(() => {});
+  }
+  return filtered;
+}
+
+// Seen / Read Receipt Tracker (Instagram Style)
+function markChatSeen(editorId, viewer) {
+  if (!editorId || !viewer) return;
+  try {
+    localStorage.setItem(`gcv_seen_${editorId}_${viewer}`, Date.now().toString());
+  } catch (e) {}
+}
+
+function getChatSeenTime(editorId, viewer) {
+  if (!editorId || !viewer) return null;
+  try {
+    const val = localStorage.getItem(`gcv_seen_${editorId}_${viewer}`);
+    return val ? parseInt(val, 10) : null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function formatSeenRelativeTime(ts) {
+  if (!ts) return "now";
+  const diffSec = Math.floor((Date.now() - ts) / 1000);
+  if (diffSec < 45) return "just now";
+  if (diffSec < 3600) return `${Math.floor(diffSec / 60)}m ago`;
+  const d = new Date(ts);
+  return d.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
+}
+
 if (typeof window !== "undefined") {
   window.getStoredMessages = getStoredMessages;
+  window.parseMessageContent = parseMessageContent;
+  window.renderMessageBodyHtml = renderMessageBodyHtml;
   window.sendAdminMessage = sendAdminMessage;
   window.sendEditorMessage = sendEditorMessage;
+  window.deleteStoredMessage = deleteStoredMessage;
+  window.markChatSeen = markChatSeen;
+  window.getChatSeenTime = getChatSeenTime;
+  window.formatSeenRelativeTime = formatSeenRelativeTime;
   window.saveApplicants = saveApplicants;
   window.saveStoredMessages = saveStoredMessages;
 }

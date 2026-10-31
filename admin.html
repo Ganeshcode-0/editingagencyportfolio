@@ -606,6 +606,15 @@
                 <button type="button" class="quick-reply-pill" onclick="sendAdminQuickReply('Payout sent to your UPI! Thank you for the quick turnaround.')">Payment Sent 💰</button>
               </div>
 
+              <!-- Instagram-style Replying Quote Preview Bar -->
+              <div class="chat-replying-bar" id="admin-chat-replying-bar" style="display:none;">
+                <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
+                  <span style="color:#fdba74; font-weight:700;">↩ Replying to <span id="admin-reply-sender">Editor</span>:</span>
+                  <span id="admin-reply-preview" style="color:#cbd5e1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:320px;">...</span>
+                </div>
+                <button type="button" class="cancel-reply-btn" onclick="cancelAdminReply()" title="Cancel reply">✕</button>
+              </div>
+
               <form id="admin-chat-input-form" class="chat-input-row" onsubmit="handleAdminSendMessage(event)">
                 <input type="text" id="admin-chat-msg-input" class="chat-input-field" placeholder="Type instruction, feedback or reply to editor..." autocomplete="off">
                 <button type="submit" class="chat-send-btn">
@@ -1132,17 +1141,53 @@
       renderAdminChatUsers();
     };
 
+    let adminPendingReply = null;
+
+    window.setAdminReply = function(msgId, senderName, rawSnippet) {
+      adminPendingReply = { id: msgId, sender: senderName, text: rawSnippet };
+      const bar = document.getElementById("admin-chat-replying-bar");
+      const senderEl = document.getElementById("admin-reply-sender");
+      const prevEl = document.getElementById("admin-reply-preview");
+      if (bar && senderEl && prevEl) {
+        senderEl.textContent = senderName;
+        prevEl.textContent = rawSnippet.length > 50 ? rawSnippet.slice(0, 48) + "..." : rawSnippet;
+        bar.style.display = "flex";
+      }
+      const input = document.getElementById("admin-chat-msg-input");
+      if (input) input.focus();
+    };
+
+    window.cancelAdminReply = function() {
+      adminPendingReply = null;
+      const bar = document.getElementById("admin-chat-replying-bar");
+      if (bar) bar.style.display = "none";
+    };
+
+    window.unsendAdminMsg = function(msgId) {
+      if (!confirm("Unsend this message for everyone?")) return;
+      deleteStoredMessage(msgId);
+      renderAdminConversation();
+      renderAdminChatUsers();
+    };
+
     function renderAdminConversation() {
       const container = document.getElementById("admin-chat-messages-container");
       if (!container || !activeChatEditorId) return;
+
+      // Mark seen by Admin
+      markChatSeen(activeChatEditorId, "admin");
 
       const allMsgs = getStoredMessages();
       const thread = allMsgs.filter(m => m.editorId === activeChatEditorId);
       const app = applicants.find(a => a.id === activeChatEditorId);
 
+      // Check when editor last saw the chat
+      const editorSeenTime = getChatSeenTime(activeChatEditorId, "editor");
+      const lastSentAdminMsg = [...thread].reverse().find(m => m.sender === "admin");
+
       if (thread.length === 0) {
         container.innerHTML = `
-          <div style="text-align:center; padding:32px 20px; color:#888894;">
+          <div style="text-align:center; padding:36px 20px; color:#888894;">
             <p>No messages yet with <strong>${app ? app.name : 'this editor'}</strong>.</p>
             <p style="font-size:12px; margin-top:6px;">Type an instruction or use a quick reply below to start the conversation.</p>
           </div>
@@ -1152,11 +1197,48 @@
 
       container.innerHTML = thread.map(msg => {
         const isSent = msg.sender === "admin";
+        const parsed = parseMessageContent(msg.text);
+        const bodyHtml = renderMessageBodyHtml(parsed.body);
+        const isLastSent = lastSentAdminMsg && lastSentAdminMsg.id === msg.id;
+        const isSeenByEditor = isLastSent && editorSeenTime && editorSeenTime >= msg.timestamp;
+
+        // Escape for JS call in Reply button
+        const safeSnippet = (parsed.body || "").replace(/['"\\]/g, " ").slice(0, 80);
+        const senderLabel = isSent ? "Ganesh (Admin)" : (msg.senderName || (app ? app.name : "Editor"));
+
         return `
-          <div class="chat-msg-row ${isSent ? 'sent' : 'received'}">
-            <span class="chat-msg-sender">${isSent ? 'Ganesh (Admin)' : (msg.senderName || app.name)}</span>
-            <div class="chat-msg-bubble">${msg.text}</div>
+          <div class="chat-msg-row ${isSent ? 'sent' : 'received'}" id="chat-msg-${msg.id}">
+            <span class="chat-msg-sender">${senderLabel}</span>
+            <div class="chat-bubble-wrapper">
+              <!-- Instagram Mini Hover Actions -->
+              <div class="chat-msg-actions">
+                <button type="button" class="chat-action-btn" onclick="setAdminReply('${msg.id}', '${escapeHtml(senderLabel)}', '${escapeHtml(safeSnippet)}')" title="Reply to this message">
+                  <span>↩ Reply</span>
+                </button>
+                ${isSent ? `
+                  <button type="button" class="chat-action-btn unsend" onclick="unsendAdminMsg('${msg.id}')" title="Unsend message">
+                    <span>🗑️ Unsend</span>
+                  </button>
+                ` : ''}
+              </div>
+
+              <div class="chat-msg-bubble">
+                ${parsed.replyTo ? `
+                  <div class="chat-quoted-reply" onclick="document.getElementById('chat-msg-${parsed.replyTo.id}')?.scrollIntoView({ behavior:'smooth', block:'center' })">
+                    <span class="chat-quoted-sender">↩ ${escapeHtml(parsed.replyTo.sender)}</span>
+                    <span class="chat-quoted-text">${escapeHtml(parsed.replyTo.text)}</span>
+                  </div>
+                ` : ''}
+                <div class="chat-bubble-body">${bodyHtml}</div>
+              </div>
+            </div>
             <span class="chat-msg-time">${msg.timeStr}</span>
+            ${isSeenByEditor ? `
+              <div class="chat-seen-status">
+                <span class="seen-badge">✓ Seen</span>
+                <span>${formatSeenRelativeTime(editorSeenTime)}</span>
+              </div>
+            ` : ''}
           </div>
         `;
       }).join("");
@@ -1171,15 +1253,17 @@
       const text = input.value.trim();
       if (!text || !activeChatEditorId) return;
 
-      sendAdminMessage(activeChatEditorId, text);
+      sendAdminMessage(activeChatEditorId, text, adminPendingReply);
       input.value = "";
+      cancelAdminReply();
       renderAdminConversation();
       renderAdminChatUsers();
     };
 
     window.sendAdminQuickReply = function(text) {
       if (!activeChatEditorId) return;
-      sendAdminMessage(activeChatEditorId, text);
+      sendAdminMessage(activeChatEditorId, text, adminPendingReply);
+      cancelAdminReply();
       renderAdminConversation();
       renderAdminChatUsers();
     };

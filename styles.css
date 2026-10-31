@@ -3019,3 +3019,163 @@ body {
   background: var(--accent-orange);
   color: #fff;
 }
+
+/* =========================================================================
+   INSTAGRAM-STYLE DIRECT MESSAGES UI (UNSEND, REPLY, SEEN, CLICKABLE LINKS)
+   ========================================================================= */
+.chat-bubble-wrapper {
+  position: relative;
+  display: inline-block;
+  max-width: 85%;
+}
+
+.chat-msg-row.sent .chat-bubble-wrapper {
+  align-self: flex-end;
+}
+
+.chat-msg-row.received .chat-bubble-wrapper {
+  align-self: flex-start;
+}
+
+.chat-msg-actions {
+  position: absolute;
+  top: -14px;
+  display: none;
+  background: #23232c;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: var(--radius-pill);
+  padding: 2px 6px;
+  gap: 4px;
+  z-index: 20;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.45);
+}
+
+.chat-msg-row.sent .chat-msg-actions {
+  right: 6px;
+}
+
+.chat-msg-row.received .chat-msg-actions {
+  left: 6px;
+}
+
+.chat-bubble-wrapper:hover .chat-msg-actions,
+.chat-msg-actions:hover {
+  display: flex !important;
+}
+
+.chat-action-btn {
+  background: none;
+  border: none;
+  color: #cbd5e1;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 3px 6px;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-family: inherit;
+  transition: var(--transition);
+}
+
+.chat-action-btn:hover {
+  background: rgba(255, 255, 255, 0.15);
+  color: #ffffff;
+}
+
+.chat-action-btn.unsend:hover {
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.15);
+}
+
+.chat-quoted-reply {
+  background: rgba(0, 0, 0, 0.28);
+  border-left: 3px solid rgba(255, 255, 255, 0.6);
+  border-radius: 6px;
+  padding: 6px 10px;
+  margin-bottom: 8px;
+  font-size: 11.5px;
+  cursor: pointer;
+  text-align: left;
+}
+
+.chat-quoted-sender {
+  font-weight: 700;
+  color: #fed7aa;
+  display: block;
+  font-size: 10.5px;
+  margin-bottom: 2px;
+}
+
+.chat-quoted-text {
+  color: rgba(255, 255, 255, 0.85);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  max-width: 280px;
+}
+
+.chat-replying-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1b1b23;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: none;
+  border-radius: 14px 14px 0 0;
+  padding: 8px 14px;
+  font-size: 12px;
+  color: #cbd5e1;
+}
+
+.cancel-reply-btn {
+  background: none;
+  border: none;
+  color: #94a3b8;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 50%;
+  transition: var(--transition);
+}
+
+.cancel-reply-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.chat-link-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255, 255, 255, 0.16);
+  color: #ffffff !important;
+  text-decoration: underline !important;
+  font-weight: 700;
+  padding: 3px 9px;
+  border-radius: 6px;
+  margin: 3px 0;
+  word-break: break-all;
+  transition: var(--transition);
+}
+
+.chat-link-badge:hover {
+  background: rgba(255, 255, 255, 0.3);
+  transform: translateY(-1px);
+}
+
+.chat-seen-status {
+  font-size: 10px;
+  color: #94a3b8;
+  margin-top: 3px;
+  align-self: flex-end;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.chat-seen-status .seen-badge {
+  color: #34d399;
+  font-weight: 700;
+}
