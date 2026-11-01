@@ -2053,9 +2053,14 @@ function performStatusLookup(query) {
     statusBadgeLabel = "✅ Official Agency Roster";
     statusBadgeClass = "status-selected";
     alertMessage = `
-      <div class="status-msg-box selected">
-        <h5 style="font-weight:700; margin-bottom:4px; font-size:14px;">🎉 Step 4: Welcome to GanaCuts Visuals Roster!</h5>
-        <p>Outstanding work, <strong>${match.name}</strong>! You are officially onboarded to the GanaCuts Visuals editor roster. We route paying creator and corporate video projects to you with guaranteed project-based or monthly payouts.</p>
+      <div class="status-msg-box selected" style="border: 1px solid rgba(255, 230, 0, 0.4); background: linear-gradient(135deg, rgba(255, 230, 0, 0.1) 0%, rgba(20, 20, 26, 0.95) 100%);">
+        <h5 style="font-weight:800; margin-bottom:6px; font-size:15px; color:#ffe600;">👑 Step 4: Welcome to GanaCuts Visuals Roster!</h5>
+        <p style="margin-bottom:12px;">Outstanding work, <strong>${match.name}</strong>! You are officially onboarded to the GanaCuts Visuals editor roster. Your personal <strong>Editor Premium Dashboard</strong> is unlocked with active project assignments, motion graphics vaults, and guaranteed UPI settlements.</p>
+        <div>
+          <a href="/editor" class="primary-btn" style="display:inline-flex; align-items:center; gap:8px; padding:10px 20px; font-size:13px; font-weight:700; text-decoration:none; box-shadow:0 0 16px rgba(217,78,40,0.4);">
+            <span>🚀 Enter Editor Premium Dashboard ➔</span>
+          </a>
+        </div>
       </div>
     `;
   } else if (status === "rejected") {

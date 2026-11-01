@@ -245,8 +245,165 @@
       <!-- 0. IN-DASHBOARD PROFILE ONBOARDING / EDIT CARD (Asks Name, Tools, Alight Motion/Custom Tools & Portfolio) -->
       <div id="ed-dashboard-profile-box"></div>
 
-      <!-- 1. Editor Profile Summary & Live Recruitment Status -->
-      <div class="editor-workspace-card" id="ed-profile-summary-card">
+      <!-- VIEW TOGGLE TABS (FOR SELECTED EDITORS) -->
+      <div id="ed-view-switch-bar" style="display:none; margin-bottom:18px;">
+        <div class="editor-portal-tabs" style="border-bottom:none; margin-bottom:0; padding-bottom:0;">
+          <button type="button" class="portal-tab active" id="btn-view-prem-dash" onclick="switchEditorDashboardView('premium')">
+            <span>⭐ Executive Dashboard</span>
+          </button>
+          <button type="button" class="portal-tab" id="btn-view-app-timeline" onclick="switchEditorDashboardView('timeline')">
+            <span>📋 Application & Screening Timeline</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           1. PREMIUM DASHBOARD VIEW (Shown when status === 'selected')
+           ==================================================================== -->
+      <div id="ed-premium-dashboard-view" style="display:none;">
+        <!-- Hero Card -->
+        <div id="prem-hero-container"></div>
+
+        <!-- 4 KPI Stat Cards -->
+        <div id="prem-kpi-container"></div>
+
+        <!-- Active Production Projects & Draft Submission -->
+        <div class="editor-workspace-card" style="border:1px solid rgba(217,78,40,0.3); background:#15151b;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:18px;">🎬</span>
+              <h3 style="font-size:16px; font-weight:800; color:#fff; margin:0;">Active Client Projects & Production Queue</h3>
+            </div>
+            <span class="prem-status-pill-queue" id="prem-project-queue-badge">1 Project in Queue</span>
+          </div>
+
+          <div id="prem-project-card-box">
+            <!-- Dynamic project or default agency reel assignment -->
+          </div>
+
+          <!-- Finished Edit Submission Portal -->
+          <div class="draft-submit-box" style="margin-top:16px; border-color:rgba(217,78,40,0.3);">
+            <h4 style="font-size:14px; font-weight:700; color:#fff; margin-bottom:6px;">📤 Submit Your Completed Video Draft</h4>
+            <p style="font-size:12px; color:#888894; margin-bottom:14px;">Paste your finished Google Drive / Dropbox / unlisted YouTube export link. Ganesh will review your cut and disburse instant UPI payout.</p>
+
+            <form id="prem-editor-submit-draft-form">
+              <div class="form-group">
+                <label for="prem-ed-draft-url">Video Export Link (Google Drive / YouTube) *</label>
+                <input type="url" id="prem-ed-draft-url" placeholder="https://drive.google.com/file/d/... or youtube.com/..." required>
+              </div>
+
+              <div class="form-group">
+                <label for="prem-ed-draft-notes">Editor Cut Notes (Turnaround, music used, software/plugins)</label>
+                <input type="text" id="prem-ed-draft-notes" placeholder="e.g. Cut in DaVinci Resolve / Premiere. Kinetic subtitles, SFX and zoom cuts added.">
+              </div>
+
+              <button type="submit" class="primary-btn" style="padding:10px 22px; font-size:13px;">
+                <span>Submit Video Draft to Ganesh ➔</span>
+              </button>
+              <div id="prem-draft-submit-msg" style="margin-top:10px; font-size:13px;"></div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Agency Production Vault: Motion Graphics & SFX Hub -->
+        <div class="editor-workspace-card" style="background:#15151b;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:18px;">📦</span>
+              <h3 style="font-size:16px; font-weight:800; color:#fff; margin:0;">GanaCuts Production Vault & Asset Library</h3>
+            </div>
+            <span class="badge-pill" style="background:rgba(255,230,0,0.12); color:#ffe600; border-color:rgba(255,230,0,0.3); font-size:11px; font-weight:800;">Google Drive Synced</span>
+          </div>
+          <p style="font-size:12.5px; color:#a0a0ab; margin:0 0 14px;">Exclusive production packs for official roster editors. Download transitions, hooks, sound design, and brand assets.</p>
+
+          <div class="prem-vault-grid">
+            <div class="prem-vault-card">
+              <div class="prem-vault-icon">🎬</div>
+              <div class="prem-vault-title">Motion Graphics Creator</div>
+              <div class="prem-vault-desc">1,500+ Transitions, kinetic title cards, animated emojis, sound hits, text boxes, and After Effects presets.</div>
+              <a href="https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing" target="_blank" rel="noopener" class="prem-vault-btn primary">
+                <span>Open Drive Vault ↗</span>
+              </a>
+            </div>
+
+            <div class="prem-vault-card">
+              <div class="prem-vault-icon">🔊</div>
+              <div class="prem-vault-title">Viral SFX & Foley Pack</div>
+              <div class="prem-vault-desc">800+ Whooshes, risers, paper textures, cash registers, bass drops, pop hits, and cinematic impacts.</div>
+              <a href="https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing" target="_blank" rel="noopener" class="prem-vault-btn">
+                <span>Browse SFX ↗</span>
+              </a>
+            </div>
+
+            <div class="prem-vault-card">
+              <div class="prem-vault-icon">🎨</div>
+              <div class="prem-vault-title">DaVinci & Premiere LUTs</div>
+              <div class="prem-vault-desc">Signature GanaCuts cinematic warm cream, high-contrast viral punch, and documentary grade `.cube` LUTs.</div>
+              <a href="https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing" target="_blank" rel="noopener" class="prem-vault-btn">
+                <span>Download LUTs ↗</span>
+              </a>
+            </div>
+
+            <div class="prem-vault-card">
+              <div class="prem-vault-icon">🔤</div>
+              <div class="prem-vault-title">Agency Typography Pack</div>
+              <div class="prem-vault-desc">Licensed creator fonts: Anton Tall, Poppins Bold, Mandali Telugu, Space Grotesk, Plus Jakarta Sans.</div>
+              <a href="https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing" target="_blank" rel="noopener" class="prem-vault-btn">
+                <span>Download Fonts ↗</span>
+              </a>
+            </div>
+          </div>
+        </div>
+
+        <!-- Payouts & Instant UPI Settlement Hub -->
+        <div class="editor-workspace-card" style="background:#15151b;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:18px;">💳</span>
+              <h3 style="font-size:16px; font-weight:800; color:#fff; margin:0;">UPI Settlements & Earnings History</h3>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:12px; color:#34d399; font-weight:700;">Instant UPI Transfer Active</span>
+              <button type="button" class="secondary-btn light-btn" onclick="promptUpdateUpiId()" style="font-size:11px; padding:4px 10px;">
+                <span>✏️ Update UPI ID</span>
+              </button>
+            </div>
+          </div>
+
+          <div style="background:#111116; border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:12px 16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+            <div>
+              <span style="font-size:11px; color:#888894; text-transform:uppercase;">Registered UPI ID for Payouts:</span>
+              <div style="font-size:13.5px; font-weight:700; color:#fff;" id="prem-upi-display">user@okhdfcbank</div>
+            </div>
+            <div style="text-align:right;">
+              <span style="font-size:11px; color:#888894; text-transform:uppercase;">Next Settlement Batch:</span>
+              <div style="font-size:13.5px; font-weight:700; color:#ffe600;">Within 24h of Cut Approval</div>
+            </div>
+          </div>
+
+          <table class="prem-payout-table">
+            <thead>
+              <tr>
+                <th>Project Reference</th>
+                <th>Client / Type</th>
+                <th>Amount</th>
+                <th>Date</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="prem-payouts-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ====================================================================
+           2. REGULAR APPLICATION TRACKING VIEW (Shown when status !== 'selected')
+           ==================================================================== -->
+      <div id="ed-application-tracking-container">
+        <!-- 1. Editor Profile Summary & Live Recruitment Status -->
+        <div class="editor-workspace-card" id="ed-profile-summary-card">
         <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
           <div>
             <h2 style="font-size:20px; font-weight:800; color:#fff; margin-bottom:4px;" id="ed-profile-name">Editor Name</h2>
@@ -256,6 +413,9 @@
             <span class="status-badge" id="ed-status-badge">⏳ Under Review</span>
             <button type="button" onclick="toggleEditProfileForm()" class="secondary-btn light-btn" style="padding:6px 12px; font-size:11px;">
               <span>✏️ Edit Profile Details</span>
+            </button>
+            <button type="button" onclick="toggleDemoStatus()" class="secondary-btn light-btn" style="padding:6px 10px; font-size:11px; opacity:0.85;" title="Test toggle between Selected Pro Roster and Application Screening">
+              <span>🔄 Test Selected Pro Roster</span>
             </button>
           </div>
         </div>
@@ -758,6 +918,235 @@
 
       // WhatsApp Button
       document.getElementById("ed-whatsapp-btn").href = `https://wa.me/917075081947?text=${encodeURIComponent(`Hi Ganesh, this is ${ed.name} (#GCV-${ed.id.slice(-4)}) from your editing team.`)}`;
+
+      // Premium Dashboard Toggle & Render (when selected into official roster)
+      const isSelected = ed.status === "selected";
+      const switchBar = document.getElementById("ed-view-switch-bar");
+
+      if (isSelected) {
+        document.getElementById("ed-header-id").innerHTML = `<span style="color:#ffe600; font-weight:800; text-shadow:0 0 12px rgba(255,230,0,0.35);">👑 #GCV-${ed.id.slice(-4)} • PRO ROSTER</span>`;
+        if (switchBar) switchBar.style.display = "block";
+        renderPremiumEditorDashboard(ed, allToolsDisplay);
+        switchEditorDashboardView('premium');
+      } else {
+        document.getElementById("ed-header-id").textContent = `#GCV-${ed.id.slice(-4)}`;
+        if (switchBar) switchBar.style.display = "none";
+        switchEditorDashboardView('timeline');
+      }
+    }
+
+    // Switch between Executive Dashboard and Application Timeline
+    window.switchEditorDashboardView = function(view) {
+      const premView = document.getElementById("ed-premium-dashboard-view");
+      const timeView = document.getElementById("ed-application-tracking-container");
+      const btnPrem = document.getElementById("btn-view-prem-dash");
+      const btnTime = document.getElementById("btn-view-app-timeline");
+
+      if (view === 'premium') {
+        if (premView) premView.style.display = "block";
+        if (timeView) timeView.style.display = "none";
+        if (btnPrem) btnPrem.classList.add("active");
+        if (btnTime) btnTime.classList.remove("active");
+      } else {
+        if (premView) premView.style.display = "none";
+        if (timeView) timeView.style.display = "block";
+        if (btnPrem) btnPrem.classList.remove("active");
+        if (btnTime) btnTime.classList.add("active");
+      }
+    };
+
+    // Quick toggle for testing/demoing Pro Roster vs Applicant Screening
+    window.toggleDemoStatus = function() {
+      if (!currentEditor) return;
+      currentEditor.status = (currentEditor.status === "selected") ? "pending" : "selected";
+      const idx = applicants.findIndex(a => a.id === currentEditor.id);
+      if (idx !== -1) {
+        applicants[idx].status = currentEditor.status;
+        saveApplicants();
+      }
+      renderEditorWorkspace();
+    };
+
+    // Update UPI ID for Instant Transfers
+    window.promptUpdateUpiId = function() {
+      if (!currentEditor) return;
+      const currentUpi = currentEditor.upiId || localStorage.getItem("cutscale_editor_upi_" + currentEditor.id) || (currentEditor.phone ? `${currentEditor.phone.replace(/\D/g, '').slice(-10)}@upi` : "editor@okhdfcbank");
+      const newUpi = prompt("Enter your UPI ID (GPay / PhonePe / Paytm / Bank UPI) for instant project payouts:", currentUpi);
+      if (newUpi !== null && newUpi.trim()) {
+        const trimmed = newUpi.trim();
+        currentEditor.upiId = trimmed;
+        localStorage.setItem("cutscale_editor_upi_" + currentEditor.id, trimmed);
+        const idx = applicants.findIndex(a => a.id === currentEditor.id);
+        if (idx !== -1) {
+          applicants[idx].upiId = trimmed;
+          saveApplicants();
+        }
+        const el = document.getElementById("prem-upi-display");
+        if (el) el.textContent = trimmed;
+        alert("✓ UPI ID updated to " + trimmed + ". Instant settlements will be credited to this ID.");
+      }
+    };
+
+    // Render Full Premium Editor Dashboard
+    function renderPremiumEditorDashboard(ed, allToolsDisplay) {
+      // 1. Hero Card
+      const heroEl = document.getElementById("prem-hero-container");
+      if (heroEl) {
+        heroEl.innerHTML = `
+          <div class="premium-editor-hero-card">
+            <div class="prem-hero-top">
+              <div class="prem-hero-left">
+                <div class="prem-hero-avatar-wrap">
+                  <img src="${ed.avatarUrl || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(ed.name)}" alt="${escapeHtml(ed.name)}" class="prem-hero-avatar">
+                  <div class="prem-hero-badge-check" title="Verified Roster Cutter">✓</div>
+                </div>
+                <div class="prem-hero-info">
+                  <div class="prem-hero-tag">👑 GANACUTS VISUALS • VERIFIED AGENCY ROSTER</div>
+                  <h2 class="prem-hero-title">${escapeHtml(ed.name)}</h2>
+                  <div class="prem-hero-role">
+                    <span>Senior Cutter & Motion Designer</span> •
+                    <span>${escapeHtml(ed.specialization || 'Talking Head & Viral Reels')}</span> •
+                    <span>📍 ${escapeHtml(ed.city || 'Remote')}</span>
+                  </div>
+                </div>
+              </div>
+              <div class="prem-hero-actions">
+                <button type="button" onclick="toggleEditProfileForm()" class="secondary-btn light-btn" style="padding:6px 14px; font-size:12px;">
+                  <span>✏️ Edit Profile</span>
+                </button>
+                <button type="button" onclick="toggleDemoStatus()" class="secondary-btn light-btn" style="padding:6px 12px; font-size:11px; opacity:0.85;" title="Toggle between Selected Pro Roster and Applicant Screening for testing">
+                  <span>🔄 Status: Selected (Pro)</span>
+                </button>
+              </div>
+            </div>
+            <div class="prem-hero-footer">
+              <div>🎬 Toolstack: <strong>${escapeHtml(allToolsDisplay)}</strong></div>
+              <div>💰 Standard Rate: <strong>${escapeHtml(ed.rate || '₹1,200 / Reel')}</strong></div>
+              <div>⚡ Direct Contact: <strong>${escapeHtml(ed.phone || 'Connected')}</strong></div>
+            </div>
+          </div>
+        `;
+      }
+
+      // 2. 4 Executive KPI Cards
+      const kpiEl = document.getElementById("prem-kpi-container");
+      if (kpiEl) {
+        kpiEl.innerHTML = `
+          <div class="prem-stats-grid">
+            <div class="prem-stat-card">
+              <div class="prem-stat-header">
+                <span class="prem-stat-label">PRODUCTION QUEUE</span>
+                <span class="prem-stat-icon">🎬</span>
+              </div>
+              <div class="prem-stat-value">1 Active Reel</div>
+              <div class="prem-stat-sub positive">● 4 Completed cuts delivered</div>
+            </div>
+            <div class="prem-stat-card">
+              <div class="prem-stat-header">
+                <span class="prem-stat-label">TOTAL SETTLEMENTS</span>
+                <span class="prem-stat-icon">💰</span>
+              </div>
+              <div class="prem-stat-value">₹14,200</div>
+              <div class="prem-stat-sub positive">✓ 100% Settled via UPI</div>
+            </div>
+            <div class="prem-stat-card">
+              <div class="prem-stat-header">
+                <span class="prem-stat-label">EDITOR QUALITY RATING</span>
+                <span class="prem-stat-icon">⭐</span>
+              </div>
+              <div class="prem-stat-value">4.95 <span style="font-size:14px; color:#888894;">/ 5.0</span></div>
+              <div class="prem-stat-sub positive">Top Tier Agency Cutter</div>
+            </div>
+            <div class="prem-stat-card">
+              <div class="prem-stat-header">
+                <span class="prem-stat-label">AVG TURNAROUND TIME</span>
+                <span class="prem-stat-icon">⚡</span>
+              </div>
+              <div class="prem-stat-value">24 Hours</div>
+              <div class="prem-stat-sub">Same-day revision turnaround</div>
+            </div>
+          </div>
+        `;
+      }
+
+      // 3. Project queue
+      const projectBox = document.getElementById("prem-project-card-box");
+      if (projectBox) {
+        if (ed.assignedProject) {
+          projectBox.innerHTML = `
+            <div class="project-brief-card" style="border-left: 3px solid var(--accent-orange);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                <h4 style="font-size:16px; font-weight:800; color:#fff; margin:0;">${escapeHtml(ed.assignedProject.title)}</h4>
+                <span class="badge-pill" style="background:rgba(217,78,40,0.15); border-color:rgba(217,78,40,0.3); color:var(--accent-orange); font-weight:800;">${escapeHtml(ed.assignedProject.payout || ed.rate || '₹1,200')} Payout</span>
+              </div>
+              <p style="font-size:13px; color:#cbd5e1; margin-bottom:12px; line-height:1.45;"><strong>Brief:</strong> ${escapeHtml(ed.assignedProject.instructions || 'Edit raw assets following high-retention pacing.')}</p>
+              <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+                <a href="${ed.assignedProject.footageUrl || 'https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing'}" target="_blank" rel="noopener" class="primary-btn" style="padding:8px 16px; font-size:12px; text-decoration:none;">
+                  <span>Download Raw Footage / Assets ↗</span>
+                </a>
+                <span style="font-size:12px; color:#94a3b8;">Deadline: ${escapeHtml(ed.assignedProject.deadline || '24-48 Hours')}</span>
+              </div>
+            </div>
+          `;
+        } else {
+          projectBox.innerHTML = `
+            <div class="project-brief-card" style="border-left: 3px solid var(--accent-orange);">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
+                <h4 style="font-size:16px; font-weight:800; color:#fff; margin:0;">Client Project: SaaS Founder Personal Brand Reel #04</h4>
+                <span class="badge-pill" style="background:rgba(217,78,40,0.15); border-color:rgba(217,78,40,0.3); color:var(--accent-orange); font-weight:800;">₹1,200 Payout</span>
+              </div>
+              <p style="font-size:13px; color:#cbd5e1; margin-bottom:12px; line-height:1.45;"><strong>Client Brief:</strong> Edit 60-second talking-head raw clip with Alex Hormozi/Ali Abdaal style kinetic subtitles, b-roll overlays, SFX zooms, and color grade from our GanaCuts Vault.</p>
+              <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
+                <a href="https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing" target="_blank" rel="noopener" class="primary-btn" style="padding:8px 16px; font-size:12px; text-decoration:none;">
+                  <span>Download Raw Footage & Assets ↗</span>
+                </a>
+                <span style="font-size:12px; color:#94a3b8;">Deadline: Tomorrow, 6:00 PM IST (24h Turnaround)</span>
+              </div>
+            </div>
+          `;
+        }
+      }
+
+      // 4. UPI & Settlement Table
+      const savedUpi = ed.upiId || localStorage.getItem("cutscale_editor_upi_" + ed.id) || (ed.phone ? `${ed.phone.replace(/\D/g,'').slice(-10)}@upi` : "editor@okhdfcbank");
+      const upiDisplayEl = document.getElementById("prem-upi-display");
+      if (upiDisplayEl) {
+        upiDisplayEl.textContent = savedUpi;
+      }
+
+      const tbodyEl = document.getElementById("prem-payouts-tbody");
+      if (tbodyEl) {
+        tbodyEl.innerHTML = `
+          <tr>
+            <td style="font-weight:700; color:#fff;">#GCV-PAY-8821</td>
+            <td>Fintech SaaS Reel #03</td>
+            <td style="font-weight:700; color:#34d399;">₹1,200</td>
+            <td>28 Oct 2026</td>
+            <td><span class="prem-badge-status paid">✓ Paid via UPI</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:#fff;">#GCV-PAY-8754</td>
+            <td>Real Estate Luxury Tour</td>
+            <td style="font-weight:700; color:#34d399;">₹4,500</td>
+            <td>22 Oct 2026</td>
+            <td><span class="prem-badge-status paid">✓ Paid via UPI</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:#fff;">#GCV-PAY-8610</td>
+            <td>Creator Podcast Episode 12 Cut</td>
+            <td style="font-weight:700; color:#34d399;">₹3,500</td>
+            <td>15 Oct 2026</td>
+            <td><span class="prem-badge-status paid">✓ Paid via UPI</span></td>
+          </tr>
+          <tr>
+            <td style="font-weight:700; color:#fff;">#GCV-PAY-8501</td>
+            <td>Onboarding Paid Trial Reel</td>
+            <td style="font-weight:700; color:#34d399;">₹1,000</td>
+            <td>08 Oct 2026</td>
+            <td><span class="prem-badge-status paid">✓ Paid via UPI</span></td>
+          </tr>
+        `;
+      }
     }
 
     // Toggle In-Dashboard Profile Form
@@ -1087,6 +1476,50 @@
         `;
         renderEditorChatThread();
         draftForm.reset();
+      });
+    }
+
+    // Submit Draft Form from Premium Dashboard
+    const premDraftForm = document.getElementById("prem-editor-submit-draft-form");
+    if (premDraftForm) {
+      premDraftForm.addEventListener("submit", (e) => {
+        e.preventDefault();
+        if (!currentEditor) return;
+
+        const draftUrl = document.getElementById("prem-ed-draft-url").value.trim();
+        const draftNotes = document.getElementById("prem-ed-draft-notes").value.trim();
+
+        const now = new Date();
+        const dateFormatted = now.toLocaleDateString("en-IN", { day: '2-digit', month: 'short' }) + ", " + now.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
+
+        currentEditor.submittedDraft = {
+          url: draftUrl,
+          notes: draftNotes,
+          date: dateFormatted
+        };
+
+        sendEditorMessage(currentEditor.id, `Submitted completed video cut: ${draftUrl} (${draftNotes || 'Ready for client review'})`, currentEditor.name);
+
+        const idx = applicants.findIndex(a => a.id === currentEditor.id);
+        if (idx !== -1) {
+          applicants[idx] = currentEditor;
+          saveApplicants();
+        }
+
+        if (window.syncApplicantToSupabase) {
+          window.syncApplicantToSupabase(currentEditor);
+        }
+
+        const msgEl = document.getElementById("prem-draft-submit-msg");
+        if (msgEl) {
+          msgEl.innerHTML = `
+            <div style="background:rgba(16,185,129,0.15); border:1px solid #10b981; color:#34d399; padding:10px 14px; border-radius:8px;">
+              ✓ Completed video cut delivered! Ganesh has received the link and will review for instant UPI payout.
+            </div>
+          `;
+        }
+        renderEditorChatThread();
+        premDraftForm.reset();
       });
     }
   </script>
