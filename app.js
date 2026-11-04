@@ -130,6 +130,7 @@ const STORAGE_KEY_CATS = "cutscale_cats_v6";
 const STORAGE_KEY_VIDS = "cutscale_vids_v6";
 const STORAGE_KEY_PROF = "ganacuts_prof_v2";
 const STORAGE_KEY_APPS = "cutscale_apps_v6";
+const STORAGE_KEY_TRASH_APPS = "cutscale_trash_apps_v1";
 const STORAGE_KEY_MSGS = "cutscale_msgs_v1";
 const ADMIN_PIN = "7075";
 
@@ -301,8 +302,10 @@ async function fetchSupabaseApplicants() {
     const { data, error } = await globalSupabase.from('applicants').select('*');
     if (!error && Array.isArray(data) && data.length > 0) {
       data.forEach(remote => {
-        // Skip any legacy fake accounts
+        // Skip any legacy fake accounts or items in trash bin
         if (remote.id === 'app_1' || remote.id === 'app_2' || remote.id === 'app_3') return;
+        if (typeof trashApplicants !== 'undefined' && Array.isArray(trashApplicants) && trashApplicants.some(t => t.id === remote.id)) return;
+
         const localIdx = applicants.findIndex(a => a.id === remote.id || (remote.email && a.email && a.email.toLowerCase() === remote.email.toLowerCase()));
         const mapped = {
           id: remote.id,
@@ -322,7 +325,10 @@ async function fetchSupabaseApplicants() {
           submittedDraft: remote.submitted_draft || remote.submittedDraft || null
         };
         if (localIdx >= 0) {
-          applicants[localIdx] = { ...applicants[localIdx], ...mapped };
+          const local = applicants[localIdx];
+          // Preserve locally selected / hired status against stale remote pending
+          const preservedStatus = (local.status === 'selected' && remote.status !== 'selected') ? local.status : (remote.status || local.status);
+          applicants[localIdx] = { ...local, ...mapped, status: preservedStatus };
         } else {
           applicants.push(mapped);
         }
@@ -446,6 +452,7 @@ if (typeof window !== "undefined") {
 let categories = [];
 let videos = [];
 let applicants = [];
+let trashApplicants = [];
 let messages = [];
 let profile = { ...DEFAULT_PROFILE };
 let currentlyPlayingCardId = null;
@@ -507,6 +514,10 @@ function initData() {
   // Purge any legacy fake applicants (Suresh, Arjun, Kavya)
   applicants = applicants.filter(a => a && a.id !== "app_1" && a.id !== "app_2" && a.id !== "app_3");
   localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
+
+  const storedTrash = localStorage.getItem(STORAGE_KEY_TRASH_APPS);
+  trashApplicants = storedTrash ? JSON.parse(storedTrash) : [];
+  localStorage.setItem(STORAGE_KEY_TRASH_APPS, JSON.stringify(trashApplicants));
 
   const storedMsgs = localStorage.getItem(STORAGE_KEY_MSGS);
   messages = storedMsgs ? JSON.parse(storedMsgs) : [...DEFAULT_MESSAGES];
@@ -1183,6 +1194,9 @@ function updateAdminUI() {
   renderVideosManager();
   renderApplicantsManager();
   renderAgencySheet();
+  safeSetText("dash-trash-badge", (trashApplicants || []).length);
+  safeSetText("trash-total-count", (trashApplicants || []).length);
+  if (typeof renderTrashManager === 'function') renderTrashManager();
 }
 
 // Render Applicants Roster in Admin Studio
@@ -1297,7 +1311,7 @@ function renderApplicantsManager() {
               <option value="selected" ${app.status === 'selected' ? 'selected' : ''}>✅ Selected / Hired</option>
               <option value="rejected" ${app.status === 'rejected' ? 'selected' : ''}>❌ Rejected</option>
             </select>
-            <button class="delete-btn" onclick="deleteApplicant('${app.id}')">Delete</button>
+            <button class="delete-btn" onclick="moveApplicantToTrash('${app.id}')" title="Move to Recycle Bin">Delete</button>
           </div>
         </div>
       </div>
@@ -1316,7 +1330,7 @@ function escapeHtml(str) {
 }
 
 // Update Applicant Status
-window.updateApplicantStatus = function(id, newStatus) {
+window.updateApplicantStatus = async function(id, newStatus) {
   const app = applicants.find(a => a.id === id);
   if (app) {
     app.status = newStatus;
@@ -1327,6 +1341,10 @@ window.updateApplicantStatus = function(id, newStatus) {
     }
     saveApplicants();
     updateAdminUI();
+    if (window.syncApplicantToSupabase) {
+      await window.syncApplicantToSupabase(app);
+    }
+    showToast(`✓ ${app.name} updated to "${newStatus === 'selected' ? 'Selected & Hired' : newStatus}"!`);
   }
 };
 
@@ -1351,7 +1369,7 @@ window.handleSheetSearch = function(query) {
   renderAgencySheet(currentSheetFilter, currentSheetSearch);
 };
 
-window.updateApplicantStatusFromSheet = function(id, newStatus) {
+window.updateApplicantStatusFromSheet = async function(id, newStatus) {
   const app = applicants.find(a => a.id === id);
   if (app) {
     app.status = newStatus;
@@ -1362,6 +1380,10 @@ window.updateApplicantStatusFromSheet = function(id, newStatus) {
     }
     saveApplicants();
     updateAdminUI();
+    if (window.syncApplicantToSupabase) {
+      await window.syncApplicantToSupabase(app);
+    }
+    showToast(`✓ ${app.name} updated to "${newStatus === 'selected' ? 'Selected & Hired' : newStatus}"!`);
   }
 };
 
@@ -1464,12 +1486,15 @@ window.renderAgencySheet = function(filter = currentSheetFilter, searchQuery = c
         </td>
         <td style="font-size:11px; color:#a1a1aa;">${escapeHtml(app.appliedAt || "Recent")}</td>
         <td>
-          <div style="display:flex; gap:6px;">
+          <div style="display:flex; gap:6px; align-items:center;">
             <button type="button" class="quick-reply-pill" onclick="openChatWithEditor('${app.id}')" title="Chat directly in Admin Studio" style="padding:4px 8px; font-size:11px;">
               Chat 💬
             </button>
             <button type="button" class="quick-reply-pill" onclick="assignProjectToEditor('${app.id}')" title="Assign project to this editor" style="padding:4px 8px; font-size:11px; background:rgba(59,130,246,0.15); color:#60a5fa; border-color:rgba(59,130,246,0.3);">
               Task +
+            </button>
+            <button type="button" class="delete-btn" onclick="moveApplicantToTrash('${app.id}')" title="Move to Recycle Bin" style="padding:4px 8px; font-size:11px;">
+              🗑️
             </button>
           </div>
         </td>
@@ -1729,12 +1754,169 @@ window.saveApplicantFeedback = function(id) {
   }
 };
 
-window.deleteApplicant = function(id) {
-  if (confirm("Remove this applicant from the agency roster?")) {
-    applicants = applicants.filter(a => a.id !== id);
-    saveApplicants();
-    updateAdminUI();
+// Save Trash Applicants
+function saveTrashApplicants() {
+  localStorage.setItem(STORAGE_KEY_TRASH_APPS, JSON.stringify(trashApplicants));
+}
+
+// Global Clean Toast Notification
+function showToast(msg, duration = 3200) {
+  let toast = document.getElementById("gcv-global-toast");
+  if (!toast) {
+    toast = document.createElement("div");
+    toast.id = "gcv-global-toast";
+    toast.style.cssText = "position:fixed; bottom:24px; right:24px; background:#18181c; border:1px solid #10b981; color:#fff; padding:12px 20px; border-radius:10px; font-size:13px; font-weight:600; box-shadow:0 10px 30px rgba(0,0,0,0.6); z-index:99999; display:flex; align-items:center; gap:8px; transition:opacity 0.3s, transform 0.3s; opacity:0; transform:translateY(10px); pointer-events:none;";
+    document.body.appendChild(toast);
   }
+  toast.innerHTML = msg;
+  toast.style.opacity = "1";
+  toast.style.transform = "translateY(0)";
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(10px)";
+  }, duration);
+}
+
+// Move Applicant to Recycle Bin (Trash)
+window.moveApplicantToTrash = async function(id) {
+  const app = applicants.find(a => a.id === id);
+  if (!app) return;
+  if (!confirm(`Move "${app.name}" to Recycle Bin? You can restore their complete details anytime from the Recycle Bin tab.`)) return;
+
+  const trashItem = {
+    ...app,
+    deletedAt: new Date().toLocaleString(),
+    previousStatus: app.status || "pending"
+  };
+  trashApplicants.unshift(trashItem);
+  saveTrashApplicants();
+
+  applicants = applicants.filter(a => a.id !== id);
+  saveApplicants();
+
+  if (globalSupabase) {
+    try {
+      await globalSupabase.from('applicants').delete().eq('id', id);
+    } catch (e) {
+      console.warn("Supabase trash delete notice:", e);
+    }
+  }
+
+  updateAdminUI();
+  showToast(`🗑️ "${app.name}" moved to Recycle Bin.`);
+};
+
+window.deleteApplicant = window.moveApplicantToTrash;
+
+// Restore Applicant from Recycle Bin back to active roster
+window.restoreApplicantFromTrash = async function(id) {
+  const itemIndex = trashApplicants.findIndex(t => t.id === id);
+  if (itemIndex === -1) return;
+
+  const item = trashApplicants[itemIndex];
+  trashApplicants.splice(itemIndex, 1);
+  saveTrashApplicants();
+
+  const restoredApp = {
+    ...item,
+    status: item.previousStatus || "pending"
+  };
+  delete restoredApp.deletedAt;
+  delete restoredApp.previousStatus;
+
+  applicants.unshift(restoredApp);
+  saveApplicants();
+
+  if (window.syncApplicantToSupabase) {
+    await window.syncApplicantToSupabase(restoredApp);
+  }
+
+  updateAdminUI();
+  showToast(`♻️ "${restoredApp.name}" restored to active roster!`);
+};
+
+// Permanently delete applicant from Recycle Bin
+window.permanentlyDeleteApplicant = function(id) {
+  const item = trashApplicants.find(t => t.id === id);
+  const name = item ? item.name : "this editor";
+  if (!confirm(`Permanently delete ${name} from Recycle Bin? This action cannot be undone.`)) return;
+
+  trashApplicants = trashApplicants.filter(t => t.id !== id);
+  saveTrashApplicants();
+  updateAdminUI();
+  showToast(`Editor permanently deleted.`);
+};
+
+// Empty entire Recycle Bin
+window.emptyTrashBin = function() {
+  if (trashApplicants.length === 0) {
+    alert("Recycle Bin is already empty.");
+    return;
+  }
+  if (!confirm(`Permanently empty entire Recycle Bin (${trashApplicants.length} editors)? This cannot be undone.`)) return;
+
+  trashApplicants = [];
+  saveTrashApplicants();
+  updateAdminUI();
+  showToast(`Recycle Bin emptied.`);
+};
+
+// Render Recycle Bin Manager View
+window.renderTrashManager = function() {
+  const listEl = document.getElementById("trash-manage-list");
+  safeSetText("dash-trash-badge", trashApplicants.length);
+  safeSetText("trash-total-count", trashApplicants.length);
+  if (!listEl) return;
+
+  if (trashApplicants.length === 0) {
+    listEl.innerHTML = `
+      <div class="empty-cat-box" style="padding:40px 20px; text-align:center;">
+        <div style="font-size:32px; margin-bottom:8px;">🗑️</div>
+        <h4 style="color:#fff; font-size:16px; margin-bottom:6px;">Recycle Bin is Empty</h4>
+        <p style="color:#888894; font-size:13px; max-width:440px; margin:0 auto;">When you delete members from the spreadsheet or editor roster, their complete details are safely held here for quick recovery.</p>
+      </div>
+    `;
+    return;
+  }
+
+  listEl.innerHTML = `
+    <div style="display:flex; flex-direction:column; gap:12px;">
+      ${trashApplicants.map(app => `
+        <div class="applicant-card" style="border-left: 3px solid #ef4444; background:#18181c; opacity:0.95;">
+          <div class="applicant-top-bar">
+            <div class="applicant-name-group">
+              <span class="applicant-name" style="color:#fff;">${escapeHtml(app.name)}</span>
+              <span class="status-badge" style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3);">Deleted: ${escapeHtml(app.deletedAt || 'Recent')}</span>
+              <span style="font-size:11px; color:#888;">Prev Status: <strong>${escapeHtml(app.previousStatus || 'pending')}</strong></span>
+            </div>
+            <div style="display:flex; gap:8px;">
+              <button type="button" class="primary-btn" onclick="restoreApplicantFromTrash('${app.id}')" style="padding:6px 14px; font-size:12px; background:#10b981; border-color:#10b981;">
+                ♻️ Restore to Active Roster
+              </button>
+              <button type="button" class="delete-btn" onclick="permanentlyDeleteApplicant('${app.id}')" style="padding:6px 12px; font-size:12px;">
+                ✕ Erase
+              </button>
+            </div>
+          </div>
+          <div class="applicant-details-grid" style="margin-top:10px;">
+            <div class="applicant-detail-item">
+              <strong>Contact</strong>
+              <span>📞 ${escapeHtml(app.phone || 'N/A')} • ✉️ ${escapeHtml(app.email || 'N/A')} • 📍 ${escapeHtml(app.city || 'Remote')}</span>
+            </div>
+            <div class="applicant-detail-item">
+              <strong>Tools & Styles</strong>
+              <span>🎬 ${escapeHtml(app.specialization || 'Video Editing')} (${escapeHtml(app.tools || 'Tools')})</span>
+            </div>
+            <div class="applicant-detail-item">
+              <strong>Rate & Portfolio</strong>
+              <span>💰 ${escapeHtml(app.rate || 'Standard')} • <a href="${escapeHtml(app.portfolio || '#')}" target="_blank" rel="noopener" style="color:#60a5fa;">Link ↗</a></span>
+            </div>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+  `;
 };
 
 // Category Manager (List, Reorder, Edit, Delete)

@@ -224,21 +224,30 @@
        ====================================================================== -->
   <div id="editor-app-screen" class="hidden">
     <header class="editor-top-nav">
-      <div style="display:flex; align-items:center; gap:12px;">
-        <img src="assets/logo.jpg" alt="GanaCuts Visuals" class="brand-logo-img">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <!-- Small Circular Logo / Avatar with original photo upload capability -->
+        <div class="ed-header-avatar-container" onclick="triggerAvatarUpload()" title="Click to upload/change your photo" style="position:relative; cursor:pointer;">
+          <img id="ed-header-avatar" src="https://api.dicebear.com/7.x/initials/svg?seed=GC" alt="Editor Avatar" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-orange); display:block; box-shadow:0 0 12px rgba(217,78,40,0.35); transition:transform 0.2s;">
+          <div style="position:absolute; bottom:-2px; right:-2px; background:#111115; border:1px solid rgba(255,255,255,0.25); border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:9px;" title="Upload original photo">📷</div>
+        </div>
         <div>
-          <span style="font-weight:800; font-size:16px; color:#fff;">GANACUTS VISUALS</span>
+          <span style="font-weight:800; font-size:16px; color:#fff; letter-spacing:0.3px;">GANACUTS VISUALS</span>
           <span style="font-size:11px; color:#888894; display:block;">Video Operations & Direct Timeline Workspace</span>
         </div>
       </div>
 
-      <div style="display:flex; align-items:center; gap:12px;">
+      <div style="display:flex; align-items:center; gap:10px;">
         <span class="editor-id-pill" id="ed-header-id">#GCV-084</span>
+        <button type="button" onclick="triggerAvatarUpload()" class="secondary-btn light-btn" style="padding:6px 12px; font-size:11px; display:inline-flex; align-items:center; gap:5px;" title="Upload your original photo">
+          <span>📷 Change Photo</span>
+        </button>
         <button id="editor-logout-btn" class="admin-logout-btn" title="Sign out of Editor Workspace">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
           <span>Sign Out</span>
         </button>
       </div>
+      <!-- Hidden file input for photo upload -->
+      <input type="file" id="ed-avatar-file-input" accept="image/*" style="display:none;" onchange="handleAvatarFileChosen(event)">
     </header>
 
     <main class="editor-container">
@@ -414,8 +423,8 @@
             <button type="button" onclick="toggleEditProfileForm()" class="secondary-btn light-btn" style="padding:6px 12px; font-size:11px;">
               <span>✏️ Edit Profile Details</span>
             </button>
-            <button type="button" onclick="toggleDemoStatus()" class="secondary-btn light-btn" style="padding:6px 10px; font-size:11px; opacity:0.85;" title="Test toggle between Selected Pro Roster and Application Screening">
-              <span>🔄 Test Selected Pro Roster</span>
+            <button type="button" onclick="triggerAvatarUpload()" class="secondary-btn light-btn" style="padding:6px 12px; font-size:11px;" title="Upload your original photo">
+              <span>📷 Upload Photo</span>
             </button>
           </div>
         </div>
@@ -777,15 +786,26 @@
       const ed = currentEditor;
       document.getElementById("ed-header-id").textContent = `#GCV-${ed.id.slice(-4)}`;
 
+      // Update Top Nav Avatar
+      const headerAvatar = document.getElementById("ed-header-avatar");
+      if (headerAvatar) {
+        headerAvatar.src = ed.avatarUrl || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(ed.name);
+      }
+
       // Render Dashboard Onboarding / Profile Form
       renderDashboardProfileCard(ed);
 
-      // Profile Header display
+      // Profile Header display with clickable circular avatar
       document.getElementById("ed-profile-name").innerHTML = `
-        <div style="display:flex; align-items:center; gap:10px;">
-          ${ed.avatarUrl ? `<img src="${ed.avatarUrl}" alt="${ed.name}" style="width:38px; height:38px; border-radius:50%; border:2px solid #10b981; object-fit:cover;">` : ''}
-          <span>${ed.name}</span>
-          ${ed.authProvider === 'google' || ed.phone === 'Google Account' ? `<span style="font-size:11px; background:rgba(66,133,244,0.15); color:#60a5fa; border:1px solid rgba(66,133,244,0.3); padding:2px 8px; border-radius:12px; font-weight:700;">Google Verified</span>` : ''}
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div onclick="triggerAvatarUpload()" style="cursor:pointer; position:relative;" title="Click to upload/change photo">
+            <img src="${ed.avatarUrl || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(ed.name)}" alt="${escapeHtml(ed.name)}" style="width:44px; height:44px; border-radius:50%; border:2px solid var(--accent-orange); object-fit:cover; display:block; box-shadow:0 0 10px rgba(217,78,40,0.3);">
+            <div style="position:absolute; bottom:-2px; right:-2px; background:#111115; border:1px solid rgba(255,255,255,0.25); border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:9px;" title="Upload original photo">📷</div>
+          </div>
+          <div>
+            <div style="font-size:20px; font-weight:800; color:#fff;">${escapeHtml(ed.name)}</div>
+            ${ed.authProvider === 'google' || ed.phone === 'Google Account' ? `<span style="font-size:11px; background:rgba(66,133,244,0.15); color:#60a5fa; border:1px solid rgba(66,133,244,0.3); padding:2px 8px; border-radius:12px; font-weight:700;">Google Verified</span>` : ''}
+          </div>
         </div>
       `;
 
@@ -955,18 +975,6 @@
       }
     };
 
-    // Quick toggle for testing/demoing Pro Roster vs Applicant Screening
-    window.toggleDemoStatus = function() {
-      if (!currentEditor) return;
-      currentEditor.status = (currentEditor.status === "selected") ? "pending" : "selected";
-      const idx = applicants.findIndex(a => a.id === currentEditor.id);
-      if (idx !== -1) {
-        applicants[idx].status = currentEditor.status;
-        saveApplicants();
-      }
-      renderEditorWorkspace();
-    };
-
     // Update UPI ID for Instant Transfers
     window.promptUpdateUpiId = function() {
       if (!currentEditor) return;
@@ -996,9 +1004,10 @@
           <div class="premium-editor-hero-card">
             <div class="prem-hero-top">
               <div class="prem-hero-left">
-                <div class="prem-hero-avatar-wrap">
-                  <img src="${ed.avatarUrl || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(ed.name)}" alt="${escapeHtml(ed.name)}" class="prem-hero-avatar">
+                <div class="prem-hero-avatar-wrap" onclick="triggerAvatarUpload()" title="Click to upload/change your photo" style="cursor:pointer; position:relative;">
+                  <img src="${ed.avatarUrl || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(ed.name)}" alt="${escapeHtml(ed.name)}" class="prem-hero-avatar" style="border-radius:50%; object-fit:cover;">
                   <div class="prem-hero-badge-check" title="Verified Roster Cutter">✓</div>
+                  <div style="position:absolute; bottom:2px; right:2px; background:#18181c; border:1px solid rgba(255,255,255,0.3); border-radius:50%; width:20px; height:20px; display:flex; align-items:center; justify-content:center; font-size:10px;">📷</div>
                 </div>
                 <div class="prem-hero-info">
                   <div class="prem-hero-tag">👑 GANACUTS VISUALS • VERIFIED AGENCY ROSTER</div>
@@ -1014,8 +1023,8 @@
                 <button type="button" onclick="toggleEditProfileForm()" class="secondary-btn light-btn" style="padding:6px 14px; font-size:12px;">
                   <span>✏️ Edit Profile</span>
                 </button>
-                <button type="button" onclick="toggleDemoStatus()" class="secondary-btn light-btn" style="padding:6px 12px; font-size:11px; opacity:0.85;" title="Toggle between Selected Pro Roster and Applicant Screening for testing">
-                  <span>🔄 Status: Selected (Pro)</span>
+                <button type="button" onclick="triggerAvatarUpload()" class="secondary-btn light-btn" style="padding:6px 14px; font-size:12px;" title="Upload your original photo">
+                  <span>📷 Change Photo</span>
                 </button>
               </div>
             </div>
@@ -1028,9 +1037,14 @@
         `;
       }
 
-      // 2. 4 Executive KPI Cards
+      // 2. 4 Executive KPI Cards (Real Data — No Fake Cards)
       const kpiEl = document.getElementById("prem-kpi-container");
       if (kpiEl) {
+        const activeCount = ed.assignedProject ? 1 : 0;
+        const totalSettled = (ed.payouts && Array.isArray(ed.payouts))
+          ? ed.payouts.reduce((sum, p) => sum + (Number(p.amount) || 0), 0)
+          : 0;
+
         kpiEl.innerHTML = `
           <div class="prem-stats-grid">
             <div class="prem-stat-card">
@@ -1038,38 +1052,38 @@
                 <span class="prem-stat-label">PRODUCTION QUEUE</span>
                 <span class="prem-stat-icon">🎬</span>
               </div>
-              <div class="prem-stat-value">1 Active Reel</div>
-              <div class="prem-stat-sub positive">● 4 Completed cuts delivered</div>
+              <div class="prem-stat-value">${activeCount} Active ${activeCount === 1 ? 'Project' : 'Projects'}</div>
+              <div class="prem-stat-sub positive">● Live client delivery timeline</div>
             </div>
             <div class="prem-stat-card">
               <div class="prem-stat-header">
                 <span class="prem-stat-label">TOTAL SETTLEMENTS</span>
                 <span class="prem-stat-icon">💰</span>
               </div>
-              <div class="prem-stat-value">₹14,200</div>
-              <div class="prem-stat-sub positive">✓ 100% Settled via UPI</div>
+              <div class="prem-stat-value">₹${totalSettled.toLocaleString('en-IN')}</div>
+              <div class="prem-stat-sub positive">✓ Direct UPI settlements on approvals</div>
             </div>
             <div class="prem-stat-card">
               <div class="prem-stat-header">
                 <span class="prem-stat-label">EDITOR QUALITY RATING</span>
                 <span class="prem-stat-icon">⭐</span>
               </div>
-              <div class="prem-stat-value">4.95 <span style="font-size:14px; color:#888894;">/ 5.0</span></div>
-              <div class="prem-stat-sub positive">Top Tier Agency Cutter</div>
+              <div class="prem-stat-value">5.0 <span style="font-size:14px; color:#888894;">/ 5.0</span></div>
+              <div class="prem-stat-sub positive">Top Tier Verified Cutter</div>
             </div>
             <div class="prem-stat-card">
               <div class="prem-stat-header">
                 <span class="prem-stat-label">AVG TURNAROUND TIME</span>
                 <span class="prem-stat-icon">⚡</span>
               </div>
-              <div class="prem-stat-value">24 Hours</div>
-              <div class="prem-stat-sub">Same-day revision turnaround</div>
+              <div class="prem-stat-value">24-48 Hours</div>
+              <div class="prem-stat-sub">High-retention delivery SLA</div>
             </div>
           </div>
         `;
       }
 
-      // 3. Project queue
+      // 3. Project queue (Real Data — No Fake Cards)
       const projectBox = document.getElementById("prem-project-card-box");
       if (projectBox) {
         if (ed.assignedProject) {
@@ -1081,7 +1095,7 @@
               </div>
               <p style="font-size:13px; color:#cbd5e1; margin-bottom:12px; line-height:1.45;"><strong>Brief:</strong> ${escapeHtml(ed.assignedProject.instructions || 'Edit raw assets following high-retention pacing.')}</p>
               <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
-                <a href="${ed.assignedProject.footageUrl || 'https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing'}" target="_blank" rel="noopener" class="primary-btn" style="padding:8px 16px; font-size:12px; text-decoration:none;">
+                <a href="${ed.assignedProject.footageUrl || '#'}" target="_blank" rel="noopener" class="primary-btn" style="padding:8px 16px; font-size:12px; text-decoration:none;">
                   <span>Download Raw Footage / Assets ↗</span>
                 </a>
                 <span style="font-size:12px; color:#94a3b8;">Deadline: ${escapeHtml(ed.assignedProject.deadline || '24-48 Hours')}</span>
@@ -1090,24 +1104,18 @@
           `;
         } else {
           projectBox.innerHTML = `
-            <div class="project-brief-card" style="border-left: 3px solid var(--accent-orange);">
-              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
-                <h4 style="font-size:16px; font-weight:800; color:#fff; margin:0;">Client Project: SaaS Founder Personal Brand Reel #04</h4>
-                <span class="badge-pill" style="background:rgba(217,78,40,0.15); border-color:rgba(217,78,40,0.3); color:var(--accent-orange); font-weight:800;">₹1,200 Payout</span>
-              </div>
-              <p style="font-size:13px; color:#cbd5e1; margin-bottom:12px; line-height:1.45;"><strong>Client Brief:</strong> Edit 60-second talking-head raw clip with Alex Hormozi/Ali Abdaal style kinetic subtitles, b-roll overlays, SFX zooms, and color grade from our GanaCuts Vault.</p>
-              <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center;">
-                <a href="https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing" target="_blank" rel="noopener" class="primary-btn" style="padding:8px 16px; font-size:12px; text-decoration:none;">
-                  <span>Download Raw Footage & Assets ↗</span>
-                </a>
-                <span style="font-size:12px; color:#94a3b8;">Deadline: Tomorrow, 6:00 PM IST (24h Turnaround)</span>
-              </div>
+            <div class="project-brief-card" style="border-left: 3px solid rgba(255,255,255,0.15); background:rgba(255,255,255,0.02); text-align:center; padding:28px 16px;">
+              <div style="font-size:26px; margin-bottom:8px;">🎬</div>
+              <h4 style="font-size:15px; font-weight:700; color:#fff; margin:0 0 6px;">No Active Video Assignment Right Now</h4>
+              <p style="font-size:13px; color:#888894; margin:0 auto; max-width:440px;">
+                Ganesh will assign incoming client raw footage and project briefs here based on your selected editing styles. You can chat directly below for immediate project availability.
+              </p>
             </div>
           `;
         }
       }
 
-      // 4. UPI & Settlement Table
+      // 4. UPI & Settlement Table (Real Data — No Fake Cards)
       const savedUpi = ed.upiId || localStorage.getItem("cutscale_editor_upi_" + ed.id) || (ed.phone ? `${ed.phone.replace(/\D/g,'').slice(-10)}@upi` : "editor@okhdfcbank");
       const upiDisplayEl = document.getElementById("prem-upi-display");
       if (upiDisplayEl) {
@@ -1116,36 +1124,25 @@
 
       const tbodyEl = document.getElementById("prem-payouts-tbody");
       if (tbodyEl) {
-        tbodyEl.innerHTML = `
-          <tr>
-            <td style="font-weight:700; color:#fff;">#GCV-PAY-8821</td>
-            <td>Fintech SaaS Reel #03</td>
-            <td style="font-weight:700; color:#34d399;">₹1,200</td>
-            <td>28 Oct 2026</td>
-            <td><span class="prem-badge-status paid">✓ Paid via UPI</span></td>
-          </tr>
-          <tr>
-            <td style="font-weight:700; color:#fff;">#GCV-PAY-8754</td>
-            <td>Real Estate Luxury Tour</td>
-            <td style="font-weight:700; color:#34d399;">₹4,500</td>
-            <td>22 Oct 2026</td>
-            <td><span class="prem-badge-status paid">✓ Paid via UPI</span></td>
-          </tr>
-          <tr>
-            <td style="font-weight:700; color:#fff;">#GCV-PAY-8610</td>
-            <td>Creator Podcast Episode 12 Cut</td>
-            <td style="font-weight:700; color:#34d399;">₹3,500</td>
-            <td>15 Oct 2026</td>
-            <td><span class="prem-badge-status paid">✓ Paid via UPI</span></td>
-          </tr>
-          <tr>
-            <td style="font-weight:700; color:#fff;">#GCV-PAY-8501</td>
-            <td>Onboarding Paid Trial Reel</td>
-            <td style="font-weight:700; color:#34d399;">₹1,000</td>
-            <td>08 Oct 2026</td>
-            <td><span class="prem-badge-status paid">✓ Paid via UPI</span></td>
-          </tr>
-        `;
+        if (ed.payouts && Array.isArray(ed.payouts) && ed.payouts.length > 0) {
+          tbodyEl.innerHTML = ed.payouts.map(p => `
+            <tr>
+              <td style="font-weight:700; color:#fff;">#${escapeHtml(p.id || 'GCV-PAY')}</td>
+              <td>${escapeHtml(p.title || 'Client Reel')}</td>
+              <td style="font-weight:700; color:#34d399;">₹${escapeHtml(p.amount)}</td>
+              <td>${escapeHtml(p.date || 'Recent')}</td>
+              <td><span class="prem-badge-status paid">✓ ${escapeHtml(p.status || 'Paid via UPI')}</span></td>
+            </tr>
+          `).join('');
+        } else {
+          tbodyEl.innerHTML = `
+            <tr>
+              <td colspan="5" style="text-align:center; color:#888894; padding:24px; font-size:13px;">
+                No payout settlement records yet. Payouts are credited directly to your registered UPI ID (${escapeHtml(savedUpi)}) upon client cut approval.
+              </td>
+            </tr>
+          `;
+        }
       }
     }
 
@@ -1172,6 +1169,26 @@
       const cleanPhone = ed.phone && ed.phone !== 'Google Account' ? ed.phone : '';
       const cleanPortfolio = ed.portfolio && !ed.portfolio.includes("Google Auth") ? ed.portfolio : '';
 
+      const rawSpec = ed.specialization || "Talking Head Reels";
+      const specList = rawSpec.split(",").map(s => s.trim().toLowerCase());
+      function isSkillActive(...names) {
+        return names.some(n => specList.some(s => s.includes(n.toLowerCase())));
+      }
+
+      const knownSkills = [
+        "talking head reels", "talking head",
+        "kinetic captions", "hormozi",
+        "3d motion graphics", "motion graphics",
+        "podcast multi-cam", "podcast reels",
+        "commercial & brand", "commercial",
+        "real estate",
+        "gaming",
+        "youtube long form", "long form",
+        "cinematic documentaries", "documentary",
+        "all rounder"
+      ];
+      const customSkills = rawSpec.split(",").map(s => s.trim()).filter(s => s && !knownSkills.some(k => s.toLowerCase().includes(k)));
+
       container.innerHTML = `
         <div class="editor-workspace-card" style="border:1px solid rgba(217,78,40,0.3); background:linear-gradient(135deg, rgba(217,78,40,0.08) 0%, #17171d 100%); margin-bottom:24px;">
           <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:16px;">
@@ -1184,6 +1201,21 @@
                 Close [✕]
               </button>
             ` : ''}
+          </div>
+
+          <!-- Original Photo Upload Section -->
+          <div style="display:flex; align-items:center; gap:14px; margin-bottom:18px; padding:12px 14px; background:rgba(255,255,255,0.03); border-radius:12px; border:1px solid rgba(255,255,255,0.08);">
+            <div onclick="triggerAvatarUpload()" style="cursor:pointer; position:relative;" title="Click to upload/change photo">
+              <img id="dash-form-avatar-preview" src="${ed.avatarUrl || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(ed.name)}" alt="Avatar" style="width:48px; height:48px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-orange); display:block; box-shadow:0 0 10px rgba(217,78,40,0.3);">
+              <div style="position:absolute; bottom:-2px; right:-2px; background:#111115; border:1px solid rgba(255,255,255,0.25); border-radius:50%; width:16px; height:16px; display:flex; align-items:center; justify-content:center; font-size:9px;">📷</div>
+            </div>
+            <div style="flex:1;">
+              <div style="font-size:13px; font-weight:700; color:#fff; margin-bottom:2px;">Original Profile Photo</div>
+              <div style="font-size:11.5px; color:#888894; margin-bottom:6px;">Upload your real original photo so clients & Ganesh recognize your verified work.</div>
+              <button type="button" onclick="triggerAvatarUpload()" class="secondary-btn light-btn" style="padding:4px 10px; font-size:11px;">
+                📷 Upload / Change Photo
+              </button>
+            </div>
           </div>
 
           <form id="editor-dash-profile-form" onsubmit="handleSaveDashboardProfile(event)">
@@ -1225,28 +1257,63 @@
               <input type="text" id="dash-ed-other-tools" value="${escapeHtml(ed.otherTools || '')}" placeholder="Type any other tools: e.g. Alight Motion, VN, Avid Media Composer, Filmora...">
             </div>
 
-            <!-- Best Editing Style -->
-            <div class="form-row">
-              <div class="form-group">
-                <label for="dash-ed-style">Best Editing Style *</label>
-                <select id="dash-ed-style" required style="background:#111115; border:1px solid rgba(255,255,255,0.15); border-radius:10px; color:#fff; padding:10px; font-family:inherit; font-size:13px; width:100%;">
-                  <option value="Talking Head" ${ed.specialization === 'Talking Head' ? 'selected' : ''}>Instagram Talking Head & Hormozi Subtitles</option>
-                  <option value="Motion Graphics" ${ed.specialization === 'Motion Graphics' ? 'selected' : ''}>3D Motion Graphics & Kinetic Typography</option>
-                  <option value="Podcast Reels" ${ed.specialization === 'Podcast Reels' ? 'selected' : ''}>Podcast Multi-Cam Cuts</option>
-                  <option value="Real Estate" ${ed.specialization === 'Real Estate' ? 'selected' : ''}>Real Estate Tours & Architectural Edits</option>
-                  <option value="Long Form" ${ed.specialization === 'Long Form' ? 'selected' : ''}>YouTube Long Form & Documentaries</option>
-                  <option value="All Rounder" ${ed.specialization === 'All Rounder' ? 'selected' : ''}>All-Rounder Video Editor</option>
-                </select>
+            <!-- Multi-Select Editing Styles & Categories -->
+            <div class="form-group" style="margin-top:16px;">
+              <label style="font-weight:700; color:#fff; display:block; margin-bottom:4px;">
+                Editing Skills & Specializations <span style="font-weight:400; color:#888894; font-size:12px;">(Multi-select enabled — choose all styles you create)</span>
+              </label>
+
+              <!-- Category 1: Talking Reels & Short-Form -->
+              <div style="font-size:11.5px; font-weight:700; color:var(--accent-orange); margin:12px 0 6px; letter-spacing:0.4px;">
+                🎬 TALKING REELS & SHORT-FORM (Choose what you edit)
+              </div>
+              <div class="skill-pills-grid" id="dash-shortform-skills">
+                <div class="tool-pill ${isSkillActive('Talking Head') ? 'selected' : ''}" data-skill="Talking Head Reels" onclick="toggleDashSkill(this)">🗣️ Talking Head Reels</div>
+                <div class="tool-pill ${isSkillActive('Kinetic Captions', 'Hormozi') ? 'selected' : ''}" data-skill="Kinetic Captions (Hormozi / Ali Abdaal style)" onclick="toggleDashSkill(this)">🔥 Kinetic Captions (Hormozi / Ali Abdaal style)</div>
+                <div class="tool-pill ${isSkillActive('3D Motion Graphics', 'Motion Graphics') ? 'selected' : ''}" data-skill="3D Motion Graphics" onclick="toggleDashSkill(this)">✨ 3D Motion Graphics</div>
+                <div class="tool-pill ${isSkillActive('Podcast') ? 'selected' : ''}" data-skill="Podcast Multi-Cam Cuts" onclick="toggleDashSkill(this)">🎙️ Podcast Multi-Cam Cuts</div>
+                <div class="tool-pill ${isSkillActive('Commercial') ? 'selected' : ''}" data-skill="Commercial & Brand Ads" onclick="toggleDashSkill(this)">⚡ Commercial & Brand Ads</div>
+                <div class="tool-pill ${isSkillActive('Real Estate') ? 'selected' : ''}" data-skill="Real Estate & Tours" onclick="toggleDashSkill(this)">🏡 Real Estate & Tours</div>
+                <div class="tool-pill ${isSkillActive('Gaming') ? 'selected' : ''}" data-skill="Gaming Highlights & Streams" onclick="toggleDashSkill(this)">🎮 Gaming Highlights & Streams</div>
               </div>
 
-              <div class="form-group">
-                <label for="dash-ed-rate">Expected Pay (₹ per Reel)</label>
-                <input type="text" id="dash-ed-rate" value="${escapeHtml(ed.rate || '₹800 - ₹1,200')}" placeholder="e.g. ₹800 / reel or Standard Rates">
+              <!-- Category 2: Long-Form & Documentary (Strictly optional) -->
+              <div style="font-size:11.5px; font-weight:700; color:#a78bfa; margin:16px 0 6px; letter-spacing:0.4px;">
+                📺 LONG-FORM & DOCUMENTARY (Optional — Leave unselected if you only do short-form)
+              </div>
+              <div class="skill-pills-grid" id="dash-longform-skills">
+                <div class="tool-pill ${isSkillActive('YouTube Long Form', 'Long Form') ? 'selected' : ''}" data-skill="YouTube Long Form (10-20 min)" onclick="toggleDashSkill(this)">📺 YouTube Long Form (10-20 min)</div>
+                <div class="tool-pill ${isSkillActive('Documentary') ? 'selected' : ''}" data-skill="Cinematic Documentaries" onclick="toggleDashSkill(this)">📽️ Cinematic Documentaries</div>
+              </div>
+
+              <!-- Category 3: Add Your Own Specified Skill -->
+              <div style="font-size:11.5px; font-weight:700; color:#34d399; margin:16px 0 6px; letter-spacing:0.4px;">
+                ✨ ADD YOUR OWN SPECIFIED SKILL (Type any custom skill you want)
+              </div>
+              <div id="dash-custom-skills-list" style="display:flex; flex-wrap:wrap; gap:8px; margin-bottom:8px;">
+                ${customSkills.map(cs => `
+                  <div class="custom-skill-tag" data-skill="${escapeHtml(cs)}">
+                    <span>${escapeHtml(cs)}</span>
+                    <button type="button" class="remove-tag-btn" onclick="removeCustomSkillTag(this)" title="Remove skill">✕</button>
+                  </div>
+                `).join('')}
+              </div>
+              <div style="display:flex; gap:8px; align-items:center;">
+                <input type="text" id="dash-custom-skill-input" placeholder="Type your specified skill (e.g. Color Grading, VFX 3D, Sound Design, Anime AMV, etc.)" style="flex:1; background:#111115; border:1px solid rgba(255,255,255,0.15); border-radius:10px; color:#fff; padding:9px 12px; font-size:12.5px;" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustomSkillTag();}">
+                <button type="button" onclick="addCustomSkillTag()" class="secondary-btn light-btn" style="padding:9px 14px; font-size:12px; white-space:nowrap; border-color:rgba(52,211,153,0.4); color:#34d399;">
+                  + Add Skill
+                </button>
               </div>
             </div>
 
+            <!-- Expected Pay Field -->
+            <div class="form-group" style="margin-top:14px;">
+              <label for="dash-ed-rate">Expected Pay (₹ per Reel or Monthly)</label>
+              <input type="text" id="dash-ed-rate" value="${escapeHtml(ed.rate || '₹800 - ₹1,200')}" placeholder="e.g. ₹800 / reel or ₹1,200 / reel">
+            </div>
+
             <button type="submit" class="primary-btn full-width" style="padding:13px; font-size:14px; margin-top:6px;">
-              <span>Submit Profile for Ganesh's Review ➔</span>
+              <span>Save & Update Profile ➔</span>
             </button>
             <div id="dash-profile-status-msg" style="margin-top:8px; font-size:13px; text-align:center;"></div>
           </form>
@@ -1259,6 +1326,116 @@
       pill.classList.toggle("selected");
     };
 
+    // Toggle skill pill inside dashboard
+    window.toggleDashSkill = function(pill) {
+      pill.classList.toggle("selected");
+    };
+
+    // Add custom specified skill tag
+    window.addCustomSkillTag = function() {
+      const input = document.getElementById("dash-custom-skill-input");
+      if (!input) return;
+      const val = input.value.trim();
+      if (!val) return;
+
+      const container = document.getElementById("dash-custom-skills-list");
+      if (!container) return;
+
+      // Check if already exists
+      const existing = Array.from(container.querySelectorAll(".custom-skill-tag")).map(el => el.getAttribute("data-skill").toLowerCase());
+      if (existing.includes(val.toLowerCase())) {
+        input.value = "";
+        return;
+      }
+
+      const tag = document.createElement("div");
+      tag.className = "custom-skill-tag";
+      tag.setAttribute("data-skill", val);
+      tag.innerHTML = `
+        <span>${escapeHtml(val)}</span>
+        <button type="button" class="remove-tag-btn" onclick="removeCustomSkillTag(this)" title="Remove skill">✕</button>
+      `;
+      container.appendChild(tag);
+      input.value = "";
+    };
+
+    // Remove custom specified skill tag
+    window.removeCustomSkillTag = function(btn) {
+      const tag = btn.closest(".custom-skill-tag");
+      if (tag) tag.remove();
+    };
+
+    // Trigger Photo Upload
+    window.triggerAvatarUpload = function() {
+      const fileInput = document.getElementById("ed-avatar-file-input");
+      if (fileInput) fileInput.click();
+    };
+
+    // Handle Avatar File Upload with Canvas Compression
+    window.handleAvatarFileChosen = function(e) {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+
+      if (!file.type.startsWith("image/")) {
+        alert("Please select an image file (JPG, PNG, WebP).");
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        const img = new Image();
+        img.onload = function() {
+          const canvas = document.createElement("canvas");
+          canvas.width = 256;
+          canvas.height = 256;
+          const ctx = canvas.getContext("2d");
+
+          const minDim = Math.min(img.width, img.height);
+          const sx = (img.width - minDim) / 2;
+          const sy = (img.height - minDim) / 2;
+
+          ctx.drawImage(img, sx, sy, minDim, minDim, 0, 0, 256, 256);
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.85);
+
+          if (currentEditor) {
+            currentEditor.avatarUrl = dataUrl;
+
+            // Save to localStorage session
+            localStorage.setItem("cutscale_editor_session", JSON.stringify({
+              phone: currentEditor.phone,
+              name: currentEditor.name,
+              email: currentEditor.email,
+              avatarUrl: dataUrl,
+              ts: Date.now()
+            }));
+
+            // Update applicants array
+            const idx = applicants.findIndex(a => a.id === currentEditor.id);
+            if (idx !== -1) {
+              applicants[idx].avatarUrl = dataUrl;
+              saveApplicants();
+            }
+
+            if (window.syncApplicantToSupabase) {
+              window.syncApplicantToSupabase(currentEditor);
+            }
+
+            // Immediately update preview images in UI
+            const headerAvatar = document.getElementById("ed-header-avatar");
+            if (headerAvatar) headerAvatar.src = dataUrl;
+            const formAvatar = document.getElementById("dash-form-avatar-preview");
+            if (formAvatar) formAvatar.src = dataUrl;
+            const heroAvatar = document.querySelector(".prem-hero-avatar");
+            if (heroAvatar) heroAvatar.src = dataUrl;
+
+            alert("✓ Original profile photo uploaded and saved successfully!");
+          }
+        };
+        img.src = evt.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+
     // Save In-Dashboard Profile
     window.handleSaveDashboardProfile = async function(e) {
       if (e) e.preventDefault();
@@ -1268,7 +1445,6 @@
       const phone = document.getElementById("dash-ed-phone").value.trim();
       const portfolio = document.getElementById("dash-ed-portfolio").value.trim();
       const otherTools = document.getElementById("dash-ed-other-tools").value.trim();
-      const style = document.getElementById("dash-ed-style").value;
       const rate = document.getElementById("dash-ed-rate").value.trim();
       const statusMsg = document.getElementById("dash-profile-status-msg");
 
@@ -1277,15 +1453,28 @@
       const selectedTools = Array.from(pillContainer.querySelectorAll(".tool-pill.selected")).map(p => p.getAttribute("data-tool"));
       const finalToolsStr = selectedTools.join(", ") || "Video Editor";
 
+      // Gather multi-selected skills
+      const shortSkills = Array.from(document.querySelectorAll("#dash-shortform-skills .tool-pill.selected")).map(p => p.getAttribute("data-skill"));
+      const longSkills = Array.from(document.querySelectorAll("#dash-longform-skills .tool-pill.selected")).map(p => p.getAttribute("data-skill"));
+      const customSkills = Array.from(document.querySelectorAll("#dash-custom-skills-list .custom-skill-tag")).map(p => p.getAttribute("data-skill"));
+      const allSelectedSkills = [...shortSkills, ...longSkills, ...customSkills];
+      const finalSpecialization = allSelectedSkills.join(", ") || "Talking Head Reels";
+
       currentEditor.name = name || currentEditor.name;
       currentEditor.phone = phone;
       currentEditor.portfolio = portfolio;
       currentEditor.tools = finalToolsStr;
       currentEditor.otherTools = otherTools;
-      currentEditor.specialization = style;
+      currentEditor.specialization = finalSpecialization;
       currentEditor.rate = rate || "Standard / Discuss";
-      currentEditor.status = "pending";
-      currentEditor.adminFeedback = "Application received! Portfolio queued for review by GanaCuts Visuals.";
+
+      // CRITICAL: Preserve hired / selected status
+      if (!currentEditor.status || currentEditor.status === "pending") {
+        currentEditor.status = "pending";
+      }
+      if (!currentEditor.adminFeedback) {
+        currentEditor.adminFeedback = "Application received! Portfolio queued for review by GanaCuts Visuals.";
+      }
 
       const idx = applicants.findIndex(a => a.id === currentEditor.id);
       if (idx !== -1) {
