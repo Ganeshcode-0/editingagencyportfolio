@@ -119,7 +119,17 @@ const DEFAULT_PROFILE = {
   tagline: "STOP THE SCROLL. KEEP THEM WATCHING.",
   photo: "assets/logo.jpg",
   waUrl: "https://wa.me/917075081947?text=Hi%20Ganesh,%20I%20saw%20your%20portfolio%20on%20GanaCuts%20Visuals%20and%20would%20like%20to%20hire%20you%20for%20a%20video%20editing%20project.",
-  instaUrl: "https://www.instagram.com/gana_cuts_visuals?dlrf=aXJlY3lsazhraHl4"
+  instaUrl: "https://www.instagram.com/gana_cuts_visuals?dlrf=aXJlY3lsazhraHl4",
+  agencyFolders: [
+    {
+      id: "folder_drive_vault",
+      title: "GanaCuts Master Production Drive",
+      desc: "Official agency Google Drive folder: raw footage, B-roll, motion templates, and audio assets.",
+      url: "https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing",
+      icon: "📁",
+      addedBy: "Ganesh (Admin)"
+    }
+  ]
 };
 
 // Real Messages (Loaded dynamically from Supabase database)
@@ -179,7 +189,16 @@ async function syncApplicantToSupabase(app) {
     if (app.submittedDraft) {
       payload.submitted_draft = app.submittedDraft;
     }
-    await globalSupabase.from('applicants').upsert(payload, { onConflict: 'id' });
+    if (app.avatarUrl || app.avatar_url) {
+      payload.avatar_url = app.avatarUrl || app.avatar_url;
+    }
+
+    const { error } = await globalSupabase.from('applicants').upsert(payload, { onConflict: 'id' });
+    if (error && error.code === '42703') {
+      // If avatar_url does not exist yet in Supabase schema, omit and retry smoothly
+      delete payload.avatar_url;
+      await globalSupabase.from('applicants').upsert(payload, { onConflict: 'id' });
+    }
   } catch (err) {
     // Non-blocking catch for offline/paused Supabase projects
     console.warn("Supabase applicant sync notice:", err.message || err);
@@ -318,17 +337,16 @@ async function fetchSupabaseApplicants() {
           specialization: remote.specialization,
           rate: remote.rate,
           password: remote.password || "1234",
-          status: remote.status,
+          status: remote.status || "pending",
           adminFeedback: remote.admin_feedback || remote.adminFeedback || "",
           appliedAt: remote.applied_at || remote.appliedAt,
           assignedProject: remote.assigned_project || remote.assignedProject || null,
-          submittedDraft: remote.submitted_draft || remote.submittedDraft || null
+          submittedDraft: remote.submitted_draft || remote.submittedDraft || null,
+          avatarUrl: remote.avatar_url || remote.avatarUrl || null
         };
         if (localIdx >= 0) {
           const local = applicants[localIdx];
-          // Preserve locally selected / hired status against stale remote pending
-          const preservedStatus = (local.status === 'selected' && remote.status !== 'selected') ? local.status : (remote.status || local.status);
-          applicants[localIdx] = { ...local, ...mapped, status: preservedStatus };
+          applicants[localIdx] = { ...local, ...mapped };
         } else {
           applicants.push(mapped);
         }
@@ -507,6 +525,10 @@ function initData() {
   if (!profile.photo || profile.photo.includes("ganesh.jpg")) {
     profile.photo = "assets/logo.jpg";
   }
+  if (!Array.isArray(profile.agencyFolders) || profile.agencyFolders.length === 0) {
+    profile.agencyFolders = [...(DEFAULT_PROFILE.agencyFolders || [])];
+  }
+  if (typeof window !== "undefined") window.profile = profile;
   saveProfile();
 
   const storedApps = localStorage.getItem(STORAGE_KEY_APPS);
@@ -591,6 +613,7 @@ function saveVideos() {
 
 function saveProfile() {
   localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
+  if (typeof window !== "undefined") window.profile = profile;
   persistPortfolioToServer();
 }
 
@@ -1706,28 +1729,53 @@ window.assignProjectToEditor = function(id) {
   const app = applicants.find(a => a.id === id);
   if (!app) return;
 
-  const title = prompt(`Assign project title to ${app.name} (e.g. Kokapet Luxury Villa 30s Reel):`, "Real Estate Luxury Villa Reel");
-  if (!title) return;
+  const isHired = app.status === "selected";
+  if (isHired) {
+    const clientName = prompt(`Enter Client / Brand name for ${app.name} (e.g. Kokapet Luxury Realtor / Tech Channel):`, "Commercial Brand Client");
+    if (!clientName) return;
+    const title = prompt(`Assign Client Project Title to ${app.name}:`, "30s Commercial Reel");
+    if (!title) return;
+    const footageUrl = prompt("Enter Google Drive / Dropbox raw client footage link:", "https://drive.google.com/drive/folders/client-footage");
+    if (!footageUrl) return;
+    const payout = prompt(`Enter instant UPI payout amount for this edit:`, app.rate || "₹1,200");
+    const instructions = prompt("Enter Creative Brief & editing instructions:", "High-retention pacing, 128 BPM soundtrack, kinetic subtitles, DaVinci grade.");
 
-  const footageUrl = prompt("Enter Google Drive / Dropbox raw footage link for editor to download:", "https://drive.google.com/drive/folders/sample-footage");
-  if (!footageUrl) return;
+    app.assignedProject = {
+      isClientProject: true,
+      clientName,
+      title,
+      footageUrl,
+      payout: payout || "₹1,200",
+      instructions: instructions || "High-retention client cut.",
+      deadline: "24-48 Hours"
+    };
+    app.adminFeedback = `Commercial Project assigned: "${title}" for ${clientName}. Download raw footage and submit draft cut.`;
+  } else {
+    const title = prompt(`Assign Screening / Test Reel Title to ${app.name}:`, "Screening Test: Kinetic Typography & Pacing");
+    if (!title) return;
+    const footageUrl = prompt("Enter Google Drive / Dropbox raw footage link for test clip:", "https://drive.google.com/drive/folders/sample-footage");
+    if (!footageUrl) return;
+    const payout = prompt(`Enter test clip payout (or leave blank if trial):`, app.rate || "₹800");
+    const instructions = prompt("Enter screening test instructions:", "Cut to beat, add zoom cuts, and demonstrate text animations.");
 
-  const payout = prompt(`Enter payout amount for this edit (e.g. ₹800 - ₹1,200):`, app.rate || "₹1,000");
-  const instructions = prompt("Enter editing instructions / music / style notes:", "Cut to 128 BPM beat, add kinetic subtitles, color grade in DaVinci.");
-
-  app.assignedProject = {
-    title,
-    footageUrl,
-    payout: payout || "₹1,000",
-    instructions: instructions || "High-retention video edit.",
-    deadline: "24-48 Hours"
-  };
-  app.status = "trial";
-  app.adminFeedback = `Project assigned: "${title}". Raw footage link added to your workspace.`;
+    app.assignedProject = {
+      isClientProject: false,
+      title,
+      footageUrl,
+      payout: payout || "₹800",
+      instructions: instructions || "High-retention screening test.",
+      deadline: "24-48 Hours"
+    };
+    app.status = "trial";
+    app.adminFeedback = `Screening test assigned: "${title}". Raw assets link added to your workspace.`;
+  }
 
   saveApplicants();
   updateAdminUI();
-  alert(`✓ Project "${title}" successfully assigned to ${app.name}! They will see the raw footage link and instructions inside their Editor Portal.`);
+  if (window.syncApplicantToSupabase) {
+    window.syncApplicantToSupabase(app);
+  }
+  alert(`✓ Assignment successfully saved for ${app.name}! They will see the raw footage and brief inside their Editor Studio.`);
 };
 
 // Approve submitted draft
@@ -2105,6 +2153,12 @@ window.switchAdminTab = function(tabName) {
   if (targetPane) targetPane.classList.add("active");
   if (tabName === "sheet" && typeof renderAgencySheet === "function") {
     renderAgencySheet();
+  }
+  if (tabName === "trash" && typeof renderTrashManager === "function") {
+    renderTrashManager();
+  }
+  if (tabName === "profile" && typeof renderAdminFolders === "function") {
+    renderAdminFolders();
   }
 };
 

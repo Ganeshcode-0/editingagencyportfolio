@@ -753,6 +753,18 @@
 
             <button type="submit" class="primary-btn">Save Studio Settings</button>
           </form>
+
+          <!-- Agency Asset Folders for Editors -->
+          <div style="background:#141418; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:24px; margin-top:24px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+              <div>
+                <h3 style="color:#fff; font-size:17px; margin:0 0 4px;">📁 Editor Asset Folders & Production Drives</h3>
+                <p style="color:#888894; font-size:12.5px; margin:0;">Folders added here appear directly in all hired video editors' workspaces for 1-click asset download.</p>
+              </div>
+              <button type="button" class="primary-btn" onclick="openAddFolderPrompt()" style="font-size:12px; padding:7px 14px;">+ Add New Folder</button>
+            </div>
+            <div id="admin-folders-manage-list"></div>
+          </div>
         </div>
       </div>
 
@@ -1293,6 +1305,60 @@
     window.openChatWithEditor = function(editorId) {
       switchAdminTab("messages");
       selectAdminChatUser(editorId);
+    };
+
+    // Admin Folder Management
+    window.renderAdminFolders = function() {
+      const container = document.getElementById("admin-folders-manage-list");
+      if (!container) return;
+      const folders = (window.profile && Array.isArray(window.profile.agencyFolders)) ? window.profile.agencyFolders : [];
+      if (folders.length === 0) {
+        container.innerHTML = `<div style="color:#888894; font-size:13px; padding:12px; text-align:center;">No custom folders added yet. Click "+ Add New Folder" to link Google Drive folders for editors.</div>`;
+        return;
+      }
+      container.innerHTML = folders.map(f => `
+        <div style="display:flex; justify-content:space-between; align-items:center; background:#0e0e12; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:12px 16px; margin-bottom:8px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span style="font-size:24px;">${f.icon || '📁'}</span>
+            <div>
+              <div style="font-weight:700; color:#fff; font-size:14px;">${escapeHtml(f.title)}</div>
+              <div style="font-size:12px; color:#888894;">${escapeHtml(f.desc || '')} • <a href="${f.url}" target="_blank" style="color:#38bdf8; text-decoration:underline;">${escapeHtml(f.url)} ↗</a></div>
+            </div>
+          </div>
+          <button type="button" class="delete-btn" onclick="deleteAgencyFolder('${f.id}')" style="padding:4px 10px; font-size:11px;">Remove</button>
+        </div>
+      `).join('');
+    };
+
+    window.openAddFolderPrompt = function() {
+      const title = prompt("Enter Folder Title (e.g. Master Production Drive / SFX Library):");
+      if (!title) return;
+      const url = prompt("Enter Google Drive or Dropbox shared folder URL:", "https://drive.google.com/drive/folders/...");
+      if (!url) return;
+      const desc = prompt("Enter short description for editors:", "Raw footage, B-roll, and templates");
+
+      if (!window.profile) window.profile = {};
+      if (!Array.isArray(window.profile.agencyFolders)) window.profile.agencyFolders = [];
+      window.profile.agencyFolders.push({
+        id: "folder_" + Date.now(),
+        title,
+        url,
+        desc: desc || "Agency asset folder",
+        icon: "📁",
+        addedBy: "Ganesh"
+      });
+      if (typeof saveProfile === 'function') saveProfile();
+      renderAdminFolders();
+      if (typeof showToast === 'function') showToast(`✓ Folder "${title}" added for editors!`);
+    };
+
+    window.deleteAgencyFolder = function(id) {
+      if (!confirm("Remove this folder from editor workspaces?")) return;
+      if (!window.profile) return;
+      window.profile.agencyFolders = (window.profile.agencyFolders || []).filter(f => f.id !== id);
+      if (typeof saveProfile === 'function') saveProfile();
+      renderAdminFolders();
+      if (typeof showToast === 'function') showToast("Folder removed.");
     };
   </script>
 </body>
