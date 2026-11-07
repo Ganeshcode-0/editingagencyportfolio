@@ -1618,8 +1618,15 @@
     window.renderAdminFolders = function() {
       const container = document.getElementById("admin-folders-manage-list");
       if (!container) return;
-      const rawFolders = (window.profile && Array.isArray(window.profile.agencyFolders)) ? window.profile.agencyFolders : [];
-      const folders = rawFolders.filter(f => f && f.id !== "folder_drive_vault");
+      let rawFolders = (window.profile && Array.isArray(window.profile.agencyFolders)) ? window.profile.agencyFolders : [];
+      if (!rawFolders || rawFolders.length === 0) {
+        try {
+          const sf = localStorage.getItem("cutscale_agency_folders_v1");
+          if (sf) rawFolders = JSON.parse(sf);
+        } catch (e) {}
+      }
+      if (window.profile) window.profile.agencyFolders = rawFolders;
+      const folders = (rawFolders || []).filter(f => f && f.id !== "folder_drive_vault");
       if (folders.length === 0) {
         container.innerHTML = `<div style="color:#888894; font-size:13px; padding:20px; text-align:center; background:#0e0e12; border-radius:10px;">No custom folders added yet. Click "+ Add New Folder" to link Google Drive folders and assets for editors.</div>`;
         return;
@@ -1779,6 +1786,8 @@
       }
 
       if (typeof saveProfile === 'function') saveProfile();
+      localStorage.setItem("cutscale_agency_folders_v1", JSON.stringify(window.profile.agencyFolders));
+      if (typeof syncAgencyVaultToSupabase === 'function') syncAgencyVaultToSupabase();
       renderAdminFolders();
       closeFolderModal();
       if (typeof showToast === 'function') showToast(`✓ Folder "${title}" saved with ${links.length} link(s)!`);
@@ -1793,6 +1802,8 @@
       if (!window.profile) return;
       window.profile.agencyFolders = (window.profile.agencyFolders || []).filter(f => f.id !== id);
       if (typeof saveProfile === 'function') saveProfile();
+      localStorage.setItem("cutscale_agency_folders_v1", JSON.stringify(window.profile.agencyFolders));
+      if (typeof syncAgencyVaultToSupabase === 'function') syncAgencyVaultToSupabase();
       renderAdminFolders();
       if (typeof showToast === 'function') showToast("Folder removed.");
     };
@@ -2208,19 +2219,34 @@
       if (container2) container2.innerHTML = html;
     };
 
-    // Auto-render submissions queue on load and tab switch
+    // Auto-render submissions queue & asset folders on load and tab switch
     const origSwitchAdminTab = window.switchAdminTab;
     window.switchAdminTab = function(tabName) {
       if (origSwitchAdminTab) origSwitchAdminTab(tabName);
+      if (tabName === "sheet" || tabName === "overview") {
+        if (typeof renderAdminFolders === 'function') renderAdminFolders();
+      }
       if (tabName === "applicants" || tabName === "submissions" || tabName === "overview") {
         renderAdminSubmissionsQueue();
       }
     };
 
-    // Auto-refresh counters on start
+    // Auto-refresh counters and folders on start
     document.addEventListener("DOMContentLoaded", () => {
-      setTimeout(window.renderAdminSubmissionsQueue, 200);
-      setTimeout(window.renderAdminSubmissionsQueue, 1200);
+      if (typeof fetchSupabaseAgencyVault === 'function') {
+        fetchSupabaseAgencyVault().then(() => {
+          if (typeof renderAdminFolders === 'function') renderAdminFolders();
+          if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
+        });
+      }
+      setTimeout(() => {
+        if (typeof renderAdminFolders === 'function') renderAdminFolders();
+        if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
+      }, 200);
+      setTimeout(() => {
+        if (typeof renderAdminFolders === 'function') renderAdminFolders();
+        if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
+      }, 1200);
     });
   </script>
 </body>

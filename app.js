@@ -135,6 +135,7 @@ const STORAGE_KEY_TRASH_APPS = "cutscale_trash_apps_v1";
 const STORAGE_KEY_MSGS = "cutscale_msgs_v1";
 const STORAGE_KEY_PRACTICE_ASGS = "cutscale_practice_asgs_v1";
 const STORAGE_KEY_CLIENT_PROJS = "cutscale_client_projs_v1";
+const STORAGE_KEY_AGENCY_FOLDERS = "cutscale_agency_folders_v1";
 const ADMIN_PIN = "7075";
 
 let practiceAssignments = [];
@@ -157,6 +158,73 @@ if (typeof window !== "undefined" && window.supabase) {
     });
   } catch (supaInitErr) {
     console.warn("Supabase global initialization:", supaInitErr);
+  }
+}
+
+// Supabase Agency Vault (Asset Folders, Practice Tasks & Client Projects)
+async function syncAgencyVaultToSupabase() {
+  if (!globalSupabase) return;
+  try {
+    const rawFolders = (profile && Array.isArray(profile.agencyFolders)) ? profile.agencyFolders : [];
+    const payload = {
+      id: '__agency_system_vault__',
+      name: 'GanaCuts Visuals System Vault',
+      assigned_project: {
+        agencyFolders: rawFolders,
+        practiceAssignments: Array.isArray(practiceAssignments) ? practiceAssignments : [],
+        clientProjects: Array.isArray(clientProjects) ? clientProjects : [],
+        updatedAt: Date.now()
+      }
+    };
+    await globalSupabase.from('applicants').upsert(payload, { onConflict: 'id' });
+  } catch (err) {
+    console.warn("Supabase vault sync notice:", err.message || err);
+  }
+}
+
+async function fetchSupabaseAgencyVault() {
+  if (!globalSupabase) return;
+  try {
+    const { data, error } = await globalSupabase.from('applicants').select('*').eq('id', '__agency_system_vault__').maybeSingle();
+    if (!error && data && data.assigned_project) {
+      const vault = data.assigned_project;
+      let updated = false;
+
+      // 1. Sync Agency Folders
+      if (Array.isArray(vault.agencyFolders)) {
+        if (!profile) profile = { ...DEFAULT_PROFILE };
+        profile.agencyFolders = vault.agencyFolders.filter(f => f && f.id !== "folder_drive_vault");
+        localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
+        localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(profile.agencyFolders));
+        if (typeof window !== "undefined") window.profile = profile;
+        updated = true;
+      }
+
+      // 2. Sync Practice Tasks
+      if (Array.isArray(vault.practiceAssignments)) {
+        practiceAssignments = vault.practiceAssignments.filter(a => a && a.id !== "asg_practice_default");
+        window.practiceAssignments = practiceAssignments;
+        localStorage.setItem(STORAGE_KEY_PRACTICE_ASGS, JSON.stringify(practiceAssignments));
+        updated = true;
+      }
+
+      // 3. Sync Client Projects
+      if (Array.isArray(vault.clientProjects)) {
+        clientProjects = vault.clientProjects.filter(p => p && p.id !== "proj_client_default");
+        window.clientProjects = clientProjects;
+        localStorage.setItem(STORAGE_KEY_CLIENT_PROJS, JSON.stringify(clientProjects));
+        updated = true;
+      }
+
+      if (updated) {
+        if (typeof renderAdminFolders === 'function') renderAdminFolders();
+        if (typeof renderAgencyFolders === 'function') renderAgencyFolders();
+        if (typeof renderEditorStudio === 'function') renderEditorStudio();
+        if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
+      }
+    }
+  } catch (err) {
+    console.warn("Supabase fetch vault notice:", err.message || err);
   }
 }
 
@@ -318,7 +386,7 @@ async function fetchSupabaseApplicants() {
     if (!error && Array.isArray(data) && data.length > 0) {
       data.forEach(remote => {
         // Skip any legacy fake accounts or items in trash bin
-        if (remote.id === 'app_1' || remote.id === 'app_2' || remote.id === 'app_3') return;
+        if (remote.id === 'app_1' || remote.id === 'app_2' || remote.id === 'app_3' || remote.id === '__agency_system_vault__') return;
         if (typeof trashApplicants !== 'undefined' && Array.isArray(trashApplicants) && trashApplicants.some(t => t.id === remote.id)) return;
 
         const localIdx = applicants.findIndex(a => a.id === remote.id || (remote.email && a.email && a.email.toLowerCase() === remote.email.toLowerCase()));
@@ -390,7 +458,15 @@ async function fetchSupabaseMessages() {
 // Background persist to server disk (data/portfolio.json)
 async function persistPortfolioToServer() {
   try {
-    const payload = { categories, videos, profile };
+    const rawFolders = (profile && Array.isArray(profile.agencyFolders)) ? profile.agencyFolders : [];
+    const payload = { 
+      categories, 
+      videos, 
+      profile, 
+      agencyFolders: rawFolders,
+      practiceAssignments: practiceAssignments || [],
+      clientProjects: clientProjects || []
+    };
     await fetch('/api/portfolio', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -418,11 +494,27 @@ async function fetchRemotePortfolioData() {
         changed = true;
       }
       if (data && data.profile) {
-        profile = { ...DEFAULT_PROFILE, ...data.profile };
+        let currentFolders = (profile && Array.isArray(profile.agencyFolders) && profile.agencyFolders.length > 0)
+          ? profile.agencyFolders
+          : (Array.isArray(data.profile.agencyFolders) && data.profile.agencyFolders.length > 0
+              ? data.profile.agencyFolders
+              : null);
+        if (!currentFolders) {
+          try {
+            const sf = localStorage.getItem(STORAGE_KEY_AGENCY_FOLDERS);
+            if (sf) currentFolders = JSON.parse(sf);
+          } catch (e) {}
+        }
+        if (!Array.isArray(currentFolders)) currentFolders = [];
+        currentFolders = currentFolders.filter(f => f && f.id !== "folder_drive_vault");
+
+        profile = { ...DEFAULT_PROFILE, ...data.profile, agencyFolders: currentFolders };
         if (!profile.photo || profile.photo.includes("ganesh.jpg")) {
           profile.photo = "assets/logo.jpg";
         }
         localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
+        localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(currentFolders));
+        if (typeof window !== "undefined") window.profile = profile;
         changed = true;
       }
       if (changed) {
@@ -461,6 +553,9 @@ if (typeof window !== "undefined") {
   window.SUPABASE_URL = SUPABASE_URL;
   window.SUPABASE_ANON = SUPABASE_ANON;
   window.MASTER_ADMIN_EMAIL = MASTER_ADMIN_EMAIL;
+  window.STORAGE_KEY_AGENCY_FOLDERS = STORAGE_KEY_AGENCY_FOLDERS;
+  window.syncAgencyVaultToSupabase = syncAgencyVaultToSupabase;
+  window.fetchSupabaseAgencyVault = fetchSupabaseAgencyVault;
 }
 
 // Application State
@@ -522,11 +617,18 @@ function initData() {
   if (!profile.photo || profile.photo.includes("ganesh.jpg")) {
     profile.photo = "assets/logo.jpg";
   }
+  if (!Array.isArray(profile.agencyFolders) || profile.agencyFolders.length === 0) {
+    try {
+      const storedFolders = localStorage.getItem(STORAGE_KEY_AGENCY_FOLDERS);
+      if (storedFolders) profile.agencyFolders = JSON.parse(storedFolders);
+    } catch (e) {}
+  }
   if (!Array.isArray(profile.agencyFolders)) {
     profile.agencyFolders = [];
   }
   // Strip legacy demo folder
   profile.agencyFolders = profile.agencyFolders.filter(f => f && f.id !== "folder_drive_vault");
+  localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(profile.agencyFolders));
   if (typeof window !== "undefined") window.profile = profile;
   saveProfile();
 
@@ -552,6 +654,7 @@ function initData() {
   fetchSupabaseVideos();
   fetchSupabaseApplicants();
   fetchSupabaseMessages();
+  fetchSupabaseAgencyVault();
 
   // Set up live real-time listeners on Supabase
   if (globalSupabase) {
@@ -593,6 +696,13 @@ function initData() {
           fetchSupabaseApplicants();
         })
         .subscribe();
+
+      globalSupabase
+        .channel('realtime_vault_tracker')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'applicants', filter: 'id=eq.__agency_system_vault__' }, () => {
+          fetchSupabaseAgencyVault();
+        })
+        .subscribe();
     } catch (rtErr) {
       console.warn("Supabase realtime subscription notice:", rtErr);
     }
@@ -613,8 +723,12 @@ function saveVideos() {
 
 function saveProfile() {
   localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
+  if (profile && Array.isArray(profile.agencyFolders)) {
+    localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(profile.agencyFolders));
+  }
   if (typeof window !== "undefined") window.profile = profile;
   persistPortfolioToServer();
+  if (typeof syncAgencyVaultToSupabase === 'function') syncAgencyVaultToSupabase();
 }
 
 function saveApplicants() {
@@ -1919,6 +2033,7 @@ function savePracticeAssignments() {
   try {
     localStorage.setItem(STORAGE_KEY_PRACTICE_ASGS, JSON.stringify(practiceAssignments));
     window.practiceAssignments = practiceAssignments;
+    if (typeof syncAgencyVaultToSupabase === 'function') syncAgencyVaultToSupabase();
   } catch (e) {}
 }
 
@@ -1944,6 +2059,7 @@ function saveClientProjects() {
   try {
     localStorage.setItem(STORAGE_KEY_CLIENT_PROJS, JSON.stringify(clientProjects));
     window.clientProjects = clientProjects;
+    if (typeof syncAgencyVaultToSupabase === 'function') syncAgencyVaultToSupabase();
   } catch (e) {}
 }
 

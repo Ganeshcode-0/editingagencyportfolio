@@ -1445,6 +1445,10 @@
 
     document.addEventListener("DOMContentLoaded", () => {
       initEditorAuth();
+      setTimeout(() => {
+        if (typeof renderAgencyFolders === 'function') renderAgencyFolders();
+        if (typeof renderEditorStudio === 'function' && currentEditor) renderEditorStudio();
+      }, 1000);
     });
 
     function highlightDockPill(link) {
@@ -1527,6 +1531,9 @@
 
     // Initialize Auth state
     async function initEditorAuth() {
+      if (typeof fetchSupabaseAgencyVault === 'function') {
+        try { await fetchSupabaseAgencyVault(); } catch (e) {}
+      }
       if (typeof fetchSupabaseApplicants === 'function') {
         try { await fetchSupabaseApplicants(); } catch (e) {}
       }
@@ -1889,10 +1896,17 @@
       const container = document.getElementById("agency-folders-container");
       if (!container) return;
 
-      const rawFolders = (window.profile && Array.isArray(window.profile.agencyFolders))
+      let rawFolders = (window.profile && Array.isArray(window.profile.agencyFolders))
         ? window.profile.agencyFolders
         : [];
-      const folders = rawFolders.filter(f => f && f.id !== "folder_drive_vault");
+      if (!rawFolders || rawFolders.length === 0) {
+        try {
+          const sf = localStorage.getItem("cutscale_agency_folders_v1");
+          if (sf) rawFolders = JSON.parse(sf);
+        } catch (e) {}
+      }
+      if (window.profile) window.profile.agencyFolders = rawFolders;
+      const folders = (rawFolders || []).filter(f => f && f.id !== "folder_drive_vault");
 
       if (folders.length === 0) {
         container.innerHTML = `
