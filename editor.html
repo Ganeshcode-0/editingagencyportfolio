@@ -448,7 +448,7 @@
     }
 
     /* ==========================================================================
-       SECTION 2: WHATSAPP / INSTAGRAM HYBRID DM CHAT WITH GANESH
+       SECTION 2: WHATSAPP / INSTAGRAM HYBRID DM CHAT WITH GANACUTS VISUALS
        ========================================================================== */
     .dm-chat-card {
       background: var(--card-studio);
@@ -580,7 +580,7 @@
       box-shadow: 0 4px 14px rgba(217, 78, 40, 0.25);
     }
 
-    /* Received Bubble (Ganesh -> Dark Glass) */
+    /* Received Bubble (GanaCuts Visuals -> Dark Glass) */
     .dm-msg-row.received .dm-bubble-box {
       background: #1c1c24;
       color: #f1f5f9;
@@ -716,7 +716,7 @@
     }
 
     /* ==========================================================================
-       SECTION 3: SCREENING & TRIAL ASSIGNMENTS (JOINING / TESTING)
+       SECTION 3: PRACTICE & SKILL ASSIGNMENTS (TABLE VIEW)
        ========================================================================== */
     .assignment-card {
       background: var(--card-studio);
@@ -857,53 +857,82 @@
     }
 
     /* ==========================================================================
-       SECTION 6: UPI SETTLEMENTS & PAYOUTS
+       MODERN STUDIO TABLES & TASK RESOURCE BADGES (ASSIGNMENTS & PROJECTS)
        ========================================================================== */
-    .settlements-card {
-      background: var(--card-studio);
-      border: 1px solid var(--border-subtle);
-      border-radius: 22px;
-      padding: 24px 26px;
-    }
-
-    .upi-info-banner {
-      background: #14141a;
-      border: 1px solid var(--border-subtle);
-      border-radius: 12px;
-      padding: 14px 18px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      margin: 14px 0;
-    }
-
-    .payout-table-wrap {
+    .table-responsive-wrap {
       overflow-x: auto;
+      border-radius: 14px;
+      border: 1px solid var(--border-subtle);
+      background: #121217;
+      margin-top: 14px;
     }
 
-    .payout-table {
+    .modern-studio-table {
       width: 100%;
       border-collapse: collapse;
       font-size: 13px;
     }
 
-    .payout-table th {
+    .modern-studio-table th {
       text-align: left;
-      padding: 10px 14px;
-      color: var(--text-dim);
+      padding: 12px 16px;
+      color: #94a3b8;
       font-size: 11px;
       font-weight: 800;
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      border-bottom: 1px solid var(--border-subtle);
+      letter-spacing: 0.6px;
+      background: rgba(255, 255, 255, 0.02);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      white-space: nowrap;
     }
 
-    .payout-table td {
-      padding: 12px 14px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-      color: #cbd5e1;
+    .modern-studio-table td {
+      padding: 14px 16px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      vertical-align: middle;
+      color: #e2e8f0;
+    }
+
+    .modern-studio-table tbody tr:hover {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .modern-studio-table tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .task-link-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 5px 10px;
+      background: rgba(59, 130, 246, 0.12);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: #93c5fd;
+      border-radius: 6px;
+      font-size: 11.5px;
+      font-weight: 600;
+      text-decoration: none;
+      transition: all 0.15s ease;
+      margin: 2px 4px 2px 0;
+    }
+
+    .task-link-badge:hover {
+      background: rgba(59, 130, 246, 0.25);
+      border-color: #60a5fa;
+      color: #fff;
+    }
+
+    .task-link-badge.client-asset {
+      background: rgba(217, 78, 40, 0.14);
+      border-color: rgba(217, 78, 40, 0.35);
+      color: #fdba74;
+    }
+
+    .task-link-badge.client-asset:hover {
+      background: rgba(217, 78, 40, 0.28);
+      border-color: #fb923c;
+      color: #fff;
     }
 
     /* ==========================================================================
@@ -993,7 +1022,7 @@
       </div>
       <h1 style="font-size:24px; font-weight:800; color:#fff; margin:0 0 8px;">GanaCuts Visuals</h1>
       <p style="font-size:13.5px; color:var(--text-muted); line-height:1.5; margin:0 auto 20px; max-width:360px;">
-        Sign in to access your direct chat with Ganesh, download raw client assets, view video assignments, and track instant UPI settlements.
+        Sign in to access your direct chat with GanaCuts Visuals, download raw client assets, view video assignments, and submit your project cuts.
       </p>
 
       <!-- 1-Click Universal Google Sign In Button -->
@@ -1074,11 +1103,10 @@
     <nav class="studio-dock-wrap">
       <div class="studio-dock">
         <a href="#sec-profile" class="dock-pill active" onclick="highlightDockPill(this)">👤 Profile & Bio</a>
-        <a href="#sec-chat" class="dock-pill" onclick="highlightDockPill(this)">💬 Chat with Ganesh <span id="dock-chat-dot" style="display:none; width:6px; height:6px; background:#10b981; border-radius:50%;"></span></a>
-        <a href="#sec-assignments" class="dock-pill" onclick="highlightDockPill(this)">🎯 Screening Test</a>
-        <a href="#sec-client-projects" class="dock-pill" onclick="highlightDockPill(this)">🎬 Client Projects</a>
+        <a href="#sec-chat" class="dock-pill" onclick="highlightDockPill(this)">💬 Chat with GanaCuts Visuals <span id="dock-chat-dot" style="display:none; width:6px; height:6px; background:#10b981; border-radius:50%;"></span></a>
+        <a href="#sec-assignments" class="dock-pill" onclick="highlightDockPill(this)">🎯 Practice / Assignments</a>
+        <a href="#sec-projects" class="dock-pill" onclick="highlightDockPill(this)">🎬 Client Projects</a>
         <a href="#sec-folders" class="dock-pill" onclick="highlightDockPill(this)">📁 Asset Folders</a>
-        <a href="#sec-settlements" class="dock-pill" onclick="highlightDockPill(this)">💳 UPI Settlements</a>
       </div>
     </nav>
 
@@ -1125,18 +1153,18 @@
       </section>
 
       <!-- ====================================================================
-           2. WHATSAPP / INSTAGRAM HYBRID DM CHAT WITH GANESH
+           2. WHATSAPP / INSTAGRAM HYBRID DM CHAT WITH GANACUTS VISUALS
            ==================================================================== -->
       <section class="dm-chat-card" id="sec-chat">
         <div class="dm-chat-header">
           <div class="dm-header-left">
             <div class="dm-lead-avatar-wrap">
-              <img src="assets/logo.jpg" alt="Ganesh" class="dm-lead-avatar">
+              <img src="assets/logo.jpg" alt="GanaCuts Visuals" class="dm-lead-avatar">
               <div class="dm-online-dot"></div>
             </div>
             <div class="dm-lead-info">
-              <h3>Ganesh (Founder & Creative Lead)</h3>
-              <span>● Online • Direct Studio Channel</span>
+              <h3>GanaCuts Visuals (Creative Lead & Agency)</h3>
+              <span>● Online • Direct Operation Channel</span>
             </div>
           </div>
 
@@ -1156,14 +1184,14 @@
         <div class="dm-chips-bar">
           <button type="button" class="dm-chip-btn" onclick="sendEditorQuickChip('Raw assets downloaded! Starting edit now 🎬')">Raw Assets Downloaded 🎬</button>
           <button type="button" class="dm-chip-btn" onclick="sendEditorQuickChip('Which font and caption colors do you prefer for this reel?')">Question on Fonts / Colors ✍️</button>
-          <button type="button" class="dm-chip-btn" onclick="sendEditorQuickChip('Submitted rough draft cut link. Ready for review! 📤')">Draft Link Submitted 📤</button>
+          <button type="button" class="dm-chip-btn" onclick="sendEditorQuickChip('Submitted cut link. Ready for review! 📤')">Submitted Cut Link 📤</button>
           <button type="button" class="dm-chip-btn" onclick="sendEditorQuickChip('Working on requested revisions right now ⚡')">Working on Revisions ⚡</button>
         </div>
 
         <!-- Instagram-style Replying Quote Bar -->
         <div class="dm-replying-banner" id="editor-chat-replying-bar" style="display:none;">
           <div style="display:flex; align-items:center; gap:6px; overflow:hidden;">
-            <span style="color:#fdba74; font-weight:700;">↩ Replying to <span id="editor-reply-sender">Ganesh</span>:</span>
+            <span style="color:#fdba74; font-weight:700;">↩ Replying to <span id="editor-reply-sender">GanaCuts Visuals</span>:</span>
             <span id="editor-reply-preview" style="color:#cbd5e1; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:280px;">...</span>
           </div>
           <button type="button" onclick="cancelEditorReply()" style="background:none; border:none; color:#cbd5e1; cursor:pointer; font-size:14px;">✕</button>
@@ -1171,7 +1199,7 @@
 
         <!-- Input Row -->
         <form id="editor-chat-form" class="dm-input-row" onsubmit="handleEditorSendMsg(event)">
-          <input type="text" id="editor-chat-input" class="dm-input-field" placeholder="Message Ganesh..." autocomplete="off">
+          <input type="text" id="editor-chat-input" class="dm-input-field" placeholder="Message GanaCuts Visuals..." autocomplete="off">
           <button type="submit" class="dm-send-btn" title="Send message">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
               <line x1="22" y1="2" x2="11" y2="13"></line>
@@ -1182,61 +1210,66 @@
       </section>
 
       <!-- ====================================================================
-           3. SCREENING & TRIAL ASSIGNMENT (Testing / Joining Track)
+           3. PRACTICE & SKILL ASSIGNMENTS SECTION (TABLE / LIST VIEW)
            ==================================================================== -->
       <section class="assignment-card" id="sec-assignments">
         <div class="assignment-header">
           <div class="assignment-title-group">
             <span style="font-size:20px;">🎯</span>
             <div>
-              <h3 style="font-size:16px; font-weight:800; color:#fff; margin:0;">Screening & Trial Assignment</h3>
-              <small style="color:var(--text-muted); font-size:12px;">Skill screening clips for new editors joining the agency team</small>
+              <h3 style="font-size:16px; font-weight:800; color:#fff; margin:0;">Practice & Skill Assignments</h3>
+              <small style="color:var(--text-muted); font-size:12px;">Skill practice briefs and trial tasks assigned by GanaCuts Visuals to test and polish your video pacing, cuts, and motion graphics</small>
             </div>
           </div>
-          <div id="screening-status-badge"></div>
+          <span class="ig-roster-badge" id="assignments-count-badge" style="background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3);">0 Practice Tasks</span>
         </div>
 
-        <div id="screening-content-box">
-          <!-- Rendered dynamically -->
+        <div class="table-responsive-wrap">
+          <table class="modern-studio-table">
+            <thead>
+              <tr>
+                <th style="min-width:240px;">Task & Creative Brief</th>
+                <th style="min-width:200px;">Resource Links</th>
+                <th style="min-width:130px;">Status</th>
+                <th style="min-width:140px; text-align:right;">Submission</th>
+              </tr>
+            </thead>
+            <tbody id="assignments-table-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
         </div>
       </section>
 
       <!-- ====================================================================
-           4. REAL CLIENT PROJECTS (PAID WORK FOR REAL BRANDS)
+           4. COMMERCIAL CLIENT PROJECTS SECTION (TABLE / LIST VIEW)
            ==================================================================== -->
-      <section class="client-projects-card" id="sec-client-projects">
+      <section class="client-projects-card" id="sec-projects">
         <div class="assignment-header">
           <div class="assignment-title-group">
             <span style="font-size:20px;">🎬</span>
             <div>
-              <h3 style="font-size:16px; font-weight:800; color:#fff; margin:0;">Real Client Projects & Production Queue</h3>
-              <small style="color:var(--text-muted); font-size:12px;">Active paid video production for commercial brands and top creators</small>
+              <h3 style="font-size:16px; font-weight:800; color:#fff; margin:0;">Commercial Client Projects</h3>
+              <small style="color:var(--text-muted); font-size:12px;">Active paid commercial video production for real agency clients and brands</small>
             </div>
           </div>
-          <span class="ig-roster-badge pro" id="client-project-queue-pill">Live Production</span>
+          <span class="ig-roster-badge pro" id="projects-count-badge">0 Active Projects</span>
         </div>
 
-        <div id="client-project-box">
-          <!-- Rendered dynamically -->
-        </div>
-
-        <!-- Video Draft Submission Box -->
-        <div id="client-draft-submission-container" style="display:none; margin-top:18px; background:#16161d; border:1px dashed var(--border-accent); border-radius:14px; padding:18px;">
-          <h4 style="font-size:14px; font-weight:700; color:#fff; margin:0 0 4px;">📤 Submit Final Video Export</h4>
-          <p style="font-size:12px; color:var(--text-muted); margin:0 0 12px;">Paste your finished Google Drive, Dropbox, or YouTube unlisted cut link for review.</p>
-
-          <form id="editor-submit-client-draft-form" onsubmit="handleClientDraftSubmit(event)">
-            <div style="margin-bottom:10px;">
-              <input type="url" id="ed-client-draft-url" placeholder="https://drive.google.com/file/d/... or youtube.com/..." required style="width:100%; box-sizing:border-box; padding:10px 14px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:13px;">
-            </div>
-            <div style="margin-bottom:12px;">
-              <input type="text" id="ed-client-draft-notes" placeholder="Notes (software used, plugins, sound design applied)" style="width:100%; box-sizing:border-box; padding:8px 14px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12px;">
-            </div>
-            <button type="submit" class="ig-btn primary" style="padding:8px 18px; font-size:12.5px;">
-              <span>Submit Draft to Ganesh ➔</span>
-            </button>
-            <div id="ed-client-draft-feedback" style="margin-top:8px; font-size:12px;"></div>
-          </form>
+        <div class="table-responsive-wrap">
+          <table class="modern-studio-table">
+            <thead>
+              <tr>
+                <th style="min-width:240px;">Client & Project Brief</th>
+                <th style="min-width:200px;">Production Assets / Links</th>
+                <th style="min-width:130px;">Status</th>
+                <th style="min-width:140px; text-align:right;">Submission</th>
+              </tr>
+            </thead>
+            <tbody id="projects-table-tbody">
+              <!-- Rendered dynamically -->
+            </tbody>
+          </table>
         </div>
       </section>
 
@@ -1249,7 +1282,7 @@
             <span style="font-size:20px;">📁</span>
             <div>
               <h3 style="font-size:16px; font-weight:800; color:#fff; margin:0;">Agency Asset Folders & Production Drives</h3>
-              <small style="color:var(--text-muted); font-size:12px;">Official footage repositories and tool packs shared directly by Ganesh</small>
+              <small style="color:var(--text-muted); font-size:12px;">Official footage repositories and tool packs shared directly by GanaCuts Visuals</small>
             </div>
           </div>
           <span style="font-size:11px; color:#38bdf8; font-weight:700;">Drive Synced</span>
@@ -1260,53 +1293,45 @@
         </div>
       </section>
 
-      <!-- ====================================================================
-           6. UPI SETTLEMENTS & PAYOUTS HUB
-           ==================================================================== -->
-      <section class="settlements-card" id="sec-settlements">
-        <div class="assignment-header">
-          <div class="assignment-title-group">
-            <span style="font-size:20px;">💳</span>
-            <div>
-              <h3 style="font-size:16px; font-weight:800; color:#fff; margin:0;">Instant UPI Settlements & Earnings</h3>
-              <small style="color:var(--text-muted); font-size:12px;">Direct UPI transfers disbursed upon client video cut approvals</small>
-            </div>
-          </div>
-          <button type="button" class="ig-btn" onclick="promptUpdateUpiId()" style="font-size:11px; padding:4px 10px;">
-            <span>✏️ Update UPI ID</span>
+    </main>
+  </div>
+
+  <!-- ======================================================================
+       UNIFIED WORK SUBMISSION MODAL (FOR ASSIGNMENTS & CLIENT PROJECTS)
+       ====================================================================== -->
+  <div id="task-submission-modal" class="studio-modal-overlay" style="display:none;" onclick="if(event.target === this) closeTaskSubmissionModal()">
+    <div class="studio-modal-card" style="max-width:540px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div>
+          <span id="sub-modal-type-badge" class="ig-roster-badge" style="font-size:10px; margin-bottom:4px; display:inline-block;">Assignment Submission</span>
+          <h3 id="sub-modal-title" style="font-size:17px; font-weight:800; color:#fff; margin:0;">Submit Finished Work</h3>
+        </div>
+        <button type="button" onclick="closeTaskSubmissionModal()" style="background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer;">✕</button>
+      </div>
+      <p id="sub-modal-desc" style="font-size:12.5px; color:#cbd5e1; margin:0 0 16px; line-height:1.4;"></p>
+
+      <form id="task-submission-form" onsubmit="handleTaskSubmission(event)">
+        <input type="hidden" id="sub-task-id">
+        <input type="hidden" id="sub-task-type">
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Finished Video URL (Google Drive, Dropbox, YouTube unlisted, Frame.io) *</label>
+          <input type="url" id="sub-video-url" required placeholder="https://drive.google.com/file/d/... or youtube.com/..." style="width:100%; box-sizing:border-box; padding:10px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:13px;">
+        </div>
+
+        <div class="form-group" style="margin-bottom:16px;">
+          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Work Notes & Software Used</label>
+          <textarea id="sub-work-notes" rows="3" placeholder="e.g. Cut on Premiere Pro & After Effects, sound design with risers, color graded in DaVinci." style="width:100%; box-sizing:border-box; padding:10px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12.5px; resize:vertical;"></textarea>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px;">
+          <button type="button" class="ig-btn" onclick="closeTaskSubmissionModal()">Cancel</button>
+          <button type="submit" class="ig-btn primary" style="padding:8px 20px;">
+            <span>📤 Submit Work to GanaCuts Visuals</span>
           </button>
         </div>
-
-        <div class="upi-info-banner">
-          <div>
-            <span style="font-size:11px; color:var(--text-dim); text-transform:uppercase; font-weight:700;">Your Registered UPI ID:</span>
-            <div style="font-size:14px; font-weight:800; color:#fff;" id="ed-upi-display">user@okhdfcbank</div>
-          </div>
-          <div style="text-align:right;">
-            <span style="font-size:11px; color:var(--text-dim); text-transform:uppercase; font-weight:700;">Settlement Cycle:</span>
-            <div style="font-size:13px; font-weight:700; color:#10b981;">⚡ Within 24h of Approval</div>
-          </div>
-        </div>
-
-        <div class="payout-table-wrap">
-          <table class="payout-table">
-            <thead>
-              <tr>
-                <th>Project ID</th>
-                <th>Client / Type</th>
-                <th>Amount</th>
-                <th>Date</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody id="ed-payouts-tbody">
-              <!-- Rendered dynamically -->
-            </tbody>
-          </table>
-        </div>
-      </section>
-
-    </main>
+      </form>
+    </div>
   </div>
 
   <!-- ======================================================================
@@ -1347,13 +1372,13 @@
         </div>
 
         <div class="form-group" style="margin-bottom:12px;">
-          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Expected Pay per Cut</label>
-          <input type="text" id="modal-ed-rate" placeholder="e.g. ₹1,000 / Reel" style="width:100%; box-sizing:border-box; padding:9px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:13px;">
+          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Expected payment per reel/video</label>
+          <input type="text" id="modal-ed-rate" placeholder="e.g. ₹1,200 / video or Discuss" style="width:100%; box-sizing:border-box; padding:9px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:13px;">
         </div>
 
-        <!-- Software Multi-Select Pills -->
+        <!-- Software Multi-Select Pills & Custom Tool Input -->
         <div class="form-group" style="margin-bottom:14px;">
-          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:6px;">Editing Software Used (Select all that apply)</label>
+          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:6px;">Editing Software Used (Select all that apply or add custom)</label>
           <div style="display:flex; flex-wrap:wrap; gap:6px;" id="modal-tools-pills">
             <span class="tool-pill" data-tool="Premiere Pro" onclick="this.classList.toggle('selected')">Premiere Pro</span>
             <span class="tool-pill" data-tool="DaVinci Resolve" onclick="this.classList.toggle('selected')">DaVinci Resolve</span>
@@ -1362,6 +1387,17 @@
             <span class="tool-pill" data-tool="Final Cut Pro" onclick="this.classList.toggle('selected')">Final Cut Pro</span>
             <span class="tool-pill" data-tool="Alight Motion" onclick="this.classList.toggle('selected')">Alight Motion</span>
             <span class="tool-pill" data-tool="Blender 3D" onclick="this.classList.toggle('selected')">Blender 3D</span>
+            <span class="tool-pill" data-tool="Photoshop / Illustrator" onclick="this.classList.toggle('selected')">Photoshop / Illustrator</span>
+            <span class="tool-pill" data-tool="Cinema 4D" onclick="this.classList.toggle('selected')">Cinema 4D</span>
+          </div>
+
+          <!-- Add Any Custom Editing Software Tool -->
+          <div style="margin-top:10px;">
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="modal-custom-tool-input" placeholder="e.g. Cinema 4D, Filmora, Descript, VN Editor" style="flex:1; padding:7px 10px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12px;">
+              <button type="button" class="ig-btn" onclick="addCustomToolInModal()" style="font-size:11px;">+ Add Tool</button>
+            </div>
+            <div id="modal-custom-tools-list" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;"></div>
           </div>
         </div>
 
@@ -1370,8 +1406,9 @@
           <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:6px;">Specialized Editing Genres</label>
           <div style="display:flex; flex-wrap:wrap; gap:6px;" id="modal-spec-pills">
             <span class="tool-pill" data-skill="Talking Head Reels" onclick="this.classList.toggle('selected')">Talking Head Reels</span>
+            <span class="tool-pill" data-skill="Documentary Videos" onclick="this.classList.toggle('selected')">Documentary Videos</span>
+            <span class="tool-pill" data-skill="AI Videos" onclick="this.classList.toggle('selected')">AI Videos</span>
             <span class="tool-pill" data-skill="3D Motion Graphics" onclick="this.classList.toggle('selected')">3D Motion Graphics</span>
-            <span class="tool-pill" data-skill="Kinetic Captions" onclick="this.classList.toggle('selected')">Kinetic Captions</span>
             <span class="tool-pill" data-skill="Real Estate Luxury" onclick="this.classList.toggle('selected')">Real Estate Luxury</span>
             <span class="tool-pill" data-skill="Podcast Multi-Cam" onclick="this.classList.toggle('selected')">Podcast Multi-Cam</span>
             <span class="tool-pill" data-skill="YouTube Long Form" onclick="this.classList.toggle('selected')">YouTube Long Form</span>
@@ -1617,22 +1654,19 @@
       // 2. Direct DM Chat Thread
       renderEditorChatThread();
 
-      // 3. Screening & Trial Assignment
-      renderScreeningAssignment(ed);
+      // 3. Practice & Skill Assignments Table
+      renderPracticeAssignments(ed);
 
-      // 4. Real Client Projects Queue
-      renderClientProjectsQueue(ed);
+      // 4. Commercial Client Projects Table
+      renderClientProjects(ed);
 
       // 5. Agency Asset Folders
       renderAgencyFolders();
 
-      // 6. UPI Settlements
-      renderUpiSettlements(ed);
-
       // WhatsApp Button
       const waBtn = document.getElementById("ed-whatsapp-direct-btn");
       if (waBtn) {
-        waBtn.href = `https://wa.me/917075081947?text=${encodeURIComponent(`Hi Ganesh, this is ${ed.name} from your editing team.`)}`;
+        waBtn.href = `https://wa.me/917075081947?text=${encodeURIComponent(`Hi GanaCuts Visuals, this is ${ed.name} from your editing team.`)}`;
       }
     }
 
@@ -1651,7 +1685,7 @@
           badgeEl.innerHTML = "⭐ OFFICIAL PRO ROSTER";
         } else if (ed.status === "trial") {
           badgeEl.className = "ig-roster-badge trial";
-          badgeEl.innerHTML = "🎯 PAID TRIAL REVIEW";
+          badgeEl.innerHTML = "🎯 PRACTICE & TRIAL";
         } else {
           badgeEl.className = "ig-roster-badge pending";
           badgeEl.innerHTML = "⏳ CANDIDATE REVIEW";
@@ -1679,9 +1713,9 @@
           </div>
           <div class="ig-bio-line">
             <span>⚡ Specialization:</span>
-            <span class="ig-bio-highlight">${escapeHtml(ed.specialization || 'Talking Head Reels, 3D Motion Graphics')}</span>
+            <span class="ig-bio-highlight">${escapeHtml(ed.specialization || 'Talking Head Reels, Documentary Videos, AI Videos')}</span>
             <span style="color:var(--text-dim);">•</span>
-            <span>💰 Rate: <strong style="color:#fbbf24;">${escapeHtml(ed.rate || '₹1,000 / Reel')}</strong></span>
+            <span>💰 Expected payment per reel/video: <strong style="color:#fbbf24;">${escapeHtml(ed.rate || '₹1,200 / video')}</strong></span>
           </div>
           <div class="ig-bio-line" style="margin-top:6px;">
             ${portfolioLink}
@@ -1690,121 +1724,167 @@
       }
     }
 
-    // 2. Render Screening & Trial Assignment
-    function renderScreeningAssignment(ed) {
-      const badgeEl = document.getElementById("screening-status-badge");
-      const contentEl = document.getElementById("screening-content-box");
-      if (!contentEl) return;
+    // =========================================================================
+    // 2. RENDER PRACTICE & SKILL ASSIGNMENTS (TABLE VIEW)
+    // =========================================================================
+    function renderPracticeAssignments(ed) {
+      const tbody = document.getElementById("assignments-table-tbody");
+      const badge = document.getElementById("assignments-count-badge");
+      if (!tbody) return;
 
-      const isSelected = ed.status === "selected";
-      const isTrial = ed.status === "trial";
+      const allAssignments = (typeof getPracticeAssignmentsForEditor === 'function')
+        ? getPracticeAssignmentsForEditor(ed.id)
+        : (window.practiceAssignments || []).filter(a => !a.assignedEditorIds || a.assignedEditorIds.includes(ed.id) || a.assignedEditorIds.includes('all'));
 
-      if (isSelected) {
-        if (badgeEl) badgeEl.innerHTML = `<span class="assignment-badge passed">✓ SCREENING PASSED</span>`;
-        contentEl.innerHTML = `
-          <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:14px; padding:18px; display:flex; align-items:center; gap:14px; flex-wrap:wrap;">
-            <div style="font-size:28px;">🏆</div>
-            <div style="flex:1;">
-              <h4 style="font-size:15px; font-weight:800; color:#fff; margin:0 0 4px;">Verified Agency Cutter — Screening Complete</h4>
-              <p style="font-size:12.5px; color:#cbd5e1; margin:0;">
-                Your video editing standard has been officially certified by Ganesh. You are qualified for incoming paid client projects and direct client deliveries below.
-              </p>
-            </div>
-            <a href="#sec-client-projects" class="ig-btn primary" style="text-decoration:none;">
-              <span>View Client Projects ➔</span>
-            </a>
-          </div>
-        `;
-      } else if (isTrial && ed.assignedProject) {
-        if (badgeEl) badgeEl.innerHTML = `<span class="assignment-badge active">● TRIAL TEST ACTIVE</span>`;
-        contentEl.innerHTML = `
-          <div style="background:#15151c; border-left:3px solid var(--accent-orange); border-radius:12px; padding:16px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
-              <h4 style="font-size:15px; font-weight:800; color:#fff; margin:0;">${escapeHtml(ed.assignedProject.title)}</h4>
-              <span style="font-size:11px; background:rgba(217,78,40,0.15); color:var(--accent-orange); border:1px solid rgba(217,78,40,0.3); padding:3px 9px; border-radius:100px; font-weight:800;">
-                ${escapeHtml(ed.assignedProject.payout || '₹1,000')} Test Payout
-              </span>
-            </div>
-            <p style="font-size:12.5px; color:#cbd5e1; line-height:1.45; margin-bottom:12px;"><strong>Instructions:</strong> ${escapeHtml(ed.assignedProject.instructions || 'Edit raw assets following high-retention pacing.')}</p>
-            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-              <a href="${ed.assignedProject.footageUrl || '#'}" target="_blank" rel="noopener" class="ig-btn primary" style="text-decoration:none;">
-                <span>Download Test Assets ↗</span>
-              </a>
-              <span style="font-size:12px; color:var(--text-muted);">Deadline: ${escapeHtml(ed.assignedProject.deadline || '24-48 Hours')}</span>
-            </div>
-          </div>
-        `;
-      } else {
-        if (badgeEl) badgeEl.innerHTML = `<span class="assignment-badge" style="background:rgba(255,255,255,0.06); color:#94a3b8;">UNDER REVIEW</span>`;
-        contentEl.innerHTML = `
-          <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:14px; padding:20px; text-align:center;">
-            <div style="font-size:24px; margin-bottom:6px;">⏳</div>
-            <h4 style="font-size:14px; font-weight:700; color:#fff; margin:0 0 4px;">Portfolio Screening In Progress</h4>
-            <p style="font-size:12px; color:var(--text-muted); margin:0 auto; max-width:440px;">
-              ${escapeHtml(ed.adminFeedback || "Ganesh is reviewing your portfolio. If a sample screening test is assigned, your brief and raw footage links will appear right here.")}
-            </p>
-          </div>
-        `;
+      if (badge) {
+        badge.textContent = `${allAssignments.length} Practice Task${allAssignments.length === 1 ? '' : 's'}`;
       }
+
+      if (!allAssignments || allAssignments.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align:center; padding:32px 20px; color:var(--text-muted);">
+              <div style="font-size:24px; margin-bottom:6px;">🎯</div>
+              <div style="font-size:13.5px; font-weight:700; color:#fff; margin-bottom:4px;">No Practice Tasks Assigned Yet</div>
+              <div style="font-size:12px; max-width:440px; margin:0 auto;">GanaCuts Visuals will assign practice briefs, raw footage links, and sound packs here to test and polish your video cutting.</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = allAssignments.map(asg => {
+        const sub = (asg.submissions && asg.submissions[ed.id]) || null;
+        const isSubmitted = !!sub;
+
+        const linksHtml = (asg.links && Array.isArray(asg.links) && asg.links.length > 0)
+          ? asg.links.map(l => `<a href="${l.url}" target="_blank" rel="noopener" class="task-link-badge">📂 ${escapeHtml(l.name || 'Resource Link')} ↗</a>`).join(' ')
+          : `<span style="color:var(--text-dim); font-size:11.5px;">No links attached</span>`;
+
+        let statusHtml = '';
+        let actionHtml = '';
+
+        if (isSubmitted) {
+          statusHtml = `
+            <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:4px 9px; border-radius:100px; font-size:11px; font-weight:800;">✓ SUBMITTED</span>
+            <div style="font-size:10.5px; color:var(--text-dim); margin-top:3px;">${escapeHtml(sub.submittedAt || 'Recent')}</div>
+          `;
+          actionHtml = `
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+              <a href="${sub.videoUrl}" target="_blank" rel="noopener" class="task-link-badge" style="background:rgba(16,185,129,0.2); border-color:#10b981; color:#fff; margin:0;">🎬 View Cut ↗</a>
+              <button type="button" class="ig-btn" onclick="openTaskSubmissionModal('${asg.id}', 'practice')" style="padding:3px 8px; font-size:11px;">✏️ Update</button>
+            </div>
+          `;
+        } else {
+          statusHtml = `<span style="display:inline-flex; align-items:center; gap:5px; background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.3); padding:4px 9px; border-radius:100px; font-size:11px; font-weight:800;">● PENDING</span>`;
+          actionHtml = `
+            <button type="button" class="ig-btn primary" onclick="openTaskSubmissionModal('${asg.id}', 'practice')" style="padding:6px 14px; font-size:11.5px;">
+              <span>📤 Submit Work</span>
+            </button>
+          `;
+        }
+
+        return `
+          <tr>
+            <td>
+              <div style="font-weight:800; color:#fff; font-size:14px; margin-bottom:4px;">${escapeHtml(asg.title)}</div>
+              <div style="font-size:12px; color:#cbd5e1; line-height:1.4;">${escapeHtml(asg.description || 'Follow high-retention pacing and audio sound design.')}</div>
+            </td>
+            <td>
+              <div style="display:flex; flex-wrap:wrap; gap:4px;">${linksHtml}</div>
+            </td>
+            <td>${statusHtml}</td>
+            <td style="text-align:right;">${actionHtml}</td>
+          </tr>
+        `;
+      }).join('');
     }
 
-    // 3. Render Real Client Projects Queue
-    function renderClientProjectsQueue(ed) {
-      const box = document.getElementById("client-project-box");
-      const submitContainer = document.getElementById("client-draft-submission-container");
-      const queuePill = document.getElementById("client-project-queue-pill");
-      if (!box) return;
+    // =========================================================================
+    // 3. RENDER COMMERCIAL CLIENT PROJECTS (TABLE VIEW)
+    // =========================================================================
+    function renderClientProjects(ed) {
+      const tbody = document.getElementById("projects-table-tbody");
+      const badge = document.getElementById("projects-count-badge");
+      if (!tbody) return;
 
-      const isSelected = ed.status === "selected";
-      const hasClientProject = isSelected && ed.assignedProject;
+      const allProjects = (typeof getClientProjectsForEditor === 'function')
+        ? getClientProjectsForEditor(ed.id)
+        : (window.clientProjects || []).filter(p => !p.assignedEditorIds || p.assignedEditorIds.includes(ed.id) || p.assignedEditorIds.includes('all'));
 
-      if (hasClientProject) {
-        if (queuePill) queuePill.textContent = "1 Active Client Reel";
-        if (submitContainer) submitContainer.style.display = "block";
+      if (badge) {
+        badge.textContent = `${allProjects.length} Client Project${allProjects.length === 1 ? '' : 's'}`;
+      }
 
-        box.innerHTML = `
-          <div style="background:#15151c; border:1px solid rgba(217,78,40,0.3); border-left:3px solid var(--accent-orange); border-radius:14px; padding:18px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:8px;">
-              <div>
-                <span style="font-size:10px; text-transform:uppercase; font-weight:800; color:#38bdf8; letter-spacing:0.5px;">COMMERCIAL CLIENT PROJECT</span>
-                <h4 style="font-size:16px; font-weight:800; color:#fff; margin:2px 0 0;">${escapeHtml(ed.assignedProject.title)}</h4>
+      if (!allProjects || allProjects.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="4" style="text-align:center; padding:32px 20px; color:var(--text-muted);">
+              <div style="font-size:24px; margin-bottom:6px;">🎬</div>
+              <div style="font-size:13.5px; font-weight:700; color:#fff; margin-bottom:4px;">No Active Client Projects Assigned</div>
+              <div style="font-size:12px; max-width:440px; margin:0 auto;">GanaCuts Visuals assigns real commercial client video gigs based on your portfolio and practice cut quality. Client briefs and raw footage will appear here.</div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = allProjects.map(proj => {
+        const sub = (proj.submissions && proj.submissions[ed.id]) || null;
+        const isSubmitted = !!sub;
+
+        const linksHtml = (proj.links && Array.isArray(proj.links) && proj.links.length > 0)
+          ? proj.links.map(l => `<a href="${l.url}" target="_blank" rel="noopener" class="task-link-badge client-asset">🎬 ${escapeHtml(l.name || 'Client Asset')} ↗</a>`).join(' ')
+          : `<span style="color:var(--text-dim); font-size:11.5px;">No links attached</span>`;
+
+        let statusHtml = '';
+        let actionHtml = '';
+
+        if (isSubmitted) {
+          statusHtml = `
+            <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:4px 9px; border-radius:100px; font-size:11px; font-weight:800;">✓ CUT SUBMITTED</span>
+            <div style="font-size:10.5px; color:var(--text-dim); margin-top:3px;">${escapeHtml(sub.submittedAt || 'Recent')}</div>
+          `;
+          actionHtml = `
+            <div style="display:flex; flex-direction:column; align-items:flex-end; gap:6px;">
+              <a href="${sub.videoUrl}" target="_blank" rel="noopener" class="task-link-badge client-asset" style="background:rgba(217,78,40,0.25); border-color:var(--accent-orange); color:#fff; margin:0;">🎬 View Cut ↗</a>
+              <button type="button" class="ig-btn" onclick="openTaskSubmissionModal('${proj.id}', 'client')" style="padding:3px 8px; font-size:11px;">✏️ Re-submit</button>
+            </div>
+          `;
+        } else {
+          statusHtml = `
+            <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(217,78,40,0.15); color:var(--accent-orange); border:1px solid rgba(217,78,40,0.3); padding:4px 9px; border-radius:100px; font-size:11px; font-weight:800;">● IN PRODUCTION</span>
+            <div style="font-size:10.5px; color:var(--text-dim); margin-top:3px;">SLA: ${escapeHtml(proj.deadline || '24-48 Hours')}</div>
+          `;
+          actionHtml = `
+            <button type="button" class="ig-btn primary" onclick="openTaskSubmissionModal('${proj.id}', 'client')" style="padding:6px 14px; font-size:11.5px;">
+              <span>📤 Submit Client Cut</span>
+            </button>
+          `;
+        }
+
+        return `
+          <tr>
+            <td>
+              <div style="display:flex; align-items:center; gap:6px; margin-bottom:4px;">
+                <span style="font-size:10.5px; font-weight:800; background:rgba(56,189,248,0.12); color:#38bdf8; border:1px solid rgba(56,189,248,0.25); padding:2px 7px; border-radius:4px; text-transform:uppercase;">${escapeHtml(proj.clientName || 'Commercial Client')}</span>
               </div>
-              <span style="font-size:12px; background:rgba(245,158,11,0.15); color:#fbbf24; border:1px solid rgba(245,158,11,0.35); padding:4px 10px; border-radius:100px; font-weight:800;">
-                ${escapeHtml(ed.assignedProject.payout || ed.rate || '₹1,200')} UPI Payout
-              </span>
-            </div>
-
-            <p style="font-size:13px; color:#cbd5e1; line-height:1.45; margin-bottom:14px;"><strong>Creative Brief:</strong> ${escapeHtml(ed.assignedProject.instructions || 'Cut client footage to beat, apply kinetic typography and color grading.')}</p>
-
-            <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
-              <a href="${ed.assignedProject.footageUrl || '#'}" target="_blank" rel="noopener" class="ig-btn primary" style="text-decoration:none;">
-                <span>Download Client Raw Footage ↗</span>
-              </a>
-              <span style="font-size:12px; color:var(--text-muted);">Delivery SLA: ${escapeHtml(ed.assignedProject.deadline || '24-48 Hours')}</span>
-            </div>
-          </div>
+              <div style="font-weight:800; color:#fff; font-size:14px; margin-bottom:4px;">${escapeHtml(proj.title)}</div>
+              <div style="font-size:12px; color:#cbd5e1; line-height:1.4;">${escapeHtml(proj.description || 'Edit client footage following high-retention pacing.')}</div>
+            </td>
+            <td>
+              <div style="display:flex; flex-wrap:wrap; gap:4px;">${linksHtml}</div>
+            </td>
+            <td>${statusHtml}</td>
+            <td style="text-align:right;">${actionHtml}</td>
+          </tr>
         `;
-      } else {
-        if (queuePill) queuePill.textContent = isSelected ? "Ready for Assignments" : "Screening Stage";
-        if (submitContainer) submitContainer.style.display = "none";
-
-        box.innerHTML = `
-          <div style="background:rgba(255,255,255,0.02); border:1px solid var(--border-subtle); border-radius:14px; padding:24px; text-align:center;">
-            <div style="font-size:26px; margin-bottom:8px;">🎬</div>
-            <h4 style="font-size:14.5px; font-weight:700; color:#fff; margin:0 0 6px;">
-              ${isSelected ? 'No Active Client Reel Assigned Right Now' : 'Complete Screening to Unlock Client Projects'}
-            </h4>
-            <p style="font-size:12.5px; color:var(--text-muted); margin:0 auto; max-width:440px;">
-              ${isSelected 
-                ? 'Ganesh assigns incoming commercial client projects based on your active styles. You can message Ganesh in the direct chat above to request your next client clip.'
-                : 'Once your screening test above is reviewed and approved by Ganesh, real client brand gigs with instant UPI payouts will be assigned here.'}
-            </p>
-          </div>
-        `;
-      }
+      }).join('');
     }
 
-    // 4. Render Agency Asset Folders (Admin Only, No Fake Cards)
+    // =========================================================================
+    // 4. RENDER AGENCY ASSET FOLDERS (ADMIN ADDED ONLY — NO FAKE CARDS)
+    // =========================================================================
     function renderAgencyFolders() {
       const container = document.getElementById("agency-folders-container");
       if (!container) return;
@@ -1818,7 +1898,7 @@
               desc: "Official agency Google Drive folder: raw footage, B-roll, motion templates, and audio assets.",
               url: "https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing",
               icon: "📁",
-              addedBy: "Ganesh (Admin)"
+              addedBy: "GanaCuts Visuals (Admin)"
             }
           ];
 
@@ -1842,57 +1922,105 @@
       `;
     }
 
-    // 5. Render UPI Settlements
-    function renderUpiSettlements(ed) {
-      const upiDisplay = document.getElementById("ed-upi-display");
-      const currentUpi = ed.upiId || localStorage.getItem("cutscale_editor_upi_" + ed.id) || (ed.phone ? `${ed.phone.replace(/\D/g, '').slice(-10)}@upi` : "editor@okhdfcbank");
-      if (upiDisplay) upiDisplay.textContent = currentUpi;
+    // =========================================================================
+    // 5. UNIFIED WORK SUBMISSION MODAL HANDLERS
+    // =========================================================================
+    window.openTaskSubmissionModal = function(taskId, taskType) {
+      const modal = document.getElementById("task-submission-modal");
+      const typeBadge = document.getElementById("sub-modal-type-badge");
+      const titleEl = document.getElementById("sub-modal-title");
+      const descEl = document.getElementById("sub-modal-desc");
+      const idInput = document.getElementById("sub-task-id");
+      const typeInput = document.getElementById("sub-task-type");
+      const urlInput = document.getElementById("sub-video-url");
+      const notesInput = document.getElementById("sub-work-notes");
 
-      const tbody = document.getElementById("ed-payouts-tbody");
-      if (!tbody) return;
+      if (!modal || !currentEditor) return;
 
-      if (ed.payouts && Array.isArray(ed.payouts) && ed.payouts.length > 0) {
-        tbody.innerHTML = ed.payouts.map(p => `
-          <tr>
-            <td style="font-weight:700; color:#fff;">#${escapeHtml(p.id || 'GCV-PAY')}</td>
-            <td>${escapeHtml(p.title || 'Client Reel')}</td>
-            <td style="font-weight:800; color:#10b981;">₹${escapeHtml(p.amount)}</td>
-            <td>${escapeHtml(p.date || 'Recent')}</td>
-            <td><span style="color:#10b981; font-weight:700;">✓ ${escapeHtml(p.status || 'Paid via UPI')}</span></td>
-          </tr>
-        `).join('');
+      idInput.value = taskId;
+      typeInput.value = taskType;
+      urlInput.value = "";
+      notesInput.value = "";
+
+      if (taskType === "practice") {
+        const asg = (window.practiceAssignments || []).find(a => a.id === taskId);
+        if (typeBadge) {
+          typeBadge.className = "ig-roster-badge trial";
+          typeBadge.textContent = "🎯 Practice Task Submission";
+        }
+        if (titleEl) titleEl.textContent = asg ? asg.title : "Submit Practice Work";
+        if (descEl) descEl.textContent = "Paste your Google Drive, Dropbox, or YouTube unlisted link to submit your finished practice edit to GanaCuts Visuals.";
+        if (asg && asg.submissions && asg.submissions[currentEditor.id]) {
+          urlInput.value = asg.submissions[currentEditor.id].videoUrl || "";
+          notesInput.value = asg.submissions[currentEditor.id].notes || "";
+        }
       } else {
-        tbody.innerHTML = `
-          <tr>
-            <td colspan="5" style="text-align:center; color:var(--text-dim); padding:20px; font-size:12.5px;">
-              No settlements recorded yet. UPI payouts are credited directly to ${escapeHtml(currentUpi)} within 24h of client approval.
-            </td>
-          </tr>
-        `;
+        const proj = (window.clientProjects || []).find(p => p.id === taskId);
+        if (typeBadge) {
+          typeBadge.className = "ig-roster-badge pro";
+          typeBadge.textContent = "🎬 Client Project Delivery";
+        }
+        if (titleEl) titleEl.textContent = proj ? `${proj.clientName} — ${proj.title}` : "Submit Client Cut";
+        if (descEl) descEl.textContent = "Submit your high-retention client export link. GanaCuts Visuals will review before sending to the client.";
+        if (proj && proj.submissions && proj.submissions[currentEditor.id]) {
+          urlInput.value = proj.submissions[currentEditor.id].videoUrl || "";
+          notesInput.value = proj.submissions[currentEditor.id].notes || "";
+        }
       }
-    }
 
-    // Update UPI ID
-    window.promptUpdateUpiId = function() {
+      modal.style.display = "flex";
+    };
+
+    window.closeTaskSubmissionModal = function() {
+      const modal = document.getElementById("task-submission-modal");
+      if (modal) modal.style.display = "none";
+    };
+
+    window.handleTaskSubmission = function(e) {
+      if (e) e.preventDefault();
       if (!currentEditor) return;
-      const currentUpi = currentEditor.upiId || localStorage.getItem("cutscale_editor_upi_" + currentEditor.id) || "editor@okhdfcbank";
-      const newUpi = prompt("Enter your UPI ID (GPay / PhonePe / Paytm / Bank) for instant payouts:", currentUpi);
-      if (newUpi !== null && newUpi.trim()) {
-        const trimmed = newUpi.trim();
-        currentEditor.upiId = trimmed;
-        localStorage.setItem("cutscale_editor_upi_" + currentEditor.id, trimmed);
-        const idx = applicants.findIndex(a => a.id === currentEditor.id);
-        if (idx !== -1) {
-          applicants[idx].upiId = trimmed;
-          saveApplicants();
-        }
-        if (window.syncApplicantToSupabase) {
-          window.syncApplicantToSupabase(currentEditor);
-        }
-        const upiEl = document.getElementById("ed-upi-display");
-        if (upiEl) upiEl.textContent = trimmed;
-        alert("✓ UPI ID updated to " + trimmed);
+
+      const taskId = document.getElementById("sub-task-id").value;
+      const taskType = document.getElementById("sub-task-type").value;
+      const videoUrl = document.getElementById("sub-video-url").value.trim();
+      const notes = document.getElementById("sub-work-notes").value.trim();
+
+      if (!videoUrl) {
+        alert("Please enter a valid video link (Google Drive / YouTube / Dropbox).");
+        return;
       }
+
+      if (taskType === "practice") {
+        if (typeof submitPracticeAssignmentWork === 'function') {
+          submitPracticeAssignmentWork(taskId, currentEditor.id, videoUrl, notes);
+        }
+      } else {
+        if (typeof submitClientProjectWork === 'function') {
+          submitClientProjectWork(taskId, currentEditor.id, videoUrl, notes);
+        }
+      }
+
+      closeTaskSubmissionModal();
+      renderPracticeAssignments(currentEditor);
+      renderClientProjects(currentEditor);
+      renderEditorChatThread();
+      alert("✓ Work successfully submitted to GanaCuts Visuals! Notification sent to direct chat.");
+    };
+
+    // Custom Tool Input in Edit Profile Modal
+    window.addCustomToolInModal = function() {
+      const input = document.getElementById("modal-custom-tool-input");
+      const list = document.getElementById("modal-custom-tools-list");
+      if (!input || !list) return;
+      const val = input.value.trim();
+      if (!val) return;
+
+      const tag = document.createElement("div");
+      tag.className = "tool-pill selected";
+      tag.setAttribute("data-tool", val);
+      tag.innerHTML = `<span>${escapeHtml(val)}</span> <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:11px;margin-left:4px;">✕</button>`;
+      list.appendChild(tag);
+      input.value = "";
     };
 
     // =========================================================================
@@ -1939,7 +2067,7 @@
         container.innerHTML = `
           <div style="text-align:center; padding:36px 20px; color:var(--text-dim);">
             <div style="font-size:24px; margin-bottom:6px;">💬</div>
-            <p style="font-size:13px; color:var(--text-muted); margin:0 0 4px;">Direct Operation Channel with Ganesh</p>
+            <p style="font-size:13px; color:var(--text-muted); margin:0 0 4px;">Direct Operation Channel with GanaCuts Visuals</p>
             <p style="font-size:11.5px; margin:0;">Send project queries, download clarifications, or submit drafts below.</p>
           </div>
         `;
@@ -1973,12 +2101,12 @@
         if (isSent) {
           const isSeen = adminSeenTime && adminSeenTime >= msg.timestamp;
           ticksHtml = isSeen 
-            ? `<span class="wa-tick-blue" title="Seen by Ganesh">✓✓</span>`
+            ? `<span class="wa-tick-blue" title="Seen by GanaCuts Visuals">✓✓</span>`
             : `<span class="wa-tick-grey" title="Delivered">✓✓</span>`;
         }
 
         const safeSnippet = (parsed.body || "").replace(/['"\\]/g, " ").slice(0, 60);
-        const senderLabel = isSent ? (currentEditor.name + " (You)") : "Ganesh";
+        const senderLabel = isSent ? (currentEditor.name + " (You)") : "GanaCuts Visuals";
 
         html += `
           <div class="dm-msg-row ${isSent ? 'sent' : 'received'}" id="chat-msg-${msg.id}">
@@ -2054,7 +2182,7 @@
       }
 
       if (feedbackEl) {
-        feedbackEl.innerHTML = `<span style="color:#10b981; font-weight:700;">✓ Final draft cut submitted to Ganesh! Logged in direct chat.</span>`;
+        feedbackEl.innerHTML = `<span style="color:#10b981; font-weight:700;">✓ Final draft cut submitted to GanaCuts Visuals! Logged in direct chat.</span>`;
       }
       renderEditorChatThread();
       urlInput.value = "";
@@ -2077,10 +2205,28 @@
 
       // Select active tools
       const activeTools = (currentEditor.tools || "").toLowerCase();
+      const standardToolNames = [];
       document.querySelectorAll("#modal-tools-pills .tool-pill").forEach(p => {
-        const val = p.getAttribute("data-tool").toLowerCase();
-        p.classList.toggle("selected", activeTools.includes(val));
+        const val = p.getAttribute("data-tool");
+        standardToolNames.push(val.toLowerCase());
+        p.classList.toggle("selected", activeTools.includes(val.toLowerCase()));
       });
+
+      // Populate custom tools list with any non-standard tools
+      const customToolsList = document.getElementById("modal-custom-tools-list");
+      if (customToolsList) {
+        customToolsList.innerHTML = "";
+        const allEditorTools = (currentEditor.tools || "").split(",").map(s => s.trim()).filter(Boolean);
+        allEditorTools.forEach(t => {
+          if (!standardToolNames.includes(t.toLowerCase())) {
+            const tag = document.createElement("div");
+            tag.className = "tool-pill selected";
+            tag.setAttribute("data-tool", t);
+            tag.innerHTML = `<span>${escapeHtml(t)}</span> <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:11px;margin-left:4px;">✕</button>`;
+            customToolsList.appendChild(tag);
+          }
+        });
+      }
 
       // Select active skills
       const activeSkills = (currentEditor.specialization || "").toLowerCase();
@@ -2088,6 +2234,9 @@
         const val = p.getAttribute("data-skill").toLowerCase();
         p.classList.toggle("selected", activeSkills.includes(val));
       });
+
+      const customSkillsList = document.getElementById("modal-custom-skills-list");
+      if (customSkillsList) customSkillsList.innerHTML = "";
 
       modal.style.display = "flex";
     };
@@ -2121,12 +2270,15 @@
       const portfolio = document.getElementById("modal-ed-portfolio").value.trim();
       const rate = document.getElementById("modal-ed-rate").value.trim();
 
-      const selectedTools = Array.from(document.querySelectorAll("#modal-tools-pills .tool-pill.selected")).map(p => p.getAttribute("data-tool"));
+      const standardSelectedTools = Array.from(document.querySelectorAll("#modal-tools-pills .tool-pill.selected")).map(p => p.getAttribute("data-tool"));
+      const customAddedTools = Array.from(document.querySelectorAll("#modal-custom-tools-list .tool-pill")).map(p => p.getAttribute("data-tool"));
+      const selectedTools = Array.from(new Set([...standardSelectedTools, ...customAddedTools])).filter(Boolean);
+
       const selectedSpecs = Array.from(document.querySelectorAll("#modal-spec-pills .tool-pill.selected")).map(p => p.getAttribute("data-skill"));
       const customSkills = Array.from(document.querySelectorAll("#modal-custom-skills-list .custom-skill-tag")).map(p => p.getAttribute("data-skill"));
 
       const finalTools = selectedTools.join(", ") || "Premiere Pro, DaVinci Resolve";
-      const finalSpec = [...selectedSpecs, ...customSkills].join(", ") || "Talking Head Reels";
+      const finalSpec = [...selectedSpecs, ...customSkills].join(", ") || "Talking Head Reels, Documentary Videos, AI Videos";
 
       currentEditor.name = name || currentEditor.name;
       currentEditor.phone = phone;

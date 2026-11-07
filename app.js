@@ -29,7 +29,7 @@ window.toggleModalPhoneLookup = function() {
 
 /**
  * CUTSCALE MEDIA — Video Editing Agency & Creative Operations Engine
- * Founder: Ganesh
+ * GanaCuts Visuals Studio
  * Dynamic Category Engine + Editor Recruitment & Roster Management
  */
 
@@ -38,7 +38,7 @@ const DEFAULT_CATEGORIES = [
   {
     id: "cat_motion_graphics",
     name: "Motion Graphics",
-    subtitle: "3D TYPOGRAPHY, VISUAL HOOKS & KINETIC INFOGRAPHICS",
+    subtitle: "3D TYPOGRAPHY, VISUAL HOOKS & MOTION INFOGRAPHICS",
     aspect: "9:16",
     order: 1
   },
@@ -118,7 +118,7 @@ const DEFAULT_PROFILE = {
   badge: "AGENCY TEAM",
   tagline: "STOP THE SCROLL. KEEP THEM WATCHING.",
   photo: "assets/logo.jpg",
-  waUrl: "https://wa.me/917075081947?text=Hi%20Ganesh,%20I%20saw%20your%20portfolio%20on%20GanaCuts%20Visuals%20and%20would%20like%20to%20hire%20you%20for%20a%20video%20editing%20project.",
+  waUrl: "https://wa.me/917075081947?text=Hi%20GanaCuts%20Visuals,%20I%20saw%20your%20portfolio%20on%20GanaCuts%20Visuals%20and%20would%20like%20to%20hire%20you%20for%20a%20video%20editing%20project.",
   instaUrl: "https://www.instagram.com/gana_cuts_visuals?dlrf=aXJlY3lsazhraHl4",
   agencyFolders: [
     {
@@ -127,7 +127,7 @@ const DEFAULT_PROFILE = {
       desc: "Official agency Google Drive folder: raw footage, B-roll, motion templates, and audio assets.",
       url: "https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing",
       icon: "📁",
-      addedBy: "Ganesh (Admin)"
+      addedBy: "GanaCuts Visuals (Admin)"
     }
   ]
 };
@@ -142,7 +142,12 @@ const STORAGE_KEY_PROF = "ganacuts_prof_v2";
 const STORAGE_KEY_APPS = "cutscale_apps_v6";
 const STORAGE_KEY_TRASH_APPS = "cutscale_trash_apps_v1";
 const STORAGE_KEY_MSGS = "cutscale_msgs_v1";
+const STORAGE_KEY_PRACTICE_ASGS = "cutscale_practice_asgs_v1";
+const STORAGE_KEY_CLIENT_PROJS = "cutscale_client_projs_v1";
 const ADMIN_PIN = "7075";
+
+let practiceAssignments = [];
+let clientProjects = [];
 
 // Supabase Cloud Authentication & Realtime Database Configuration
 const SUPABASE_URL = "https://urrvvmmurxjwqocrpxct.supabase.co";
@@ -696,7 +701,7 @@ function sendAdminMessage(editorId, text, replyToObj = null) {
     id: "msg_" + Date.now() + "_" + Math.floor(Math.random() * 1000),
     editorId,
     sender: "admin",
-    senderName: "Ganesh (Admin)",
+    senderName: "GanaCuts Visuals (Admin)",
     text: textPayload,
     timestamp: Date.now(),
     timeStr
@@ -1242,9 +1247,9 @@ function renderApplicantsManager() {
     const cleanPhone = (app.phone || "").replace(/\D/g, "");
 
     // Dynamic tailored WhatsApp text based on stage
-    let waTextMsg = `Hi ${app.name}, this is Ganesh. We reviewed your editor portfolio (${app.specialization}) and wanted to connect with you.`;
+    let waTextMsg = `Hi ${app.name}, this is GanaCuts Visuals. We reviewed your editor portfolio (${app.specialization}) and wanted to connect with you.`;
     if (app.status === 'trial') {
-      waTextMsg = `Hi ${app.name}, this is Ganesh. Great news! Your portfolio passed our initial review. We have a paid trial video project ready for you. Let's discuss details and footage delivery.`;
+      waTextMsg = `Hi ${app.name}, this is GanaCuts Visuals. Great news! Your portfolio passed our initial review. We have a paid trial video project ready for you. Let's discuss details and footage delivery.`;
     } else if (app.status === 'selected') {
       waTextMsg = `Hi ${app.name}, congratulations! You've been officially selected to join our creative editing team. We have projects lined up and want to coordinate your availability.`;
     }
@@ -1272,7 +1277,7 @@ function renderApplicantsManager() {
             <span>🎬 ${app.specialization || 'Video Editing'} (${app.tools || 'Video Editor'})</span>
           </div>
           <div class="applicant-detail-item">
-            <strong>Expected Pay</strong>
+            <strong>Expected payment per reel/video</strong>
             <span>💰 ${app.rate || 'Standard / Discuss'}</span>
           </div>
         </div>
@@ -1291,7 +1296,7 @@ function renderApplicantsManager() {
           </div>
         ` : ''}
 
-        <!-- Submitted Draft for Ganesh to Review -->
+        <!-- Submitted Draft for GanaCuts Visuals to Review -->
         ${app.submittedDraft ? `
           <div style="background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.3); border-radius:8px; padding:10px 12px; font-size:12px;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
@@ -1316,15 +1321,16 @@ function renderApplicantsManager() {
         </div>
 
         <div class="applicant-actions-bar">
-          <div class="applicant-action-left" style="flex-wrap:wrap;">
+          <div class="applicant-action-left" style="flex-wrap:wrap; gap:6px;">
             <a href="${app.portfolio}" target="_blank" rel="noopener" class="portfolio-link-btn" title="Inspect Editor Work">
               <span>View Portfolio ↗</span>
             </a>
             <a href="${waLink}" target="_blank" rel="noopener" class="wa-msg-btn" title="Contact on WhatsApp">
-              <span>Chat on WhatsApp</span>
+              <span>WhatsApp</span>
             </a>
-            <button class="primary-btn" onclick="openChatWithEditor('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, var(--accent-orange), #ea580c); color:#fff;" title="Chat directly in Portal">💬 Chat / Send Notes</button>
-            <button class="secondary-btn light-btn" onclick="assignProjectToEditor('${app.id}')" style="padding:6px 12px; font-size:11px;" title="Assign test clip or client video">+ Assign Project</button>
+            <button class="primary-btn" onclick="openChatWithEditor('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, #3b82f6, #2563eb); color:#fff;" title="Chat directly in Portal">💬 Chat</button>
+            <button class="secondary-btn light-btn" onclick="openPracticeAssignmentModal('${app.id}')" style="padding:6px 12px; font-size:11px;" title="Assign practice brief">🎯 Practice Task</button>
+            <button class="primary-btn" onclick="openClientProjectModal('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, var(--accent-orange), #ea580c); color:#fff;" title="Assign commercial client project">🎬 Client Project</button>
           </div>
 
           <div style="display:flex;align-items:center;gap:8px;">
@@ -1469,9 +1475,9 @@ window.renderAgencySheet = function(filter = currentSheetFilter, searchQuery = c
     const isSelected = status === "selected";
     const rowClass = isSelected ? "row-selected" : "";
 
-    let waText = `Hi ${app.name}, this is Ganesh from GanaCuts Visuals.`;
+    let waText = `Hi ${app.name}, this is GanaCuts Visuals.`;
     if (isSelected) {
-      waText = `Hi ${app.name}, this is Ganesh from GanaCuts Visuals. Congratulations on being selected in our agency roster! Let's connect on upcoming client projects.`;
+      waText = `Hi ${app.name}, this is GanaCuts Visuals. Congratulations on being selected in our agency roster! Let's connect on upcoming client projects.`;
     }
 
     return `
@@ -1542,7 +1548,7 @@ window.exportAgencyRosterToCSV = function() {
     "City / Location",
     "Editing Software",
     "Specialization Style",
-    "Expected Rate",
+    "Expected payment per reel/video",
     "Portfolio Link",
     "Applied Date",
     "Admin Feedback & Notes"
@@ -1648,7 +1654,7 @@ window.sendSheetEmailToGani = function() {
   const subject = encodeURIComponent(`GanaCuts Visuals — Agency Editor Roster Report (${selectedList.length} Selected Editors)`);
 
   let body = `GANACUTS VISUALS — AGENCY ROSTER REPORT\n`;
-  body += `Founder: Ganesh (designsbygani@gmail.com)\n`;
+  body += `Creative Studio: GanaCuts Visuals (designsbygani@gmail.com)\n`;
   body += `Generated: ${new Date().toLocaleString()}\n`;
   body += `===================================================\n\n`;
   body += `SELECTED & HIRED IN AGENCY (${selectedList.length}):\n`;
@@ -1724,6 +1730,223 @@ function syncApplicantToGoogleSheet(applicant) {
   } catch (e) {}
 }
 
+// =========================================================================
+// PRACTICE ASSIGNMENTS & CLIENT PROJECTS ENGINE (TABLE ARCHITECTURE)
+// =========================================================================
+function loadPracticeAssignments() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_PRACTICE_ASGS);
+    practiceAssignments = raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    practiceAssignments = [];
+  }
+  if (!Array.isArray(practiceAssignments) || practiceAssignments.length === 0) {
+    practiceAssignments = [
+      {
+        id: "asg_practice_default",
+        title: "Documentary Narrative Pacing & B-Roll",
+        description: "Cut raw footage to beat, apply color grade, add dramatic pauses, and craft documentary narrative pacing.",
+        links: [
+          { name: "Raw Footage A-Roll (Drive)", url: "https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing" },
+          { name: "B-Roll & Sound FX Pack", url: "https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing" }
+        ],
+        assignedEditorIds: ["all"],
+        submissions: {},
+        createdAt: Date.now()
+      }
+    ];
+    savePracticeAssignments();
+  }
+  window.practiceAssignments = practiceAssignments;
+  return practiceAssignments;
+}
+
+function savePracticeAssignments() {
+  try {
+    localStorage.setItem(STORAGE_KEY_PRACTICE_ASGS, JSON.stringify(practiceAssignments));
+    window.practiceAssignments = practiceAssignments;
+  } catch (e) {}
+}
+
+function loadClientProjects() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_CLIENT_PROJS);
+    clientProjects = raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    clientProjects = [];
+  }
+  if (!Array.isArray(clientProjects) || clientProjects.length === 0) {
+    clientProjects = [
+      {
+        id: "proj_client_default",
+        title: "Luxury Real Estate 60s Reel",
+        clientName: "Apex Luxury Realty",
+        description: "High-retention architectural walkthrough with dynamic zooms, clean cuts, and sleek typography.",
+        links: [
+          { name: "Raw Property Footage (Drive)", url: "https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing" },
+          { name: "Brand Guidelines & Music", url: "https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing" }
+        ],
+        assignedEditorIds: ["all"],
+        deadline: "24-48 Hours",
+        submissions: {},
+        createdAt: Date.now()
+      }
+    ];
+    saveClientProjects();
+  }
+  window.clientProjects = clientProjects;
+  return clientProjects;
+}
+
+function saveClientProjects() {
+  try {
+    localStorage.setItem(STORAGE_KEY_CLIENT_PROJS, JSON.stringify(clientProjects));
+    window.clientProjects = clientProjects;
+  } catch (e) {}
+}
+
+// Initial loader
+loadPracticeAssignments();
+loadClientProjects();
+
+window.loadPracticeAssignments = loadPracticeAssignments;
+window.savePracticeAssignments = savePracticeAssignments;
+window.loadClientProjects = loadClientProjects;
+window.saveClientProjects = saveClientProjects;
+
+window.getPracticeAssignmentsForEditor = function(editorId) {
+  loadPracticeAssignments();
+  return (practiceAssignments || []).filter(a => {
+    if (!a.assignedEditorIds || !Array.isArray(a.assignedEditorIds)) return false;
+    return a.assignedEditorIds.includes('all') || a.assignedEditorIds.includes(editorId);
+  });
+};
+
+window.getClientProjectsForEditor = function(editorId) {
+  loadClientProjects();
+  return (clientProjects || []).filter(p => {
+    if (!p.assignedEditorIds || !Array.isArray(p.assignedEditorIds)) return false;
+    return p.assignedEditorIds.includes('all') || p.assignedEditorIds.includes(editorId);
+  });
+};
+
+window.createPracticeAssignment = function({ title, description, links, assignedEditorIds }) {
+  loadPracticeAssignments();
+  const newAsg = {
+    id: "asg_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+    title: title || "Practice Editing Task",
+    description: description || "Follow high-retention pacing and audio sound design.",
+    links: Array.isArray(links) ? links : [],
+    assignedEditorIds: Array.isArray(assignedEditorIds) && assignedEditorIds.length > 0 ? assignedEditorIds : ["all"],
+    submissions: {},
+    createdAt: Date.now()
+  };
+  practiceAssignments.unshift(newAsg);
+  savePracticeAssignments();
+
+  const targetIds = newAsg.assignedEditorIds.includes('all')
+    ? applicants.map(a => a.id)
+    : newAsg.assignedEditorIds;
+
+  targetIds.forEach(edId => {
+    if (typeof sendAdminMessage === 'function') {
+      sendAdminMessage(edId, `🎯 New Practice Assignment from GanaCuts Visuals: "${newAsg.title}". Check your Practice Assignments table to download raw assets and submit your work.`, "GanaCuts Visuals (Admin)");
+    }
+  });
+
+  return newAsg;
+};
+
+window.createClientProject = function({ clientName, title, description, links, assignedEditorIds, deadline }) {
+  loadClientProjects();
+  const newProj = {
+    id: "proj_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
+    clientName: clientName || "Commercial Client",
+    title: title || "Client Reel Cut",
+    description: description || "High-retention commercial cut.",
+    links: Array.isArray(links) ? links : [],
+    assignedEditorIds: Array.isArray(assignedEditorIds) && assignedEditorIds.length > 0 ? assignedEditorIds : ["all"],
+    deadline: deadline || "24-48 Hours",
+    submissions: {},
+    createdAt: Date.now()
+  };
+  clientProjects.unshift(newProj);
+  saveClientProjects();
+
+  const targetIds = newProj.assignedEditorIds.includes('all')
+    ? applicants.map(a => a.id)
+    : newProj.assignedEditorIds;
+
+  targetIds.forEach(edId => {
+    if (typeof sendAdminMessage === 'function') {
+      sendAdminMessage(edId, `🎬 New Client Project Assigned: "${newProj.title}" for "${newProj.clientName}". Check your Client Projects table to download assets and submit your cut.`, "GanaCuts Visuals (Admin)");
+    }
+  });
+
+  return newProj;
+};
+
+window.deletePracticeAssignment = function(asgId) {
+  loadPracticeAssignments();
+  practiceAssignments = practiceAssignments.filter(a => a.id !== asgId);
+  savePracticeAssignments();
+};
+
+window.deleteClientProject = function(projId) {
+  loadClientProjects();
+  clientProjects = clientProjects.filter(p => p.id !== projId);
+  saveClientProjects();
+};
+
+window.submitPracticeAssignmentWork = function(asgId, editorId, videoUrl, notes) {
+  loadPracticeAssignments();
+  const asg = practiceAssignments.find(a => a.id === asgId);
+  if (!asg) return;
+  if (!asg.submissions) asg.submissions = {};
+  const now = new Date();
+  const submittedAt = now.toLocaleDateString("en-IN", { day: '2-digit', month: 'short' }) + ", " + now.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
+  asg.submissions[editorId] = { videoUrl, notes, submittedAt };
+  savePracticeAssignments();
+
+  const ed = applicants.find(a => a.id === editorId);
+  if (ed) {
+    if (!ed.practiceSubmissions) ed.practiceSubmissions = {};
+    ed.practiceSubmissions[asgId] = { videoUrl, notes, submittedAt };
+    saveApplicants();
+    if (window.syncApplicantToSupabase) window.syncApplicantToSupabase(ed);
+  }
+
+  const edName = ed ? ed.name : "Editor";
+  if (typeof sendEditorMessage === 'function') {
+    sendEditorMessage(editorId, `📤 Submitted practice work for "${asg.title}": ${videoUrl} (${notes || 'Practice cut complete'})`, edName);
+  }
+};
+
+window.submitClientProjectWork = function(projId, editorId, videoUrl, notes) {
+  loadClientProjects();
+  const proj = clientProjects.find(p => p.id === projId);
+  if (!proj) return;
+  if (!proj.submissions) proj.submissions = {};
+  const now = new Date();
+  const submittedAt = now.toLocaleDateString("en-IN", { day: '2-digit', month: 'short' }) + ", " + now.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
+  proj.submissions[editorId] = { videoUrl, notes, submittedAt, status: "submitted" };
+  saveClientProjects();
+
+  const ed = applicants.find(a => a.id === editorId);
+  if (ed) {
+    if (!ed.clientSubmissions) ed.clientSubmissions = {};
+    ed.clientSubmissions[projId] = { videoUrl, notes, submittedAt };
+    ed.submittedDraft = { url: videoUrl, notes, date: submittedAt };
+    saveApplicants();
+    if (window.syncApplicantToSupabase) window.syncApplicantToSupabase(ed);
+  }
+
+  const edName = ed ? ed.name : "Editor";
+  if (typeof sendEditorMessage === 'function') {
+    sendEditorMessage(editorId, `🎬 Submitted client cut for "${proj.title}" (${proj.clientName}): ${videoUrl} (${notes || 'Client cut ready for review'})`, edName);
+  }
+};
+
 // Assign Project / Paid Trial to Editor
 window.assignProjectToEditor = function(id) {
   const app = applicants.find(a => a.id === id);
@@ -1738,7 +1961,7 @@ window.assignProjectToEditor = function(id) {
     const footageUrl = prompt("Enter Google Drive / Dropbox raw client footage link:", "https://drive.google.com/drive/folders/client-footage");
     if (!footageUrl) return;
     const payout = prompt(`Enter instant UPI payout amount for this edit:`, app.rate || "₹1,200");
-    const instructions = prompt("Enter Creative Brief & editing instructions:", "High-retention pacing, 128 BPM soundtrack, kinetic subtitles, DaVinci grade.");
+    const instructions = prompt("Enter Creative Brief & editing instructions:", "High-retention pacing, 128 BPM soundtrack, narrative storytelling subtitles, DaVinci grade.");
 
     app.assignedProject = {
       isClientProject: true,
@@ -1751,7 +1974,7 @@ window.assignProjectToEditor = function(id) {
     };
     app.adminFeedback = `Commercial Project assigned: "${title}" for ${clientName}. Download raw footage and submit draft cut.`;
   } else {
-    const title = prompt(`Assign Screening / Test Reel Title to ${app.name}:`, "Screening Test: Kinetic Typography & Pacing");
+    const title = prompt(`Assign Practice / Test Task Title to ${app.name}:`, "Practice Task: Documentary / AI Storytelling & Pacing");
     if (!title) return;
     const footageUrl = prompt("Enter Google Drive / Dropbox raw footage link for test clip:", "https://drive.google.com/drive/folders/sample-footage");
     if (!footageUrl) return;
@@ -2273,16 +2496,16 @@ function performStatusLookup(query) {
     alertMessage = `
       <div class="status-msg-box pending">
         <h5 style="font-weight:700; margin-bottom:4px; font-size:14px;">⏳ Step 2: Portfolio Review in Progress</h5>
-        <p>Hi <strong>${match.name}</strong>, your application and <strong>${match.specialization}</strong> portfolio are currently being assessed by Ganesh and the GanaCuts Visuals team. We review submissions within 24–48 hours. Keep your WhatsApp notifications active!</p>
+        <p>Hi <strong>${match.name}</strong>, your application and <strong>${match.specialization}</strong> portfolio are currently being assessed by GanaCuts Visuals. We review submissions within 24–48 hours. Keep your WhatsApp notifications active!</p>
       </div>
     `;
   } else if (status === "trial") {
-    statusBadgeLabel = "🎯 Paid Trial Assigned";
+    statusBadgeLabel = "🎯 Practice Task Assigned";
     statusBadgeClass = "status-trial";
     alertMessage = `
       <div class="status-msg-box trial">
-        <h5 style="font-weight:700; margin-bottom:4px; font-size:14px;">🎯 Step 3: Paid Trial Video Assigned!</h5>
-        <p>Congratulations <strong>${match.name}</strong>! Your portfolio passed initial screening. Ganesh has assigned you a paid trial clip. Please check your WhatsApp messages or message Ganesh directly below to receive raw footage.</p>
+        <h5 style="font-weight:700; margin-bottom:4px; font-size:14px;">🎯 Step 3: Practice Brief & Test Clip Assigned!</h5>
+        <p>Congratulations <strong>${match.name}</strong>! Your portfolio passed initial screening. GanaCuts Visuals has assigned you a practice brief. Open your Editor Studio below to access raw footage and submit your work.</p>
       </div>
     `;
   } else if (status === "selected") {
@@ -2291,10 +2514,10 @@ function performStatusLookup(query) {
     alertMessage = `
       <div class="status-msg-box selected" style="border: 1px solid rgba(255, 230, 0, 0.4); background: linear-gradient(135deg, rgba(255, 230, 0, 0.1) 0%, rgba(20, 20, 26, 0.95) 100%);">
         <h5 style="font-weight:800; margin-bottom:6px; font-size:15px; color:#ffe600;">👑 Step 4: Welcome to GanaCuts Visuals Roster!</h5>
-        <p style="margin-bottom:12px;">Outstanding work, <strong>${match.name}</strong>! You are officially onboarded to the GanaCuts Visuals editor roster. Your personal <strong>Editor Premium Dashboard</strong> is unlocked with active project assignments, motion graphics vaults, and guaranteed UPI settlements.</p>
+        <p style="margin-bottom:12px;">Outstanding work, <strong>${match.name}</strong>! You are officially onboarded to the GanaCuts Visuals editor roster. Your personal <strong>Editor Workspace</strong> is unlocked with active commercial client projects, practice briefs, and asset drives.</p>
         <div>
           <a href="/editor" class="primary-btn" style="display:inline-flex; align-items:center; gap:8px; padding:10px 20px; font-size:13px; font-weight:700; text-decoration:none; box-shadow:0 0 16px rgba(217,78,40,0.4);">
-            <span>🚀 Enter Editor Premium Dashboard ➔</span>
+            <span>🚀 Enter Editor Workspace ➔</span>
           </a>
         </div>
       </div>
@@ -2311,7 +2534,7 @@ function performStatusLookup(query) {
   }
 
   const cleanPhone = (match.phone || "").replace(/\D/g, "");
-  const waContactLink = `https://wa.me/917075081947?text=${encodeURIComponent(`Hi Ganesh, I am checking the status of my GanaCuts Visuals editor application (${match.name} - ${cleanPhone}).`)}`;
+  const waContactLink = `https://wa.me/917075081947?text=${encodeURIComponent(`Hi GanaCuts Visuals, I am checking the status of my editor application (${match.name} - ${cleanPhone}).`)}`;
 
   resultArea.innerHTML = `
     <div class="status-tracker-card">
@@ -2350,7 +2573,7 @@ function performStatusLookup(query) {
 
       ${match.adminFeedback ? `
         <div style="margin-top:14px; background:#fff; border:1px solid #fed7aa; border-left:4px solid var(--accent-orange); padding:12px 14px; border-radius:10px;">
-          <strong style="color:var(--accent-orange); font-size:12px; display:block; margin-bottom:4px;">DIRECT NOTE FROM GANESH / GANACUTS VISUALS:</strong>
+          <strong style="color:var(--accent-orange); font-size:12px; display:block; margin-bottom:4px;">DIRECT NOTE FROM GANACUTS VISUALS:</strong>
           <p style="font-size:13px; color:var(--text-primary); margin:0;">"${match.adminFeedback}"</p>
         </div>
       ` : ''}
@@ -2372,7 +2595,7 @@ function performStatusLookup(query) {
       <div style="margin-top:16px; padding-top:14px; border-top:1px solid var(--border-subtle); display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:12px;">
         <div style="font-size:12px; color:var(--text-secondary);">
           <div><strong>Tools:</strong> ${match.tools}</div>
-          <div><strong>Expected Pay:</strong> ${match.rate || 'Negotiable'}</div>
+          <div><strong>Expected payment per reel/video:</strong> ${match.rate || 'Negotiable'}</div>
           <div><strong>Account PIN:</strong> ${match.password || '1234'}</div>
         </div>
 
@@ -2381,7 +2604,7 @@ function performStatusLookup(query) {
             <span>Editor Portal Dashboard ↗</span>
           </a>
           <a href="${waContactLink}" target="_blank" rel="noopener" class="primary-btn" style="padding:8px 14px; font-size:12px;">
-            <span>Message Ganesh on WhatsApp</span>
+            <span>Message GanaCuts Visuals on WhatsApp</span>
           </a>
         </div>
       </div>

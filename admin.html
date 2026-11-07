@@ -296,7 +296,7 @@
       <div class="admin-user-pill">
         <div style="display:flex; align-items:center; gap:6px;">
           <span class="admin-status-dot"></span>
-          <span id="admin-user-display">Ganesh (Admin)</span>
+          <span id="admin-user-display">GanaCuts Visuals (Admin)</span>
         </div>
         <a href="/" target="_blank" class="secondary-btn light-btn" style="padding:6px 14px; font-size:12px; text-decoration:none;">
           <span>View Public Site ↗</span>
@@ -418,17 +418,19 @@
           </div>
 
           <div class="sheet-header-actions">
+            <button type="button" class="primary-btn" onclick="openPracticeAssignmentModal()" style="background:linear-gradient(135deg, #3b82f6, #2563eb); border:none;" title="Assign practice task to one or multiple editors">
+              <span>🎯 + Give Practice Task</span>
+            </button>
+            <button type="button" class="primary-btn" onclick="openClientProjectModal()" style="background:linear-gradient(135deg, #d94e28, #ea580c); border:none;" title="Assign commercial client project">
+              <span>🎬 + Assign Client Project</span>
+            </button>
             <button type="button" class="primary-btn" onclick="exportAgencyRosterToCSV()" style="background:#059669; border-color:#047857;" title="Download complete sheet as CSV compatible with Google Sheets & Excel">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-              <span>Download Google Sheet (CSV)</span>
+              <span>Download CSV</span>
             </button>
             <button type="button" class="secondary-btn light-btn" onclick="copySheetDataForGoogleSheets()" title="Copy TSV data to paste directly into Google Sheets with Ctrl+V">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-              <span>Copy for Google Sheets (Ctrl+V)</span>
-            </button>
-            <button type="button" class="secondary-btn light-btn" onclick="sendSheetEmailToGani()" title="Email summary report to administrator">
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline></svg>
-              <span>Email Agency Report</span>
+              <span>Copy (Ctrl+V)</span>
             </button>
           </div>
         </div>
@@ -554,10 +556,33 @@
 
       <!-- TAB 2: APPLICANTS / EDITORS ROSTER -->
       <div class="admin-tab-pane" id="pane-applicants">
-        <div class="live-list-header">
-          <h4>Video Editor Recruitment & Project Assignments (<span id="dash-applicants-total">0</span>)</h4>
-          <small style="color:#888894">Assign test clips, set payout rates, review submitted video drafts, and update editor statuses in real-time.</small>
+        <div class="live-list-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <div>
+            <h4>Video Editor Recruitment & Project Assignments (<span id="dash-applicants-total">0</span>)</h4>
+            <small style="color:#888894">Assign practice tasks to multiple editors at once, assign commercial client projects, and review submitted cuts.</small>
+          </div>
+          <div style="display:flex; gap:10px;">
+            <button type="button" class="primary-btn" onclick="openPracticeAssignmentModal()" style="background:linear-gradient(135deg, #3b82f6, #2563eb); border:none; padding:8px 14px; font-size:12px;">
+              <span>🎯 + Give Practice Task</span>
+            </button>
+            <button type="button" class="primary-btn" onclick="openClientProjectModal()" style="background:linear-gradient(135deg, #d94e28, #ea580c); border:none; padding:8px 14px; font-size:12px;">
+              <span>🎬 + Assign Client Project</span>
+            </button>
+          </div>
         </div>
+
+        <!-- Submissions & Work Review Queue -->
+        <div class="submissions-queue-card" style="margin-bottom:20px; background:#16161d; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <div>
+              <h4 style="font-size:16px; font-weight:800; color:#fff; margin:0 0 2px;">📤 Editor Submissions & Review Queue</h4>
+              <small style="color:#888894; font-size:12px;">Finished cuts submitted by editors for practice tasks and commercial client projects.</small>
+            </div>
+            <span class="badge-mini" id="admin-submissions-count" style="background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); font-size:11px; padding:3px 9px; border-radius:10px;">0 Submissions</span>
+          </div>
+          <div id="admin-submissions-table-container"></div>
+        </div>
+
         <div class="manage-list" id="applicants-manage-list"></div>
       </div>
 
@@ -601,10 +626,10 @@
             </div>
 
             <div class="chat-footer-composer">
-              <!-- Quick Response Chips for Ganesh -->
+              <!-- Quick Response Chips for GanaCuts Visuals -->
               <div class="chat-quick-replies">
                 <button type="button" class="quick-reply-pill" onclick="sendAdminQuickReply('Great cut! Approved with distinction.')">Approved ✓</button>
-                <button type="button" class="quick-reply-pill" onclick="sendAdminQuickReply('Make the hook faster in the first 3 seconds with kinetic subtitles.')">Faster Hook ⚡</button>
+                <button type="button" class="quick-reply-pill" onclick="sendAdminQuickReply('Make the hook faster in the first 3 seconds with dynamic documentary pacing.')">Faster Hook ⚡</button>
                 <button type="button" class="quick-reply-pill" onclick="sendAdminQuickReply('Raw footage uploaded to Google Drive. Check folder and start editing.')">Raw Clips in Drive 📂</button>
                 <button type="button" class="quick-reply-pill" onclick="sendAdminQuickReply('Use bolder captions with bright yellow text and punch sound effects.')">Captions Style 🎨</button>
                 <button type="button" class="quick-reply-pill" onclick="sendAdminQuickReply('Payout sent to your UPI! Thank you for the quick turnaround.')">Payment Sent 💰</button>
@@ -679,7 +704,7 @@
             <div class="form-row">
               <div class="form-group">
                 <label for="dash-video-title">Video Project Title *</label>
-                <input type="text" id="dash-video-title" placeholder="e.g. Kinetic 3D Title Sequence" required>
+                <input type="text" id="dash-video-title" placeholder="e.g. 3D Title Sequence / Documentary Cut" required>
               </div>
               <div class="form-group">
                 <label for="dash-video-category">Target Category *</label>
@@ -747,7 +772,7 @@
 
             <div class="form-group">
               <label for="profile-wa-url">WhatsApp Link for Inbound Clients</label>
-              <input type="text" id="profile-wa-url" value="https://wa.me/917075081947?text=Hi%20Ganesh,%20I%20saw%20your%20portfolio%20on%20GanaCuts%20Visuals%20and%20would%20like%20to%20hire%20you%20for%20a%20video%20editing%20project.">
+              <input type="text" id="profile-wa-url" value="https://wa.me/917075081947?text=Hi%20GanaCuts%20Visuals,%20I%20saw%20your%20portfolio%20on%20GanaCuts%20Visuals%20and%20would%20like%20to%20hire%20you%20for%20a%20video%20editing%20project.">
               <small class="field-help" style="color:#888894;">Your raw phone number is never displayed as text on the public website.</small>
             </div>
 
@@ -831,6 +856,146 @@
     </main>
   </div>
 
+  <!-- ======================================================================
+       ADMIN MODAL 1: ASSIGN PRACTICE TASK (MULTI-EDITOR BULK ASSIGNMENT)
+       ====================================================================== -->
+  <div id="admin-practice-asg-modal" class="modal-overlay" style="display:none;" onclick="if(event.target === this) closePracticeAssignmentModal()">
+    <div class="modal" style="max-width:620px; max-height:90vh; overflow-y:auto; background:#16161d; border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:28px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div>
+          <span class="badge-mini" style="background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3); font-size:11px; padding:2px 8px; border-radius:10px;">BULK & INDIVIDUAL ASSIGNMENT</span>
+          <h3 style="font-size:18px; font-weight:800; color:#fff; margin:4px 0 0;">🎯 Give Practice Task / Skill Brief</h3>
+        </div>
+        <button type="button" onclick="closePracticeAssignmentModal()" style="background:none; border:none; color:#a0a0ab; font-size:18px; cursor:pointer;">✕</button>
+      </div>
+      <p style="font-size:12.5px; color:#a0a0ab; margin:0 0 16px;">
+        Assign a practice editing brief and raw practice assets. You can select multiple editors at once or broadcast to all editors.
+      </p>
+
+      <form id="practice-asg-form" onsubmit="handleCreatePracticeAssignment(event)">
+        <!-- Step 1: Select Editors (Multi-Select Checkboxes) -->
+        <div class="form-group" style="margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label style="font-size:12px; font-weight:700; color:#cbd5e1; margin:0;">Select Editors to Receive Task *</label>
+            <div style="display:flex; gap:6px;">
+              <button type="button" class="secondary-btn light-btn" onclick="selectAllPracticeEditors(true)" style="padding:2px 8px; font-size:10.5px;">Select All</button>
+              <button type="button" class="secondary-btn light-btn" onclick="selectPracticeEditorsByStatus('selected')" style="padding:2px 8px; font-size:10.5px;">Hired Only</button>
+              <button type="button" class="secondary-btn light-btn" onclick="selectAllPracticeEditors(false)" style="padding:2px 8px; font-size:10.5px;">Clear</button>
+            </div>
+          </div>
+          <div id="practice-editors-checkbox-list" style="max-height:150px; overflow-y:auto; background:#0e0e13; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px; display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <!-- Step 2: Assignment Title -->
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Practice Assignment Title *</label>
+          <input type="text" id="asg-title" required placeholder="e.g. Documentary Narrative Pacing & B-Roll" style="width:100%; box-sizing:border-box; padding:9px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:13px;">
+        </div>
+
+        <!-- Step 3: Describe What to Edit -->
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Describe What to Edit (Creative Brief) *</label>
+          <textarea id="asg-desc" rows="3" required placeholder="Describe what the editor should do: pacing, sound design, transitions, visual hooks, dramatic pauses..." style="width:100%; box-sizing:border-box; padding:9px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12.5px; resize:vertical;"></textarea>
+        </div>
+
+        <!-- Step 4: Share Multiple Links with Names -->
+        <div class="form-group" style="margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label style="font-size:12px; font-weight:700; color:#cbd5e1; margin:0;">Share Multiple Links with Names</label>
+            <button type="button" class="secondary-btn light-btn" onclick="addPracticeLinkRow()" style="padding:2px 8px; font-size:10.5px;">+ Add Another Link</button>
+          </div>
+          <div id="practice-links-repeater" style="display:flex; flex-direction:column; gap:8px;">
+            <div class="link-row" style="display:flex; gap:8px; align-items:center;">
+              <input type="text" class="asg-link-name" placeholder="Link Name (e.g. Raw Footage A-Roll)" value="Raw Footage (Drive)" style="width:40%; padding:8px 10px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12px;">
+              <input type="url" class="asg-link-url" placeholder="https://drive.google.com/..." required style="flex:1; padding:8px 10px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12px;">
+              <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; color:#ef4444; font-size:14px; cursor:pointer;">✕</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+          <button type="button" class="secondary-btn light-btn" onclick="closePracticeAssignmentModal()">Cancel</button>
+          <button type="submit" class="primary-btn" style="background:linear-gradient(135deg, #3b82f6, #2563eb); border:none; padding:9px 22px;">
+            <span>🚀 Give Practice Task to Selected Editors</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- ======================================================================
+       ADMIN MODAL 2: ASSIGN COMMERCIAL CLIENT PROJECT
+       ====================================================================== -->
+  <div id="admin-client-proj-modal" class="modal-overlay" style="display:none;" onclick="if(event.target === this) closeClientProjectModal()">
+    <div class="modal" style="max-width:620px; max-height:90vh; overflow-y:auto; background:#16161d; border:1px solid rgba(255,255,255,0.12); border-radius:20px; padding:28px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <div>
+          <span class="badge-mini" style="background:rgba(217,78,40,0.15); color:var(--accent-orange); border:1px solid rgba(217,78,40,0.3); font-size:11px; padding:2px 8px; border-radius:10px;">COMMERCIAL CLIENT WORK</span>
+          <h3 style="font-size:18px; font-weight:800; color:#fff; margin:4px 0 0;">🎬 Assign Commercial Client Project</h3>
+        </div>
+        <button type="button" onclick="closeClientProjectModal()" style="background:none; border:none; color:#a0a0ab; font-size:18px; cursor:pointer;">✕</button>
+      </div>
+      <p style="font-size:12.5px; color:#a0a0ab; margin:0 0 16px;">
+        Assign a paid commercial video gig for a real agency client. Submissions will appear in your Review Queue.
+      </p>
+
+      <form id="client-proj-form" onsubmit="handleCreateClientProject(event)">
+        <!-- Step 1: Select Assigned Editor(s) -->
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Select Assigned Editor(s) *</label>
+          <div id="client-proj-editors-list" style="max-height:130px; overflow-y:auto; background:#0e0e13; border:1px solid rgba(255,255,255,0.1); border-radius:10px; padding:10px; display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:14px;">
+          <div class="form-group">
+            <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Client / Brand Name *</label>
+            <input type="text" id="client-proj-brand" required placeholder="e.g. Apex Luxury Realtor" style="width:100%; box-sizing:border-box; padding:9px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:13px;">
+          </div>
+          <div class="form-group">
+            <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Delivery SLA / Deadline</label>
+            <input type="text" id="client-proj-deadline" value="24-48 Hours" style="width:100%; box-sizing:border-box; padding:9px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:13px;">
+          </div>
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Project Title *</label>
+          <input type="text" id="client-proj-title" required placeholder="e.g. 60s Architectural Villa Reel" style="width:100%; box-sizing:border-box; padding:9px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:13px;">
+        </div>
+
+        <div class="form-group" style="margin-bottom:14px;">
+          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Client Creative Brief & Instructions *</label>
+          <textarea id="client-proj-desc" rows="3" required placeholder="Client requirements, branding guidelines, aspect ratio, reference notes..." style="width:100%; box-sizing:border-box; padding:9px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12.5px; resize:vertical;"></textarea>
+        </div>
+
+        <!-- Production Asset Links -->
+        <div class="form-group" style="margin-bottom:16px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <label style="font-size:12px; font-weight:700; color:#cbd5e1; margin:0;">Production Asset Links (with Names)</label>
+            <button type="button" class="secondary-btn light-btn" onclick="addClientProjLinkRow()" style="padding:2px 8px; font-size:10.5px;">+ Add Another Link</button>
+          </div>
+          <div id="client-proj-links-repeater" style="display:flex; flex-direction:column; gap:8px;">
+            <div class="link-row" style="display:flex; gap:8px; align-items:center;">
+              <input type="text" class="proj-link-name" placeholder="Link Name (e.g. Raw Footage)" value="Client Raw Footage" style="width:40%; padding:8px 10px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12px;">
+              <input type="url" class="proj-link-url" placeholder="https://drive.google.com/..." required style="flex:1; padding:8px 10px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12px;">
+              <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; color:#ef4444; font-size:14px; cursor:pointer;">✕</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:20px;">
+          <button type="button" class="secondary-btn light-btn" onclick="closeClientProjectModal()">Cancel</button>
+          <button type="submit" class="primary-btn" style="background:linear-gradient(135deg, var(--accent-orange), #ea580c); border:none; padding:9px 22px;">
+            <span>🎬 Assign Commercial Client Project</span>
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <script src="app.js?v=3.1"></script>
   <script>
     // Supabase Client Reference from app.js
@@ -864,8 +1029,8 @@
 
       if (btn) btn.style.opacity = "1";
 
-      // If Supabase is currently paused upstream on supabase.com, don't leave Ganesh locked out!
-      // Immediately log him in as verified Master Admin:
+      // If Supabase is currently paused upstream on supabase.com, don't leave GanaCuts Visuals admin locked out!
+      // Immediately log in as verified Master Admin:
       if (!oauthRedirectTriggered) {
         const sessionData = {
           email: MASTER_ADMIN_EMAIL,
@@ -1164,7 +1329,7 @@
 
       const actionsEl = document.getElementById("admin-active-chat-actions");
       const cleanPhone = (app.phone || "").replace(/\D/g, "");
-      const waLink = `https://wa.me/${cleanPhone.startsWith('91') ? cleanPhone : '91' + cleanPhone}?text=${encodeURIComponent('Hi ' + app.name + ', Ganesh here.')}`;
+      const waLink = `https://wa.me/${cleanPhone.startsWith('91') ? cleanPhone : '91' + cleanPhone}?text=${encodeURIComponent('Hi ' + app.name + ', GanaCuts Visuals here.')}`;
 
       actionsEl.innerHTML = `
         <a href="${waLink}" target="_blank" class="secondary-btn light-btn" style="padding:4px 10px; font-size:11px; text-decoration:none;">WhatsApp ↗</a>
@@ -1238,7 +1403,7 @@
 
         // Escape for JS call in Reply button
         const safeSnippet = (parsed.body || "").replace(/['"\\]/g, " ").slice(0, 80);
-        const senderLabel = isSent ? "Ganesh (Admin)" : (msg.senderName || (app ? app.name : "Editor"));
+        const senderLabel = isSent ? "GanaCuts Visuals (Admin)" : (msg.senderName || (app ? app.name : "Editor"));
 
         return `
           <div class="chat-msg-row ${isSent ? 'sent' : 'received'}" id="chat-msg-${msg.id}">
@@ -1345,7 +1510,7 @@
         url,
         desc: desc || "Agency asset folder",
         icon: "📁",
-        addedBy: "Ganesh"
+        addedBy: "GanaCuts Visuals"
       });
       if (typeof saveProfile === 'function') saveProfile();
       renderAdminFolders();
@@ -1359,6 +1524,302 @@
       if (typeof saveProfile === 'function') saveProfile();
       renderAdminFolders();
       if (typeof showToast === 'function') showToast("Folder removed.");
+    };
+
+    // =========================================================================
+    // ADMIN PRACTICE ASSIGNMENTS & CLIENT PROJECTS CONTROLLERS
+    // =========================================================================
+    window.openPracticeAssignmentModal = function(preselectedEditorId) {
+      const modal = document.getElementById("admin-practice-asg-modal");
+      const list = document.getElementById("practice-editors-checkbox-list");
+      if (!modal || !list) return;
+
+      list.innerHTML = (applicants || []).map(app => {
+        const isChecked = preselectedEditorId ? (app.id === preselectedEditorId) : true;
+        return `
+          <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#fff; cursor:pointer; padding:4px 6px; border-radius:6px; background:rgba(255,255,255,0.03);">
+            <input type="checkbox" class="practice-ed-cb" value="${app.id}" ${isChecked ? 'checked' : ''}>
+            <span>${escapeHtml(app.name)} <small style="color:#888894;">(${escapeHtml(app.status || 'pending')})</small></span>
+          </label>
+        `;
+      }).join('');
+
+      document.getElementById("asg-title").value = "";
+      document.getElementById("asg-desc").value = "";
+
+      const linksContainer = document.getElementById("practice-links-repeater");
+      if (linksContainer) {
+        linksContainer.innerHTML = `
+          <div class="link-row" style="display:flex; gap:8px; align-items:center;">
+            <input type="text" class="asg-link-name" placeholder="Link Name (e.g. Raw Footage A-Roll)" value="Raw Footage (Drive)" style="width:40%; padding:8px 10px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12px;">
+            <input type="url" class="asg-link-url" placeholder="https://drive.google.com/..." required style="flex:1; padding:8px 10px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12px;">
+            <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; color:#ef4444; font-size:14px; cursor:pointer;">✕</button>
+          </div>
+        `;
+      }
+
+      modal.style.display = "flex";
+    };
+
+    window.closePracticeAssignmentModal = function() {
+      const modal = document.getElementById("admin-practice-asg-modal");
+      if (modal) modal.style.display = "none";
+    };
+
+    window.selectAllPracticeEditors = function(checked) {
+      document.querySelectorAll(".practice-ed-cb").forEach(cb => cb.checked = !!checked);
+    };
+
+    window.selectPracticeEditorsByStatus = function(status) {
+      document.querySelectorAll(".practice-ed-cb").forEach(cb => {
+        const app = applicants.find(a => a.id === cb.value);
+        cb.checked = (app && app.status === status);
+      });
+    };
+
+    window.addPracticeLinkRow = function() {
+      const container = document.getElementById("practice-links-repeater");
+      if (!container) return;
+      const div = document.createElement("div");
+      div.className = "link-row";
+      div.style.cssText = "display:flex; gap:8px; align-items:center;";
+      div.innerHTML = `
+        <input type="text" class="asg-link-name" placeholder="Link Name (e.g. Audio SFX / Reference)" style="width:40%; padding:8px 10px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12px;">
+        <input type="url" class="asg-link-url" placeholder="https://drive.google.com/..." required style="flex:1; padding:8px 10px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12px;">
+        <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; color:#ef4444; font-size:14px; cursor:pointer;">✕</button>
+      `;
+      container.appendChild(div);
+    };
+
+    window.handleCreatePracticeAssignment = function(e) {
+      if (e) e.preventDefault();
+      const title = document.getElementById("asg-title").value.trim();
+      const description = document.getElementById("asg-desc").value.trim();
+
+      const selectedCbs = Array.from(document.querySelectorAll(".practice-ed-cb:checked"));
+      const assignedEditorIds = selectedCbs.map(cb => cb.value);
+
+      if (assignedEditorIds.length === 0) {
+        alert("Please select at least one editor to receive this practice task.");
+        return;
+      }
+
+      const linkRows = Array.from(document.querySelectorAll("#practice-links-repeater .link-row"));
+      const links = linkRows.map(row => {
+        const name = row.querySelector(".asg-link-name")?.value.trim() || "Resource Link";
+        const url = row.querySelector(".asg-link-url")?.value.trim() || "";
+        return { name, url };
+      }).filter(l => l.url.length > 5);
+
+      if (typeof createPracticeAssignment === 'function') {
+        createPracticeAssignment({ title, description, links, assignedEditorIds });
+      }
+
+      closePracticeAssignmentModal();
+      alert(`✓ Practice Task "${title}" successfully broadcast to ${assignedEditorIds.length} editor(s)!`);
+      renderAdminSubmissionsQueue();
+    };
+
+    window.openClientProjectModal = function(preselectedEditorId) {
+      const modal = document.getElementById("admin-client-proj-modal");
+      const list = document.getElementById("client-proj-editors-list");
+      if (!modal || !list) return;
+
+      list.innerHTML = (applicants || []).map(app => {
+        const isChecked = preselectedEditorId ? (app.id === preselectedEditorId) : (app.status === 'selected');
+        return `
+          <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#fff; cursor:pointer; padding:4px 6px; border-radius:6px; background:rgba(255,255,255,0.03);">
+            <input type="checkbox" class="client-proj-ed-cb" value="${app.id}" ${isChecked ? 'checked' : ''}>
+            <span>${escapeHtml(app.name)} <small style="color:${app.status === 'selected' ? '#10b981' : '#888894'};">(${escapeHtml(app.status || 'pending')})</small></span>
+          </label>
+        `;
+      }).join('');
+
+      document.getElementById("client-proj-brand").value = "";
+      document.getElementById("client-proj-title").value = "";
+      document.getElementById("client-proj-desc").value = "";
+      document.getElementById("client-proj-deadline").value = "24-48 Hours";
+
+      const linksContainer = document.getElementById("client-proj-links-repeater");
+      if (linksContainer) {
+        linksContainer.innerHTML = `
+          <div class="link-row" style="display:flex; gap:8px; align-items:center;">
+            <input type="text" class="proj-link-name" placeholder="Link Name (e.g. Raw Footage)" value="Client Raw Footage" style="width:40%; padding:8px 10px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12px;">
+            <input type="url" class="proj-link-url" placeholder="https://drive.google.com/..." required style="flex:1; padding:8px 10px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12px;">
+            <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; color:#ef4444; font-size:14px; cursor:pointer;">✕</button>
+          </div>
+        `;
+      }
+
+      modal.style.display = "flex";
+    };
+
+    window.closeClientProjectModal = function() {
+      const modal = document.getElementById("admin-client-proj-modal");
+      if (modal) modal.style.display = "none";
+    };
+
+    window.addClientProjLinkRow = function() {
+      const container = document.getElementById("client-proj-links-repeater");
+      if (!container) return;
+      const div = document.createElement("div");
+      div.className = "link-row";
+      div.style.cssText = "display:flex; gap:8px; align-items:center;";
+      div.innerHTML = `
+        <input type="text" class="proj-link-name" placeholder="Link Name (e.g. Brand Kit / Reference)" style="width:40%; padding:8px 10px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12px;">
+        <input type="url" class="proj-link-url" placeholder="https://drive.google.com/..." required style="flex:1; padding:8px 10px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12px;">
+        <button type="button" onclick="this.parentElement.remove()" style="background:none; border:none; color:#ef4444; font-size:14px; cursor:pointer;">✕</button>
+      `;
+      container.appendChild(div);
+    };
+
+    window.handleCreateClientProject = function(e) {
+      if (e) e.preventDefault();
+      const clientName = document.getElementById("client-proj-brand").value.trim();
+      const title = document.getElementById("client-proj-title").value.trim();
+      const description = document.getElementById("client-proj-desc").value.trim();
+      const deadline = document.getElementById("client-proj-deadline").value.trim();
+
+      const selectedCbs = Array.from(document.querySelectorAll(".client-proj-ed-cb:checked"));
+      const assignedEditorIds = selectedCbs.map(cb => cb.value);
+
+      if (assignedEditorIds.length === 0) {
+        alert("Please select at least one editor to assign to this client project.");
+        return;
+      }
+
+      const linkRows = Array.from(document.querySelectorAll("#client-proj-links-repeater .link-row"));
+      const links = linkRows.map(row => {
+        const name = row.querySelector(".proj-link-name")?.value.trim() || "Client Asset";
+        const url = row.querySelector(".proj-link-url")?.value.trim() || "";
+        return { name, url };
+      }).filter(l => l.url.length > 5);
+
+      if (typeof createClientProject === 'function') {
+        createClientProject({ clientName, title, description, links, assignedEditorIds, deadline });
+      }
+
+      closeClientProjectModal();
+      alert(`✓ Commercial Project "${title}" for ${clientName} assigned to ${assignedEditorIds.length} editor(s)!`);
+      renderAdminSubmissionsQueue();
+    };
+
+    window.renderAdminSubmissionsQueue = function() {
+      const container = document.getElementById("admin-submissions-table-container");
+      const badge = document.getElementById("admin-submissions-count");
+      if (!container) return;
+
+      const submissions = [];
+
+      (window.practiceAssignments || []).forEach(asg => {
+        if (asg.submissions) {
+          Object.entries(asg.submissions).forEach(([edId, sub]) => {
+            const ed = applicants.find(a => a.id === edId);
+            submissions.push({
+              type: "Practice Task",
+              title: asg.title,
+              editorName: ed ? ed.name : "Editor",
+              editorId: edId,
+              videoUrl: sub.videoUrl,
+              notes: sub.notes,
+              submittedAt: sub.submittedAt
+            });
+          });
+        }
+      });
+
+      (window.clientProjects || []).forEach(proj => {
+        if (proj.submissions) {
+          Object.entries(proj.submissions).forEach(([edId, sub]) => {
+            const ed = applicants.find(a => a.id === edId);
+            submissions.push({
+              type: "Client Project",
+              title: `${proj.clientName} — ${proj.title}`,
+              editorName: ed ? ed.name : "Editor",
+              editorId: edId,
+              videoUrl: sub.videoUrl,
+              notes: sub.notes,
+              submittedAt: sub.submittedAt
+            });
+          });
+        }
+      });
+
+      (applicants || []).forEach(app => {
+        if (app.submittedDraft && app.submittedDraft.url) {
+          const already = submissions.some(s => s.editorId === app.id && s.videoUrl === app.submittedDraft.url);
+          if (!already) {
+            submissions.push({
+              type: "Video Cut",
+              title: app.assignedProject ? app.assignedProject.title : "Assigned Reel",
+              editorName: app.name,
+              editorId: app.id,
+              videoUrl: app.submittedDraft.url,
+              notes: app.submittedDraft.notes,
+              submittedAt: app.submittedDraft.date
+            });
+          }
+        }
+      });
+
+      if (badge) badge.textContent = `${submissions.length} Submission${submissions.length === 1 ? '' : 's'}`;
+
+      if (submissions.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding:24px 16px; color:#888894; font-size:12.5px;">
+            No video submissions received from editors yet. When editors submit finished cuts via their studio table, they will appear right here.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = `
+        <div style="overflow-x:auto;">
+          <table class="data-table" style="width:100%; font-size:12px; border-collapse:collapse;">
+            <thead>
+              <tr style="border-bottom:1px solid rgba(255,255,255,0.08); text-align:left; color:#a0a0ab;">
+                <th style="padding:10px 12px;">Type</th>
+                <th style="padding:10px 12px;">Editor</th>
+                <th style="padding:10px 12px;">Task / Project</th>
+                <th style="padding:10px 12px;">Submitted Cut Link</th>
+                <th style="padding:10px 12px;">Notes</th>
+                <th style="padding:10px 12px;">Submitted At</th>
+                <th style="padding:10px 12px; text-align:right;">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${submissions.map(sub => `
+                <tr style="border-bottom:1px solid rgba(255,255,255,0.04);">
+                  <td style="padding:10px 12px;">
+                    <span class="badge-mini" style="background:${sub.type.includes('Client') ? 'rgba(217,78,40,0.15)' : 'rgba(59,130,246,0.15)'}; color:${sub.type.includes('Client') ? 'var(--accent-orange)' : '#60a5fa'}; font-weight:700;">
+                      ${escapeHtml(sub.type)}
+                    </span>
+                  </td>
+                  <td style="padding:10px 12px; font-weight:700; color:#fff;">${escapeHtml(sub.editorName)}</td>
+                  <td style="padding:10px 12px; color:#cbd5e1;">${escapeHtml(sub.title)}</td>
+                  <td style="padding:10px 12px;">
+                    <a href="${sub.videoUrl}" target="_blank" rel="noopener" class="portfolio-link-btn" style="padding:3px 8px; font-size:11px; text-decoration:none;">🎬 Watch Cut ↗</a>
+                  </td>
+                  <td style="padding:10px 12px; color:#888894; max-width:200px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(sub.notes || '—')}</td>
+                  <td style="padding:10px 12px; color:#888894; font-size:11px;">${escapeHtml(sub.submittedAt || 'Recent')}</td>
+                  <td style="padding:10px 12px; text-align:right;">
+                    <button type="button" class="primary-btn" onclick="openChatWithEditor('${sub.editorId}')" style="padding:4px 10px; font-size:11px;">💬 Chat / Feedback</button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+    };
+
+    // Auto-render submissions queue on load and tab switch
+    const origSwitchAdminTab = window.switchAdminTab;
+    window.switchAdminTab = function(tabName) {
+      if (origSwitchAdminTab) origSwitchAdminTab(tabName);
+      if (tabName === "applicants") {
+        renderAdminSubmissionsQueue();
+      }
     };
   </script>
 </body>
