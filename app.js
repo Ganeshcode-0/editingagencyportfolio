@@ -120,16 +120,7 @@ const DEFAULT_PROFILE = {
   photo: "assets/logo.jpg",
   waUrl: "https://wa.me/917075081947?text=Hi%20GanaCuts%20Visuals,%20I%20saw%20your%20portfolio%20on%20GanaCuts%20Visuals%20and%20would%20like%20to%20hire%20you%20for%20a%20video%20editing%20project.",
   instaUrl: "https://www.instagram.com/gana_cuts_visuals?dlrf=aXJlY3lsazhraHl4",
-  agencyFolders: [
-    {
-      id: "folder_drive_vault",
-      title: "GanaCuts Master Production Drive",
-      desc: "Official agency Google Drive folder: raw footage, B-roll, motion templates, and audio assets.",
-      url: "https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing",
-      icon: "📁",
-      addedBy: "GanaCuts Visuals (Admin)"
-    }
-  ]
+  agencyFolders: []
 };
 
 // Real Messages (Loaded dynamically from Supabase database)
@@ -359,6 +350,7 @@ async function fetchSupabaseApplicants() {
       // Purge fake demo entries
       applicants = applicants.filter(a => a && a.id !== "app_1" && a.id !== "app_2" && a.id !== "app_3");
       localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
+      if (typeof window !== "undefined") window.applicants = applicants;
       if (typeof updateAdminUI === 'function') updateAdminUI();
     }
   } catch (err) {
@@ -530,9 +522,11 @@ function initData() {
   if (!profile.photo || profile.photo.includes("ganesh.jpg")) {
     profile.photo = "assets/logo.jpg";
   }
-  if (!Array.isArray(profile.agencyFolders) || profile.agencyFolders.length === 0) {
-    profile.agencyFolders = [...(DEFAULT_PROFILE.agencyFolders || [])];
+  if (!Array.isArray(profile.agencyFolders)) {
+    profile.agencyFolders = [];
   }
+  // Strip legacy demo folder
+  profile.agencyFolders = profile.agencyFolders.filter(f => f && f.id !== "folder_drive_vault");
   if (typeof window !== "undefined") window.profile = profile;
   saveProfile();
 
@@ -541,6 +535,7 @@ function initData() {
   // Purge any legacy fake applicants (Suresh, Arjun, Kavya)
   applicants = applicants.filter(a => a && a.id !== "app_1" && a.id !== "app_2" && a.id !== "app_3");
   localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
+  if (typeof window !== "undefined") window.applicants = applicants;
 
   const storedTrash = localStorage.getItem(STORAGE_KEY_TRASH_APPS);
   trashApplicants = storedTrash ? JSON.parse(storedTrash) : [];
@@ -1740,23 +1735,13 @@ function loadPracticeAssignments() {
   } catch (e) {
     practiceAssignments = [];
   }
-  if (!Array.isArray(practiceAssignments) || practiceAssignments.length === 0) {
-    practiceAssignments = [
-      {
-        id: "asg_practice_default",
-        title: "Documentary Narrative Pacing & B-Roll",
-        description: "Cut raw footage to beat, apply color grade, add dramatic pauses, and craft documentary narrative pacing.",
-        links: [
-          { name: "Raw Footage A-Roll (Drive)", url: "https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing" },
-          { name: "B-Roll & Sound FX Pack", url: "https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing" }
-        ],
-        assignedEditorIds: ["all"],
-        submissions: {},
-        createdAt: Date.now()
-      }
-    ];
-    savePracticeAssignments();
+  // Strip any legacy demo tasks
+  if (Array.isArray(practiceAssignments)) {
+    practiceAssignments = practiceAssignments.filter(a => a && a.id !== "asg_practice_default");
+  } else {
+    practiceAssignments = [];
   }
+  localStorage.setItem(STORAGE_KEY_PRACTICE_ASGS, JSON.stringify(practiceAssignments));
   window.practiceAssignments = practiceAssignments;
   return practiceAssignments;
 }
@@ -1775,25 +1760,13 @@ function loadClientProjects() {
   } catch (e) {
     clientProjects = [];
   }
-  if (!Array.isArray(clientProjects) || clientProjects.length === 0) {
-    clientProjects = [
-      {
-        id: "proj_client_default",
-        title: "Luxury Real Estate 60s Reel",
-        clientName: "Apex Luxury Realty",
-        description: "High-retention architectural walkthrough with dynamic zooms, clean cuts, and sleek typography.",
-        links: [
-          { name: "Raw Property Footage (Drive)", url: "https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing" },
-          { name: "Brand Guidelines & Music", url: "https://drive.google.com/drive/mobile/folders/1dAGFG0ngc2RdRy6ckhHWyrl0lUByMd6p?usp=sharing" }
-        ],
-        assignedEditorIds: ["all"],
-        deadline: "24-48 Hours",
-        submissions: {},
-        createdAt: Date.now()
-      }
-    ];
-    saveClientProjects();
+  // Strip any legacy demo projects
+  if (Array.isArray(clientProjects)) {
+    clientProjects = clientProjects.filter(p => p && p.id !== "proj_client_default");
+  } else {
+    clientProjects = [];
   }
+  localStorage.setItem(STORAGE_KEY_CLIENT_PROJS, JSON.stringify(clientProjects));
   window.clientProjects = clientProjects;
   return clientProjects;
 }

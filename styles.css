@@ -393,7 +393,7 @@ body {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 26px;
+  margin-bottom: 12px;
 }
 
 .tool-badge {
@@ -551,7 +551,7 @@ body {
    DYNAMIC CATEGORY SECTIONS
    ========================================================================== */
 .category-stream-section {
-  padding: 55px 0;
+  padding: 16px 0 14px;
 }
 
 .category-stream-section.alt-bg {
@@ -561,7 +561,7 @@ body {
 }
 
 .category-header {
-  margin-bottom: 26px;
+  margin-bottom: 12px;
 }
 
 .category-badge {
