@@ -921,15 +921,111 @@ function renderPortfolio() {
   // 5. In-Card Instant Play
   document.querySelectorAll(".reel-frame-card, .long-frame-card").forEach(card => {
     const id = card.getAttribute("data-id");
+    card.addEventListener("mouseenter", () => prewarmVideoPlayer(id), { once: true });
+    card.addEventListener("touchstart", () => prewarmVideoPlayer(id), { passive: true, once: true });
     card.addEventListener("click", (e) => {
-      if (e.target.closest(".ctrl-btn") || e.target.closest(".modal-hire-btn")) return;
+      if (e.target.closest(".ctrl-btn") || e.target.closest(".speaker-top-btn") || e.target.closest(".card-top-speaker-pill") || e.target.closest(".ctrl-btn-cinema-text")) return;
       playVideoInCard(id, card);
     });
   });
 
+  // Pre-warm the first 3 videos after 800ms
+  setTimeout(() => {
+    (videos || []).slice(0, 3).forEach(v => prewarmVideoPlayer(v.id));
+  }, 800);
+
   // 6. Update Admin UI
   updateAdminUI();
 }
+
+function sendYtMessage(iframe, func, args) {
+  if (!iframe || !iframe.contentWindow) return;
+  iframe.contentWindow.postMessage(JSON.stringify({
+    event: 'command',
+    func: func,
+    args: args || []
+  }), '*');
+}
+
+window.cardSoundStates = window.cardSoundStates || {};
+window.cardPlayStates = window.cardPlayStates || {};
+const prewarmedSet = new Set();
+
+window.prewarmVideoPlayer = function(id) {
+  if (prewarmedSet.has(id)) return;
+  prewarmedSet.add(id);
+  const v = (videos || []).find(item => item.id === id);
+  if (!v) return;
+  const ytId = extractYouTubeId(v.videoUrl);
+  if (ytId) {
+    const link = document.createElement("link");
+    link.rel = "prefetch";
+    link.href = `https://www.youtube.com/embed/${ytId}`;
+    document.head.appendChild(link);
+  }
+};
+
+window.toggleCardVideoSound = function(id, e) {
+  if (e) {
+    e.stopPropagation();
+    e.preventDefault();
+  }
+  const card = document.getElementById(`card-${id}`);
+  if (!card) return;
+
+  const isPlaying = currentlyPlayingCardId === id && card.querySelector(".active-video-container");
+
+  if (!isPlaying) {
+    // If not currently playing, start playing unmuted immediately!
+    window.cardSoundStates[id] = false;
+    playVideoInCard(id, card, true /* start unmuted */);
+    return;
+  }
+
+  const currentlyMuted = window.cardSoundStates[id] !== false;
+  const newMuted = !currentlyMuted;
+  window.cardSoundStates[id] = newMuted;
+
+  const btn = document.getElementById(`sound-btn-${id}`);
+  const iframe = card.querySelector("iframe");
+  const vid = card.querySelector("video");
+
+  if (newMuted) {
+    if (iframe) sendYtMessage(iframe, "mute");
+    if (vid) vid.muted = true;
+
+    if (btn) {
+      btn.classList.remove("is-unmuted");
+      const mIcon = btn.querySelector(".sound-icon-muted");
+      const uIcon = btn.querySelector(".sound-icon-unmuted");
+      const label = btn.querySelector(".sound-label");
+      if (mIcon) mIcon.style.display = "inline-block";
+      if (uIcon) uIcon.style.display = "none";
+      if (label) label.textContent = "Sound OFF";
+      btn.title = "Unmute Audio";
+    }
+  } else {
+    if (iframe) {
+      sendYtMessage(iframe, "unMute");
+      sendYtMessage(iframe, "setVolume", [100]);
+    }
+    if (vid) {
+      vid.muted = false;
+      vid.volume = 1.0;
+    }
+
+    if (btn) {
+      btn.classList.add("is-unmuted");
+      const mIcon = btn.querySelector(".sound-icon-muted");
+      const uIcon = btn.querySelector(".sound-icon-unmuted");
+      const label = btn.querySelector(".sound-label");
+      if (mIcon) mIcon.style.display = "none";
+      if (uIcon) uIcon.style.display = "inline-block";
+      if (label) label.textContent = "Sound ON";
+      btn.title = "Mute Audio";
+    }
+  }
+};
 
 function createFrameHTML(v, cardClass, cat) {
   return `
@@ -937,7 +1033,13 @@ function createFrameHTML(v, cardClass, cat) {
       <img src="${getThumbnail(v)}" alt="${v.title}" class="reel-thumbnail-img" loading="lazy">
       
       <div class="reel-overlay">
-        <span class="reel-tag-badge">${v.duration || (cat.aspect === '9:16' ? '0:45' : '10:00')}</span>
+        <div class="reel-overlay-top">
+          <span class="reel-tag-badge">${v.duration || (cat.aspect === '9:16' ? '0:45' : '10:00')}</span>
+          <button type="button" class="card-top-speaker-pill" onclick="toggleCardVideoSound('${v.id}', event)" title="Play with Sound / Toggle Sound">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+            <span>Sound</span>
+          </button>
+        </div>
         
         <div class="play-btn-circle" title="Play Video Immediately">
           <div class="play-triangle"></div>
@@ -952,7 +1054,7 @@ function createFrameHTML(v, cardClass, cat) {
 }
 
 // In-Card Instant Player
-function playVideoInCard(id, card) {
+function playVideoInCard(id, card, startUnmuted = false) {
   const video = videos.find(v => v.id === id);
   if (!video) return;
 
@@ -963,101 +1065,168 @@ function playVideoInCard(id, card) {
   const existingContainer = card.querySelector(".active-video-container");
   if (existingContainer) {
     const nativeVid = existingContainer.querySelector("video");
+    const ytIframe = existingContainer.querySelector("iframe");
     if (nativeVid) {
       if (nativeVid.paused) {
-        const p = nativeVid.play();
-        if (p !== undefined) p.catch(() => {});
+        nativeVid.play().catch(() => {});
       } else {
         nativeVid.pause();
       }
       return;
     }
+    if (ytIframe && ytIframe.contentWindow) {
+      window.cardPlayStates = window.cardPlayStates || {};
+      if (window.cardPlayStates[id] === "paused") {
+        sendYtMessage(ytIframe, "playVideo");
+        window.cardPlayStates[id] = "playing";
+      } else {
+        sendYtMessage(ytIframe, "pauseVideo");
+        window.cardPlayStates[id] = "paused";
+      }
+      return;
+    }
+    return;
   }
 
   currentlyPlayingCardId = id;
-  const ytId = extractYouTubeId(video.videoUrl);
+  window.cardSoundStates = window.cardSoundStates || {};
+  const isMuted = startUnmuted ? false : (window.cardSoundStates[id] !== false);
+  window.cardSoundStates[id] = isMuted;
 
+  const ytId = extractYouTubeId(video.videoUrl);
   const container = document.createElement("div");
   container.className = "active-video-container";
 
+  const origin = (window.location.origin && window.location.origin !== "null") ? window.location.origin : "https://ganacutsvisuals.vercel.app";
+
   if (ytId) {
+    const ytSrc = `https://www.youtube.com/embed/${ytId}?autoplay=1&mute=${isMuted ? 1 : 0}&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&fs=0&playsinline=1&enablejsapi=1&origin=${encodeURIComponent(origin)}`;
+
     container.innerHTML = `
+      <div class="video-fast-loader" id="loader-${id}">
+        <div class="fast-spin-ring"></div>
+        <span class="fast-spin-text">Buffering...</span>
+      </div>
       <div class="clean-yt-crop-box">
         <iframe 
           id="yt-player-${id}"
-          src="https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&mute=1&controls=0&modestbranding=1&rel=0&showinfo=0&iv_load_policy=3&disablekb=1&fs=0&playsinline=1&enablejsapi=1" 
+          src="${ytSrc}" 
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-          allowfullscreen>
+          allowfullscreen
+          loading="eager"
+          importance="high">
         </iframe>
       </div>
       <div class="video-control-overlay">
         <div class="video-control-top">
-          <button type="button" class="ctrl-btn" onclick="openCinemaModal('${id}')" title="Full Cinema View" aria-label="Expand">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+          <button type="button" class="speaker-top-btn ${!isMuted ? 'is-unmuted' : ''}" id="sound-btn-${id}" onclick="toggleCardVideoSound('${id}', event)" title="${!isMuted ? 'Mute Audio' : 'Unmute Audio'}" aria-label="Toggle Sound">
+            <svg class="sound-icon-muted" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" ${!isMuted ? 'style="display:none;"' : ''}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+            <svg class="sound-icon-unmuted" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" ${isMuted ? 'style="display:none;"' : ''}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+            <span class="sound-label">${!isMuted ? 'Sound ON' : 'Sound OFF'}</span>
           </button>
-          <button type="button" class="ctrl-btn" onclick="stopCardVideo('${id}')" title="Close Video" aria-label="Close">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
-        </div>
-        <div class="video-control-bottom">
-          <button type="button" class="ctrl-btn" onclick="openCinemaModal('${id}')" style="font-size:11px; padding:5px 9px; gap:5px; display:inline-flex; align-items:center; background:rgba(0,0,0,0.75); border:1px solid rgba(255,255,255,0.2);">
-            <span>🔊 Sound / Cinema</span>
-          </button>
-          <a href="${profile.instaUrl || 'https://www.instagram.com/gana_cuts_visuals?dlrf=aXJlY3lsazhraHl4'}" target="_blank" rel="noopener" class="modal-hire-btn insta-modal-btn">
-            <span>Hire ↗</span>
-          </a>
-        </div>
-      </div>
-    `;
-  } else {
-    container.innerHTML = `
-      <video class="clean-native-video" src="${video.videoUrl}" autoplay playsinline webkit-playsinline muted loop preload="auto"></video>
-      <div class="video-control-overlay">
-        <div class="video-control-top">
-          <button type="button" class="ctrl-btn sound-toggle" title="Unmute Audio" aria-label="Toggle Sound">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
-          </button>
-          <button type="button" class="ctrl-btn" onclick="openCinemaModal('${id}')" title="Full Cinema View" aria-label="Expand">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
-          </button>
-          <button type="button" class="ctrl-btn" onclick="stopCardVideo('${id}')" title="Close Video" aria-label="Close">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-          </button>
+          <div class="video-control-top-actions">
+            <button type="button" class="ctrl-btn" onclick="openCinemaModal('${id}')" title="Full Cinema View" aria-label="Expand">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            </button>
+            <button type="button" class="ctrl-btn" onclick="stopCardVideo('${id}')" title="Close Video" aria-label="Close">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
         </div>
         <div class="video-control-bottom">
           <span class="playing-badge">▶ Playing</span>
-          <a href="${profile.instaUrl || 'https://www.instagram.com/gana_cuts_visuals?dlrf=aXJlY3lsazhraHl4'}" target="_blank" rel="noopener" class="modal-hire-btn insta-modal-btn">
-            <span>Hire ↗</span>
-          </a>
+          <button type="button" class="ctrl-btn-cinema-text" onclick="openCinemaModal('${id}')" style="background:rgba(0,0,0,0.65); border:1px solid rgba(255,255,255,0.18); color:#cbd5e1; font-size:10.5px; padding:4px 10px; border-radius:12px; cursor:pointer;">
+            Cinema View ⛶
+          </button>
+        </div>
+      </div>
+    `;
+
+    const iframe = container.querySelector("iframe");
+    if (iframe) {
+      iframe.onload = () => {
+        const loader = container.querySelector(".video-fast-loader");
+        if (loader) {
+          loader.style.opacity = "0";
+          setTimeout(() => loader.remove(), 250);
+        }
+        if (!isMuted) {
+          setTimeout(() => {
+            sendYtMessage(iframe, "unMute");
+            sendYtMessage(iframe, "setVolume", [100]);
+          }, 350);
+        }
+      };
+      setTimeout(() => {
+        const loader = container.querySelector(".video-fast-loader");
+        if (loader) loader.remove();
+      }, 3500);
+    }
+  } else {
+    // Native <video> handling
+    container.innerHTML = `
+      <div class="video-fast-loader" id="loader-${id}">
+        <div class="fast-spin-ring"></div>
+        <span class="fast-spin-text">Buffering...</span>
+      </div>
+      <video class="clean-native-video" src="${video.videoUrl}" autoplay playsinline webkit-playsinline ${isMuted ? 'muted' : ''} loop preload="auto"></video>
+      <div class="video-control-overlay">
+        <div class="video-control-top">
+          <button type="button" class="speaker-top-btn ${!isMuted ? 'is-unmuted' : ''}" id="sound-btn-${id}" onclick="toggleCardVideoSound('${id}', event)" title="${!isMuted ? 'Mute Audio' : 'Unmute Audio'}" aria-label="Toggle Sound">
+            <svg class="sound-icon-muted" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" ${!isMuted ? 'style="display:none;"' : ''}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
+            <svg class="sound-icon-unmuted" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" ${isMuted ? 'style="display:none;"' : ''}><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>
+            <span class="sound-label">${!isMuted ? 'Sound ON' : 'Sound OFF'}</span>
+          </button>
+          <div class="video-control-top-actions">
+            <button type="button" class="ctrl-btn" onclick="openCinemaModal('${id}')" title="Full Cinema View" aria-label="Expand">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+            </button>
+            <button type="button" class="ctrl-btn" onclick="stopCardVideo('${id}')" title="Close Video" aria-label="Close">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+            </button>
+          </div>
+        </div>
+        <div class="video-control-bottom">
+          <span class="playing-badge">▶ Playing</span>
+          <button type="button" class="ctrl-btn-cinema-text" onclick="openCinemaModal('${id}')" style="background:rgba(0,0,0,0.65); border:1px solid rgba(255,255,255,0.18); color:#cbd5e1; font-size:10.5px; padding:4px 10px; border-radius:12px; cursor:pointer;">
+            Cinema View ⛶
+          </button>
         </div>
       </div>
     `;
 
     const vid = container.querySelector("video");
-    const soundBtn = container.querySelector(".sound-toggle");
     if (vid) {
-      vid.muted = true;
+      vid.onplaying = () => {
+        const loader = container.querySelector(".video-fast-loader");
+        if (loader) loader.remove();
+      };
       const p = vid.play();
       if (p !== undefined) p.catch(() => {});
     }
-
-    if (soundBtn && vid) {
-      soundBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        vid.muted = !vid.muted;
-        if (vid.muted) {
-          soundBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>';
-          soundBtn.style.background = "rgba(0,0,0,0.7)";
-          soundBtn.title = "Unmute Audio";
-        } else {
-          soundBtn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></svg>';
-          soundBtn.style.background = "rgba(16, 185, 129, 0.85)";
-          soundBtn.title = "Mute Audio";
-        }
-      });
-    }
   }
+
+  // Allow clicking on video area to toggle play / pause
+  container.addEventListener("click", (e) => {
+    if (e.target.closest(".speaker-top-btn") || e.target.closest(".ctrl-btn") || e.target.closest(".ctrl-btn-cinema-text")) {
+      return;
+    }
+    const nativeVid = container.querySelector("video");
+    const ytIframe = container.querySelector("iframe");
+    if (nativeVid) {
+      if (nativeVid.paused) nativeVid.play().catch(() => {});
+      else nativeVid.pause();
+    } else if (ytIframe && ytIframe.contentWindow) {
+      window.cardPlayStates = window.cardPlayStates || {};
+      if (window.cardPlayStates[id] === "paused") {
+        sendYtMessage(ytIframe, "playVideo");
+        window.cardPlayStates[id] = "playing";
+      } else {
+        sendYtMessage(ytIframe, "pauseVideo");
+        window.cardPlayStates[id] = "paused";
+      }
+    }
+  });
 
   card.appendChild(container);
 }
