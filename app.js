@@ -172,109 +172,309 @@ function getEditorAvatarSrc(app) {
 
 // Supabase Agency Vault (Asset Folders, Practice Tasks & Client Projects)
 async function syncAgencyVaultToSupabase() {
-  if (!globalSupabase) return;
-  try {
-    let rawFolders = (profile && Array.isArray(profile.agencyFolders)) ? profile.agencyFolders : [];
-    if (rawFolders.length === 0) {
-      try {
-        const sf = localStorage.getItem(STORAGE_KEY_AGENCY_FOLDERS);
-        if (sf) rawFolders = JSON.parse(sf);
-      } catch (e) {}
-    }
-    rawFolders = (rawFolders || []).filter(f => f && f.id !== "folder_drive_vault");
-
-    let rawPractice = (Array.isArray(practiceAssignments)) ? practiceAssignments : [];
-    if (rawPractice.length === 0) {
-      try {
-        const sp = localStorage.getItem(STORAGE_KEY_PRACTICE_ASGS);
-        if (sp) rawPractice = JSON.parse(sp);
-      } catch (e) {}
-    }
-    rawPractice = (rawPractice || []).filter(a => a && a.id !== "asg_practice_default");
-
-    let rawClient = (Array.isArray(clientProjects)) ? clientProjects : [];
-    if (rawClient.length === 0) {
-      try {
-        const sc = localStorage.getItem(STORAGE_KEY_CLIENT_PROJS);
-        if (sc) rawClient = JSON.parse(sc);
-      } catch (e) {}
-    }
-    rawClient = (rawClient || []).filter(p => p && p.id !== "proj_client_default");
-
-    const payload = {
-      id: '__agency_system_vault__',
-      name: 'GanaCuts Visuals System Vault',
-      status: 'active',
-      assigned_project: {
-        agencyFolders: rawFolders,
-        practiceAssignments: rawPractice,
-        clientProjects: rawClient,
-        updatedAt: Date.now()
-      }
-    };
-    const { error } = await globalSupabase.from('applicants').upsert(payload, { onConflict: 'id' });
-    if (error) {
-      console.warn("Supabase vault upsert error:", error.message || error);
-    }
-    persistPortfolioToServer();
-  } catch (err) {
-    console.warn("Supabase vault sync notice:", err.message || err);
+  let rawFolders = (profile && Array.isArray(profile.agencyFolders) && profile.agencyFolders.length > 0)
+    ? profile.agencyFolders
+    : (typeof window !== "undefined" && window.profile && Array.isArray(window.profile.agencyFolders) && window.profile.agencyFolders.length > 0)
+      ? window.profile.agencyFolders
+      : [];
+  if (rawFolders.length === 0) {
+    try {
+      const sf = localStorage.getItem(STORAGE_KEY_AGENCY_FOLDERS);
+      if (sf) rawFolders = JSON.parse(sf);
+    } catch (e) {}
   }
+  rawFolders = (rawFolders || []).filter(f => f && f.id && f.id !== "folder_drive_vault");
+
+  let rawPractice = (Array.isArray(practiceAssignments) && practiceAssignments.length > 0)
+    ? practiceAssignments
+    : (typeof window !== "undefined" && Array.isArray(window.practiceAssignments) && window.practiceAssignments.length > 0)
+      ? window.practiceAssignments
+      : [];
+  if (rawPractice.length === 0) {
+    try {
+      const sp = localStorage.getItem(STORAGE_KEY_PRACTICE_ASGS);
+      if (sp) rawPractice = JSON.parse(sp);
+    } catch (e) {}
+  }
+  rawPractice = (rawPractice || []).filter(a => a && a.id && a.id !== "asg_practice_default");
+
+  let rawClient = (Array.isArray(clientProjects) && clientProjects.length > 0)
+    ? clientProjects
+    : (typeof window !== "undefined" && Array.isArray(window.clientProjects) && window.clientProjects.length > 0)
+      ? window.clientProjects
+      : [];
+  if (rawClient.length === 0) {
+    try {
+      const sc = localStorage.getItem(STORAGE_KEY_CLIENT_PROJS);
+      if (sc) rawClient = JSON.parse(sc);
+    } catch (e) {}
+  }
+  rawClient = (rawClient || []).filter(p => p && p.id && p.id !== "proj_client_default");
+
+  const vaultPayload = {
+    agencyFolders: rawFolders,
+    practiceAssignments: rawPractice,
+    clientProjects: rawClient,
+    updatedAt: Date.now()
+  };
+
+  const dbRow = {
+    name: 'GanaCuts Visuals System Vault',
+    status: 'active',
+    assigned_project: vaultPayload,
+    applied_at: new Date().toISOString()
+  };
+
+  let writeSuccess = false;
+
+  // 1. Primary Write: Supabase Client update with eq filter (direct PATCH)
+  if (globalSupabase) {
+    try {
+      const { data, error } = await globalSupabase
+        .from('applicants')
+        .update(dbRow)
+        .eq('id', '__agency_system_vault__')
+        .select();
+
+      if (!error && Array.isArray(data) && data.length > 0) {
+        writeSuccess = true;
+      } else {
+        // If row doesn't exist yet, insert it cleanly
+        const { error: insErr } = await globalSupabase
+          .from('applicants')
+          .insert({
+            id: '__agency_system_vault__',
+            ...dbRow
+          });
+        if (!insErr) writeSuccess = true;
+      }
+    } catch (err) {
+      console.warn("Supabase client update exception:", err);
+    }
+  }
+
+  // 2. Guaranteed Fallback: Direct HTTP PATCH via PostgREST endpoint
+  if (!writeSuccess && typeof fetch !== 'undefined') {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/applicants?id=eq.__agency_system_vault__`, {
+        method: 'PATCH',
+        headers: {
+          'apikey': SUPABASE_ANON,
+          'Authorization': `Bearer ${SUPABASE_ANON}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify(dbRow)
+      });
+      if (res.ok) {
+        const rows = await res.json();
+        if (Array.isArray(rows) && rows.length > 0) {
+          writeSuccess = true;
+        } else {
+          // Fallback insert
+          await fetch(`${SUPABASE_URL}/rest/v1/applicants`, {
+            method: 'POST',
+            headers: {
+              'apikey': SUPABASE_ANON,
+              'Authorization': `Bearer ${SUPABASE_ANON}`,
+              'Content-Type': 'application/json',
+              'Prefer': 'return=representation'
+            },
+            body: JSON.stringify({
+              id: '__agency_system_vault__',
+              ...dbRow
+            })
+          });
+          writeSuccess = true;
+        }
+      }
+    } catch (fetchErr) {
+      console.warn("Direct fetch vault notice:", fetchErr);
+    }
+  }
+
+  persistPortfolioToServer();
+  return writeSuccess;
 }
 
 async function fetchSupabaseAgencyVault() {
-  if (!globalSupabase) return;
-  try {
-    const { data, error } = await globalSupabase.from('applicants').select('*').eq('id', '__agency_system_vault__').maybeSingle();
-    if (!error && data && data.assigned_project) {
-      const vault = data.assigned_project;
-      let updated = false;
+  let vault = null;
 
-      // 1. Sync Agency Folders
-      if (Array.isArray(vault.agencyFolders)) {
-        if (!profile) profile = { ...DEFAULT_PROFILE };
-        profile.agencyFolders = vault.agencyFolders.filter(f => f && f.id !== "folder_drive_vault");
-        localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
-        localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(profile.agencyFolders));
-        if (typeof window !== "undefined") window.profile = profile;
-        updated = true;
+  // 1. Fetch via Supabase Client
+  if (globalSupabase) {
+    try {
+      const { data, error } = await globalSupabase
+        .from('applicants')
+        .select('*')
+        .eq('id', '__agency_system_vault__')
+        .maybeSingle();
+      if (!error && data && data.assigned_project) {
+        vault = data.assigned_project;
       }
-
-      // 2. Sync Practice Tasks
-      if (Array.isArray(vault.practiceAssignments)) {
-        practiceAssignments = vault.practiceAssignments.filter(a => a && a.id !== "asg_practice_default");
-        window.practiceAssignments = practiceAssignments;
-        localStorage.setItem(STORAGE_KEY_PRACTICE_ASGS, JSON.stringify(practiceAssignments));
-        updated = true;
-      }
-
-      // 3. Sync Client Projects
-      if (Array.isArray(vault.clientProjects)) {
-        clientProjects = vault.clientProjects.filter(p => p && p.id !== "proj_client_default");
-        window.clientProjects = clientProjects;
-        localStorage.setItem(STORAGE_KEY_CLIENT_PROJS, JSON.stringify(clientProjects));
-        updated = true;
-      }
-
-      if (updated) {
-        if (typeof renderAdminFolders === 'function') renderAdminFolders();
-        if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
-        if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
-        if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
-        if (typeof renderAgencyFolders === 'function') renderAgencyFolders();
-        if (typeof renderEditorStudio === 'function' && typeof currentEditor !== 'undefined' && currentEditor) renderEditorStudio();
-        if (typeof renderPracticeAssignments === 'function' && typeof currentEditor !== 'undefined' && currentEditor) renderPracticeAssignments(currentEditor);
-        if (typeof renderClientProjects === 'function' && typeof currentEditor !== 'undefined' && currentEditor) renderClientProjects(currentEditor);
-      }
-    }
-  } catch (err) {
-    console.warn("Supabase fetch vault notice:", err.message || err);
+    } catch (e) {}
   }
+
+  // 2. Direct HTTP GET Fallback
+  if (!vault && typeof fetch !== 'undefined') {
+    try {
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/applicants?id=eq.__agency_system_vault__`, {
+        headers: {
+          'apikey': SUPABASE_ANON,
+          'Authorization': `Bearer ${SUPABASE_ANON}`
+        }
+      });
+      if (res.ok) {
+        const list = await res.json();
+        if (Array.isArray(list) && list.length > 0 && list[0].assigned_project) {
+          vault = list[0].assigned_project;
+        }
+      }
+    } catch (e) {}
+  }
+
+  if (!vault) return;
+
+  let needPushToRemote = false;
+
+  // --- 1. SYNC AGENCY FOLDERS ---
+  const remoteFolders = (Array.isArray(vault.agencyFolders) ? vault.agencyFolders : [])
+    .filter(f => f && f.id && f.id !== "folder_drive_vault");
+
+  let localFolders = [];
+  try {
+    const sf = localStorage.getItem(STORAGE_KEY_AGENCY_FOLDERS);
+    if (sf) localFolders = JSON.parse(sf);
+  } catch (e) {}
+  if (!Array.isArray(localFolders) || localFolders.length === 0) {
+    if (profile && Array.isArray(profile.agencyFolders)) localFolders = profile.agencyFolders;
+  }
+  localFolders = (localFolders || []).filter(f => f && f.id && f.id !== "folder_drive_vault");
+
+  if (remoteFolders.length > 0) {
+    const map = new Map();
+    remoteFolders.forEach(f => map.set(f.id, f));
+    const now = Date.now();
+    localFolders.forEach(lf => {
+      if (!map.has(lf.id) && (now - (lf.createdAt || 0) < 60000)) {
+        map.set(lf.id, lf);
+        needPushToRemote = true;
+      }
+    });
+    const finalFolders = Array.from(map.values());
+    if (!profile) profile = { ...DEFAULT_PROFILE };
+    profile.agencyFolders = finalFolders;
+    localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
+    localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(finalFolders));
+    if (typeof window !== "undefined") window.profile = profile;
+  } else if (localFolders.length > 0) {
+    // Non-destructive: preserve local items & push to cloud database
+    if (!profile) profile = { ...DEFAULT_PROFILE };
+    profile.agencyFolders = localFolders;
+    localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
+    localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(localFolders));
+    if (typeof window !== "undefined") window.profile = profile;
+    needPushToRemote = true;
+  }
+
+  // --- 2. SYNC PRACTICE TASKS ---
+  const remotePractice = (Array.isArray(vault.practiceAssignments) ? vault.practiceAssignments : [])
+    .filter(a => a && a.id && a.id !== "asg_practice_default");
+
+  let localPractice = [];
+  try {
+    const sp = localStorage.getItem(STORAGE_KEY_PRACTICE_ASGS);
+    if (sp) localPractice = JSON.parse(sp);
+  } catch (e) {}
+  if (!Array.isArray(localPractice) || localPractice.length === 0) {
+    if (Array.isArray(practiceAssignments)) localPractice = practiceAssignments;
+  }
+  localPractice = (localPractice || []).filter(a => a && a.id && a.id !== "asg_practice_default");
+
+  if (remotePractice.length > 0) {
+    const map = new Map();
+    remotePractice.forEach(p => map.set(p.id, p));
+    const now = Date.now();
+    localPractice.forEach(lp => {
+      if (!map.has(lp.id) && (now - (lp.createdAt || 0) < 60000)) {
+        map.set(lp.id, lp);
+        needPushToRemote = true;
+      } else if (map.has(lp.id)) {
+        const remoteItem = map.get(lp.id);
+        if (lp.submissions && Object.keys(lp.submissions).length > 0) {
+          remoteItem.submissions = { ...(remoteItem.submissions || {}), ...lp.submissions };
+        }
+      }
+    });
+    practiceAssignments = Array.from(map.values());
+    window.practiceAssignments = practiceAssignments;
+    localStorage.setItem(STORAGE_KEY_PRACTICE_ASGS, JSON.stringify(practiceAssignments));
+  } else if (localPractice.length > 0) {
+    // Non-destructive: preserve local tasks & push to cloud database
+    practiceAssignments = localPractice;
+    window.practiceAssignments = practiceAssignments;
+    localStorage.setItem(STORAGE_KEY_PRACTICE_ASGS, JSON.stringify(practiceAssignments));
+    needPushToRemote = true;
+  }
+
+  // --- 3. SYNC CLIENT PROJECTS ---
+  const remoteClient = (Array.isArray(vault.clientProjects) ? vault.clientProjects : [])
+    .filter(p => p && p.id && p.id !== "proj_client_default");
+
+  let localClient = [];
+  try {
+    const sc = localStorage.getItem(STORAGE_KEY_CLIENT_PROJS);
+    if (sc) localClient = JSON.parse(sc);
+  } catch (e) {}
+  if (!Array.isArray(localClient) || localClient.length === 0) {
+    if (Array.isArray(clientProjects)) localClient = clientProjects;
+  }
+  localClient = (localClient || []).filter(p => p && p.id && p.id !== "proj_client_default");
+
+  if (remoteClient.length > 0) {
+    const map = new Map();
+    remoteClient.forEach(p => map.set(p.id, p));
+    const now = Date.now();
+    localClient.forEach(lc => {
+      if (!map.has(lc.id) && (now - (lc.createdAt || 0) < 60000)) {
+        map.set(lc.id, lc);
+        needPushToRemote = true;
+      } else if (map.has(lc.id)) {
+        const remoteItem = map.get(lc.id);
+        if (lc.submissions && Object.keys(lc.submissions).length > 0) {
+          remoteItem.submissions = { ...(remoteItem.submissions || {}), ...lc.submissions };
+        }
+      }
+    });
+    clientProjects = Array.from(map.values());
+    window.clientProjects = clientProjects;
+    localStorage.setItem(STORAGE_KEY_CLIENT_PROJS, JSON.stringify(clientProjects));
+  } else if (localClient.length > 0) {
+    // Non-destructive: preserve local projects & push to cloud database
+    clientProjects = localClient;
+    window.clientProjects = clientProjects;
+    localStorage.setItem(STORAGE_KEY_CLIENT_PROJS, JSON.stringify(clientProjects));
+    needPushToRemote = true;
+  }
+
+  if (needPushToRemote) {
+    syncAgencyVaultToSupabase();
+  }
+
+  // Refresh all UI components in Admin Studio and Editor Dashboard
+  if (typeof renderAdminFolders === 'function') renderAdminFolders();
+  if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
+  if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
+  if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
+  if (typeof renderAgencyFolders === 'function') renderAgencyFolders();
+  if (typeof renderEditorStudio === 'function' && typeof currentEditor !== 'undefined' && currentEditor) renderEditorStudio();
+  if (typeof renderPracticeAssignments === 'function' && typeof currentEditor !== 'undefined' && currentEditor) renderPracticeAssignments(currentEditor);
+  if (typeof renderClientProjects === 'function' && typeof currentEditor !== 'undefined' && currentEditor) renderClientProjects(currentEditor);
 }
 
 // Supabase Database Sync Operations
 async function syncApplicantToSupabase(app) {
   if (!globalSupabase || !app) return;
+  if (app.id === '__agency_system_vault__' || (typeof app.id === 'string' && app.id.startsWith('__'))) return;
   try {
     const payload = {
       id: app.id,
@@ -316,6 +516,7 @@ async function syncApplicantToSupabase(app) {
 async function syncAllApplicantsToSupabase() {
   if (!globalSupabase || !Array.isArray(applicants)) return;
   for (const app of applicants) {
+    if (!app || app.id === '__agency_system_vault__' || (typeof app.id === 'string' && app.id.startsWith('__'))) continue;
     await syncApplicantToSupabase(app);
   }
 }
@@ -682,8 +883,8 @@ function initData() {
 
   const storedApps = localStorage.getItem(STORAGE_KEY_APPS);
   applicants = storedApps ? JSON.parse(storedApps) : [...DEFAULT_APPLICANTS];
-  // Purge any legacy fake applicants (Suresh, Arjun, Kavya)
-  applicants = applicants.filter(a => a && a.id !== "app_1" && a.id !== "app_2" && a.id !== "app_3");
+  // Purge any legacy fake applicants (Suresh, Arjun, Kavya) or system vault row
+  applicants = applicants.filter(a => a && a.id !== "app_1" && a.id !== "app_2" && a.id !== "app_3" && a.id !== '__agency_system_vault__' && !a.id.startsWith('__'));
   localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
   if (typeof window !== "undefined") window.applicants = applicants;
 
@@ -779,7 +980,7 @@ function saveProfile() {
 }
 
 function saveApplicants() {
-  applicants = applicants.filter(a => a && a.id !== "app_1" && a.id !== "app_2" && a.id !== "app_3");
+  applicants = applicants.filter(a => a && a.id !== "app_1" && a.id !== "app_2" && a.id !== "app_3" && a.id !== '__agency_system_vault__' && !a.id.startsWith('__'));
   localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
   if (typeof syncAllApplicantsToSupabase === 'function') {
     syncAllApplicantsToSupabase();
@@ -1550,6 +1751,10 @@ function updateAdminUI() {
   safeSetText("dash-trash-badge", (trashApplicants || []).length);
   safeSetText("trash-total-count", (trashApplicants || []).length);
   if (typeof renderTrashManager === 'function') renderTrashManager();
+  if (typeof renderAdminFolders === 'function') renderAdminFolders();
+  if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
+  if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
+  if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
 }
 
 // Render Applicants Roster in Admin Studio
@@ -2091,31 +2296,31 @@ function loadPracticeAssignments() {
   return practiceAssignments;
 }
 
-function saveAgencyFoldersAndSync(folders) {
+async function saveAgencyFoldersAndSync(folders) {
   if (!profile) profile = { ...DEFAULT_PROFILE };
-  profile.agencyFolders = (folders || []).filter(f => f && f.id !== "folder_drive_vault");
+  profile.agencyFolders = (folders || []).filter(f => f && f.id && f.id !== "folder_drive_vault");
   localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(profile.agencyFolders));
   localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
   if (typeof window !== "undefined") window.profile = profile;
-  return syncAgencyVaultToSupabase();
+  return await syncAgencyVaultToSupabase();
 }
 
-function savePracticeAssignmentsAndSync(tasks) {
-  practiceAssignments = (tasks || []).filter(a => a && a.id !== "asg_practice_default");
+async function savePracticeAssignmentsAndSync(tasks) {
+  practiceAssignments = (tasks || []).filter(a => a && a.id && a.id !== "asg_practice_default");
   window.practiceAssignments = practiceAssignments;
   localStorage.setItem(STORAGE_KEY_PRACTICE_ASGS, JSON.stringify(practiceAssignments));
-  return syncAgencyVaultToSupabase();
+  return await syncAgencyVaultToSupabase();
 }
 
-function saveClientProjectsAndSync(projs) {
-  clientProjects = (projs || []).filter(p => p && p.id !== "proj_client_default");
+async function saveClientProjectsAndSync(projs) {
+  clientProjects = (projs || []).filter(p => p && p.id && p.id !== "proj_client_default");
   window.clientProjects = clientProjects;
   localStorage.setItem(STORAGE_KEY_CLIENT_PROJS, JSON.stringify(clientProjects));
-  return syncAgencyVaultToSupabase();
+  return await syncAgencyVaultToSupabase();
 }
 
 function savePracticeAssignments() {
-  savePracticeAssignmentsAndSync(practiceAssignments);
+  return savePracticeAssignmentsAndSync(practiceAssignments);
 }
 
 function loadClientProjects() {
@@ -2126,7 +2331,7 @@ function loadClientProjects() {
     clientProjects = [];
   }
   if (Array.isArray(clientProjects)) {
-    clientProjects = clientProjects.filter(p => p && p.id !== "proj_client_default");
+    clientProjects = clientProjects.filter(p => p && p.id && p.id !== "proj_client_default");
   } else {
     clientProjects = [];
   }
@@ -2136,7 +2341,7 @@ function loadClientProjects() {
 }
 
 function saveClientProjects() {
-  saveClientProjectsAndSync(clientProjects);
+  return saveClientProjectsAndSync(clientProjects);
 }
 
 // Initial loader
@@ -2167,7 +2372,7 @@ window.getClientProjectsForEditor = function(editorId) {
   });
 };
 
-window.createPracticeAssignment = function({ title, description, links, assignedEditorIds }) {
+window.createPracticeAssignment = async function({ title, description, links, assignedEditorIds }) {
   loadPracticeAssignments();
   const newAsg = {
     id: "asg_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
@@ -2179,7 +2384,7 @@ window.createPracticeAssignment = function({ title, description, links, assigned
     createdAt: Date.now()
   };
   practiceAssignments.unshift(newAsg);
-  savePracticeAssignmentsAndSync(practiceAssignments);
+  await savePracticeAssignmentsAndSync(practiceAssignments);
 
   const targetIds = newAsg.assignedEditorIds.includes('all')
     ? applicants.map(a => a.id)
@@ -2194,7 +2399,7 @@ window.createPracticeAssignment = function({ title, description, links, assigned
   return newAsg;
 };
 
-window.createClientProject = function({ clientName, title, description, links, assignedEditorIds, deadline }) {
+window.createClientProject = async function({ clientName, title, description, links, assignedEditorIds, deadline }) {
   loadClientProjects();
   const newProj = {
     id: "proj_" + Date.now() + "_" + Math.random().toString(36).substr(2, 4),
@@ -2208,7 +2413,7 @@ window.createClientProject = function({ clientName, title, description, links, a
     createdAt: Date.now()
   };
   clientProjects.unshift(newProj);
-  saveClientProjectsAndSync(clientProjects);
+  await saveClientProjectsAndSync(clientProjects);
 
   const targetIds = newProj.assignedEditorIds.includes('all')
     ? applicants.map(a => a.id)
@@ -2223,19 +2428,19 @@ window.createClientProject = function({ clientName, title, description, links, a
   return newProj;
 };
 
-window.deletePracticeAssignment = function(asgId) {
+window.deletePracticeAssignment = async function(asgId) {
   loadPracticeAssignments();
   practiceAssignments = practiceAssignments.filter(a => a && a.id !== asgId);
-  savePracticeAssignmentsAndSync(practiceAssignments);
+  return await savePracticeAssignmentsAndSync(practiceAssignments);
 };
 
-window.deleteClientProject = function(projId) {
+window.deleteClientProject = async function(projId) {
   loadClientProjects();
   clientProjects = clientProjects.filter(p => p && p.id !== projId);
-  saveClientProjectsAndSync(clientProjects);
+  return await saveClientProjectsAndSync(clientProjects);
 };
 
-window.submitPracticeAssignmentWork = function(asgId, editorId, videoUrl, notes) {
+window.submitPracticeAssignmentWork = async function(asgId, editorId, videoUrl, notes) {
   loadPracticeAssignments();
   const asg = practiceAssignments.find(a => a.id === asgId);
   if (!asg) return;
@@ -2243,7 +2448,7 @@ window.submitPracticeAssignmentWork = function(asgId, editorId, videoUrl, notes)
   const now = new Date();
   const submittedAt = now.toLocaleDateString("en-IN", { day: '2-digit', month: 'short' }) + ", " + now.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
   asg.submissions[editorId] = { videoUrl, notes, submittedAt };
-  savePracticeAssignmentsAndSync(practiceAssignments);
+  await savePracticeAssignmentsAndSync(practiceAssignments);
 
   const ed = applicants.find(a => a.id === editorId);
   if (ed) {
@@ -2259,7 +2464,7 @@ window.submitPracticeAssignmentWork = function(asgId, editorId, videoUrl, notes)
   }
 };
 
-window.submitClientProjectWork = function(projId, editorId, videoUrl, notes) {
+window.submitClientProjectWork = async function(projId, editorId, videoUrl, notes) {
   loadClientProjects();
   const proj = clientProjects.find(p => p.id === projId);
   if (!proj) return;
@@ -2267,7 +2472,7 @@ window.submitClientProjectWork = function(projId, editorId, videoUrl, notes) {
   const now = new Date();
   const submittedAt = now.toLocaleDateString("en-IN", { day: '2-digit', month: 'short' }) + ", " + now.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
   proj.submissions[editorId] = { videoUrl, notes, submittedAt, status: "submitted" };
-  saveClientProjectsAndSync(clientProjects);
+  await saveClientProjectsAndSync(clientProjects);
 
   const ed = applicants.find(a => a.id === editorId);
   if (ed) {
@@ -2717,8 +2922,17 @@ window.switchAdminTab = function(tabName) {
   if (tabName === "trash" && typeof renderTrashManager === "function") {
     renderTrashManager();
   }
-  if (tabName === "profile" && typeof renderAdminFolders === "function") {
+  if ((tabName === "profile" || tabName === "overview" || tabName === "sheet") && typeof renderAdminFolders === "function") {
     renderAdminFolders();
+  }
+  if ((tabName === "applicants" || tabName === "submissions" || tabName === "overview") && typeof renderAdminPracticeTasksTable === "function") {
+    renderAdminPracticeTasksTable();
+  }
+  if ((tabName === "applicants" || tabName === "submissions" || tabName === "overview") && typeof renderAdminClientProjectsTable === "function") {
+    renderAdminClientProjectsTable();
+  }
+  if ((tabName === "applicants" || tabName === "submissions" || tabName === "overview") && typeof renderAdminSubmissionsQueue === "function") {
+    renderAdminSubmissionsQueue();
   }
 };
 

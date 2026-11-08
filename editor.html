@@ -2009,7 +2009,7 @@
       if (modal) modal.style.display = "none";
     };
 
-    window.handleTaskSubmission = function(e) {
+    window.handleTaskSubmission = async function(e) {
       if (e) e.preventDefault();
       if (!currentEditor) return;
 
@@ -2025,11 +2025,11 @@
 
       if (taskType === "practice") {
         if (typeof submitPracticeAssignmentWork === 'function') {
-          submitPracticeAssignmentWork(taskId, currentEditor.id, videoUrl, notes);
+          await submitPracticeAssignmentWork(taskId, currentEditor.id, videoUrl, notes);
         }
       } else {
         if (typeof submitClientProjectWork === 'function') {
-          submitClientProjectWork(taskId, currentEditor.id, videoUrl, notes);
+          await submitClientProjectWork(taskId, currentEditor.id, videoUrl, notes);
         }
       }
 

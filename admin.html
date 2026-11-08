@@ -1330,6 +1330,10 @@
               if (displayEl) displayEl.textContent = "GanaCuts Admin";
               updateAdminUI();
               initAdminChat();
+              if (typeof renderAdminFolders === 'function') renderAdminFolders();
+              if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
+              if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
+              if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
               return;
             }
           }
@@ -1801,7 +1805,7 @@
       repeater.appendChild(div);
     };
 
-    window.handleSaveFolder = function(e) {
+    window.handleSaveFolder = async function(e) {
       if (e) e.preventDefault();
       const editId = document.getElementById("folder-edit-id")?.value.trim() || "";
       const title = document.getElementById("folder-input-title")?.value.trim() || "";
@@ -1847,10 +1851,10 @@
       }
 
       if (typeof saveAgencyFoldersAndSync === 'function') {
-        saveAgencyFoldersAndSync(window.profile.agencyFolders);
+        await saveAgencyFoldersAndSync(window.profile.agencyFolders);
       } else {
         localStorage.setItem("cutscale_agency_folders_v1", JSON.stringify(window.profile.agencyFolders));
-        if (typeof syncAgencyVaultToSupabase === 'function') syncAgencyVaultToSupabase();
+        if (typeof syncAgencyVaultToSupabase === 'function') await syncAgencyVaultToSupabase();
       }
       renderAdminFolders();
       closeFolderModal();
@@ -1861,15 +1865,15 @@
       openFolderModal();
     };
 
-    window.deleteAgencyFolder = function(id) {
+    window.deleteAgencyFolder = async function(id) {
       if (!confirm("Remove this folder from editor workspaces?")) return;
       if (!window.profile) return;
       window.profile.agencyFolders = (window.profile.agencyFolders || []).filter(f => f.id !== id);
       if (typeof saveAgencyFoldersAndSync === 'function') {
-        saveAgencyFoldersAndSync(window.profile.agencyFolders);
+        await saveAgencyFoldersAndSync(window.profile.agencyFolders);
       } else {
         localStorage.setItem("cutscale_agency_folders_v1", JSON.stringify(window.profile.agencyFolders));
-        if (typeof syncAgencyVaultToSupabase === 'function') syncAgencyVaultToSupabase();
+        if (typeof syncAgencyVaultToSupabase === 'function') await syncAgencyVaultToSupabase();
       }
       renderAdminFolders();
       if (typeof showToast === 'function') showToast("Folder removed.");
@@ -1979,7 +1983,7 @@
       container.appendChild(div);
     };
 
-    window.handleCreatePracticeAssignment = function(e) {
+    window.handleCreatePracticeAssignment = async function(e) {
       if (e) e.preventDefault();
       const title = document.getElementById("asg-title").value.trim();
       const description = document.getElementById("asg-desc").value.trim();
@@ -2000,7 +2004,7 @@
       }).filter(l => l.url.length > 5);
 
       if (typeof createPracticeAssignment === 'function') {
-        createPracticeAssignment({ title, description, links, assignedEditorIds });
+        await createPracticeAssignment({ title, description, links, assignedEditorIds });
       }
 
       closePracticeAssignmentModal();
@@ -2095,7 +2099,7 @@
       container.appendChild(div);
     };
 
-    window.handleCreateClientProject = function(e) {
+    window.handleCreateClientProject = async function(e) {
       if (e) e.preventDefault();
       const clientName = document.getElementById("client-proj-brand").value.trim();
       const title = document.getElementById("client-proj-title").value.trim();
@@ -2118,7 +2122,7 @@
       }).filter(l => l.url.length > 5);
 
       if (typeof createClientProject === 'function') {
-        createClientProject({ clientName, title, description, links, assignedEditorIds, deadline });
+        await createClientProject({ clientName, title, description, links, assignedEditorIds, deadline });
       }
 
       closeClientProjectModal();
@@ -2354,7 +2358,7 @@
       const title = asg ? asg.title : "this practice task";
       if (!confirm(`Permanently delete "${title}"? This removes it from the cloud database and all editor portals.`)) return;
       if (typeof deletePracticeAssignment === 'function') {
-        deletePracticeAssignment(id);
+        await deletePracticeAssignment(id);
       }
       renderAdminPracticeTasksTable();
       renderAdminSubmissionsQueue();
@@ -2367,7 +2371,7 @@
       const title = proj ? proj.title : "this client project";
       if (!confirm(`Permanently delete "${title}"? This removes it from the cloud database and all editor portals.`)) return;
       if (typeof deleteClientProject === 'function') {
-        deleteClientProject(id);
+        await deleteClientProject(id);
       }
       renderAdminClientProjectsTable();
       renderAdminSubmissionsQueue();
@@ -2549,11 +2553,13 @@
     const origSwitchAdminTab = window.switchAdminTab;
     window.switchAdminTab = function(tabName) {
       if (origSwitchAdminTab) origSwitchAdminTab(tabName);
-      if (tabName === "sheet" || tabName === "overview") {
+      if (tabName === "sheet" || tabName === "overview" || tabName === "profile") {
         if (typeof renderAdminFolders === 'function') renderAdminFolders();
       }
       if (tabName === "applicants" || tabName === "submissions" || tabName === "overview") {
-        renderAdminSubmissionsQueue();
+        if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
+        if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
+        if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
       }
     };
 
