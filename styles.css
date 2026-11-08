@@ -3736,3 +3736,35 @@ body {
     justify-content: center;
   }
 }
+
+/* ==========================================================================
+   CIRCULAR AVATAR & FACE LOGO STYLING FOR EDITORS ROSTER & SHEETS
+   ========================================================================== */
+.roster-avatar-circle {
+  width: 44px;
+  height: 44px;
+  border-radius: 50% !important;
+  object-fit: cover;
+  border: 2px solid var(--accent-orange);
+  box-shadow: 0 0 12px rgba(217, 78, 40, 0.35);
+  background: #18181f;
+  flex-shrink: 0;
+  display: block;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.roster-avatar-circle:hover {
+  transform: scale(1.08);
+  box-shadow: 0 0 16px rgba(217, 78, 40, 0.6);
+}
+
+.sheet-avatar-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50% !important;
+  object-fit: cover;
+  border: 1.5px solid rgba(255, 255, 255, 0.2);
+  background: #18181f;
+  flex-shrink: 0;
+  display: block;
+}

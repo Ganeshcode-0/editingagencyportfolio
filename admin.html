@@ -584,7 +584,37 @@
           </div>
         </div>
 
-        <!-- Submissions & Work Review Queue -->
+        <!-- 1. Active Practice Tasks Management Card -->
+        <div class="submissions-queue-card" style="margin-bottom:20px; background:#16161d; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <div>
+              <h4 style="font-size:16px; font-weight:800; color:#fff; margin:0 0 2px;">🎯 Active Practice Tasks & Skill Briefs</h4>
+              <small style="color:#888894; font-size:12px;">Practice assignments and raw footage links given to editors for testing pacing and storytelling.</small>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="badge-mini" id="admin-practice-tasks-count" style="background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3); font-size:11px; padding:3px 9px; border-radius:10px;">0 Tasks</span>
+              <button type="button" class="primary-btn" onclick="openPracticeAssignmentModal()" style="padding:4px 10px; font-size:11px; background:linear-gradient(135deg, #3b82f6, #2563eb); border:none;">+ New Task</button>
+            </div>
+          </div>
+          <div id="admin-practice-tasks-table-container"></div>
+        </div>
+
+        <!-- 2. Active Commercial Client Projects Management Card -->
+        <div class="submissions-queue-card" style="margin-bottom:20px; background:#16161d; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <div>
+              <h4 style="font-size:16px; font-weight:800; color:#fff; margin:0 0 2px;">🎬 Active Commercial Client Projects</h4>
+              <small style="color:#888894; font-size:12px;">Real client projects assigned to editors with deadlines and raw footage links.</small>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span class="badge-mini" id="admin-client-projects-count" style="background:rgba(217,78,40,0.15); color:var(--accent-orange); border:1px solid rgba(217,78,40,0.3); font-size:11px; padding:3px 9px; border-radius:10px;">0 Projects</span>
+              <button type="button" class="primary-btn" onclick="openClientProjectModal()" style="padding:4px 10px; font-size:11px; background:linear-gradient(135deg, var(--accent-orange), #ea580c); border:none;">+ Assign Project</button>
+            </div>
+          </div>
+          <div id="admin-client-projects-table-container"></div>
+        </div>
+
+        <!-- 3. Submissions & Work Review Queue -->
         <div class="submissions-queue-card" style="margin-bottom:20px; background:#16161d; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:20px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
             <div>
@@ -596,6 +626,12 @@
           <div id="admin-submissions-table-container"></div>
         </div>
 
+        <div style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <h4 style="font-size:16px; font-weight:800; color:#fff; margin:0 0 2px;">👥 Video Editor Team Roster</h4>
+            <small style="color:#888894; font-size:12px;">Active editors and applicants with profile face logos and contact controls.</small>
+          </div>
+        </div>
         <div class="manage-list" id="applicants-manage-list"></div>
       </div>
 
@@ -616,6 +652,31 @@
           </div>
         </div>
 
+        <!-- 1. Dedicated Practice Tasks View -->
+        <div class="submissions-queue-card" style="margin-bottom:20px; background:#16161d; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <div>
+              <h4 style="font-size:16px; font-weight:800; color:#fff; margin:0 0 2px;">🎯 Active Practice Tasks & Skill Briefs</h4>
+              <small style="color:#888894; font-size:12px;">Practice assignments and raw footage links given to editors.</small>
+            </div>
+            <span class="badge-mini" id="pane-practice-tasks-count" style="background:rgba(59,130,246,0.15); color:#60a5fa; border:1px solid rgba(59,130,246,0.3); font-size:11px; padding:3px 9px; border-radius:10px;">0 Tasks</span>
+          </div>
+          <div id="pane-practice-tasks-table-container"></div>
+        </div>
+
+        <!-- 2. Dedicated Client Projects View -->
+        <div class="submissions-queue-card" style="margin-bottom:20px; background:#16161d; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
+            <div>
+              <h4 style="font-size:16px; font-weight:800; color:#fff; margin:0 0 2px;">🎬 Active Commercial Client Projects</h4>
+              <small style="color:#888894; font-size:12px;">Commercial video gigs assigned to editors.</small>
+            </div>
+            <span class="badge-mini" id="pane-client-projects-count" style="background:rgba(217,78,40,0.15); color:var(--accent-orange); border:1px solid rgba(217,78,40,0.3); font-size:11px; padding:3px 9px; border-radius:10px;">0 Projects</span>
+          </div>
+          <div id="pane-client-projects-table-container"></div>
+        </div>
+
+        <!-- 3. Submissions Table -->
         <div class="submissions-queue-card" style="background:#16161d; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:24px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:8px;">
             <span style="font-size:14px; font-weight:800; color:#fff;">All Submitted Video Cuts & Direct Drive Links</span>
@@ -1785,9 +1846,12 @@
         });
       }
 
-      if (typeof saveProfile === 'function') saveProfile();
-      localStorage.setItem("cutscale_agency_folders_v1", JSON.stringify(window.profile.agencyFolders));
-      if (typeof syncAgencyVaultToSupabase === 'function') syncAgencyVaultToSupabase();
+      if (typeof saveAgencyFoldersAndSync === 'function') {
+        saveAgencyFoldersAndSync(window.profile.agencyFolders);
+      } else {
+        localStorage.setItem("cutscale_agency_folders_v1", JSON.stringify(window.profile.agencyFolders));
+        if (typeof syncAgencyVaultToSupabase === 'function') syncAgencyVaultToSupabase();
+      }
       renderAdminFolders();
       closeFolderModal();
       if (typeof showToast === 'function') showToast(`✓ Folder "${title}" saved with ${links.length} link(s)!`);
@@ -1801,26 +1865,31 @@
       if (!confirm("Remove this folder from editor workspaces?")) return;
       if (!window.profile) return;
       window.profile.agencyFolders = (window.profile.agencyFolders || []).filter(f => f.id !== id);
-      if (typeof saveProfile === 'function') saveProfile();
-      localStorage.setItem("cutscale_agency_folders_v1", JSON.stringify(window.profile.agencyFolders));
-      if (typeof syncAgencyVaultToSupabase === 'function') syncAgencyVaultToSupabase();
+      if (typeof saveAgencyFoldersAndSync === 'function') {
+        saveAgencyFoldersAndSync(window.profile.agencyFolders);
+      } else {
+        localStorage.setItem("cutscale_agency_folders_v1", JSON.stringify(window.profile.agencyFolders));
+        if (typeof syncAgencyVaultToSupabase === 'function') syncAgencyVaultToSupabase();
+      }
       renderAdminFolders();
       if (typeof showToast === 'function') showToast("Folder removed.");
     };
 
     // Helper to safely get the active applicant roster
     function getAdminApplicantList() {
+      let list = [];
       if (typeof applicants !== 'undefined' && Array.isArray(applicants) && applicants.length > 0) {
-        return applicants;
+        list = applicants;
+      } else if (window.applicants && Array.isArray(window.applicants) && window.applicants.length > 0) {
+        list = window.applicants;
+      } else {
+        try {
+          list = JSON.parse(localStorage.getItem("cutscale_apps_v6") || "[]");
+        } catch (e) {
+          list = [];
+        }
       }
-      if (window.applicants && Array.isArray(window.applicants) && window.applicants.length > 0) {
-        return window.applicants;
-      }
-      try {
-        return JSON.parse(localStorage.getItem("cutscale_apps_v6") || "[]");
-      } catch (e) {
-        return [];
-      }
+      return (list || []).filter(a => a && a.id !== '__agency_system_vault__' && a.id !== 'app_1' && a.id !== 'app_2' && a.id !== 'app_3');
     }
 
     // =========================================================================
@@ -1839,13 +1908,17 @@
         list.innerHTML = appList.map(app => {
           const isChecked = preselectedEditorId ? (app.id === preselectedEditorId) : true;
           const statusColor = app.status === 'selected' ? '#10b981' : (app.status === 'trial' ? '#f59e0b' : '#60a5fa');
+          const avatarUrl = (typeof getEditorAvatarSrc === 'function') ? getEditorAvatarSrc(app) : (app.avatarUrl || app.avatar_url || ('https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(app.name)));
           return `
-            <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#fff; cursor:pointer; padding:6px 8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06);">
-              <input type="checkbox" class="practice-ed-cb" value="${app.id}" ${isChecked ? 'checked' : ''} style="cursor:pointer;">
-              <div>
-                <strong style="color:#fff;">${escapeHtml(app.name)}</strong>
-                <span style="display:inline-block; margin-left:4px; font-size:10px; color:${statusColor}; font-weight:700;">[${escapeHtml(app.status || 'pending')}]</span>
-                <div style="font-size:10.5px; color:#888894;">${escapeHtml(app.rate || 'Expected payment per reel/video: standard')}</div>
+            <label style="display:flex; align-items:center; gap:10px; font-size:12px; color:#fff; cursor:pointer; padding:7px 9px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06);">
+              <input type="checkbox" class="practice-ed-cb" value="${app.id}" ${isChecked ? 'checked' : ''} style="cursor:pointer; width:16px; height:16px;">
+              <img src="${avatarUrl}" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(app.name)}'" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.2); flex-shrink:0;">
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <strong style="color:#fff; font-size:12px;">${escapeHtml(app.name)}</strong>
+                  <span style="font-size:10px; color:${statusColor}; font-weight:700;">[${escapeHtml(app.status || 'pending')}]</span>
+                </div>
+                <div style="font-size:10.5px; color:#888894; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(app.rate || 'Expected payment per reel/video: standard')}</div>
               </div>
             </label>
           `;
@@ -1931,8 +2004,9 @@
       }
 
       closePracticeAssignmentModal();
-      alert(`✓ Practice Task "${title}" successfully broadcast to ${assignedEditorIds.length} editor(s)!`);
+      renderAdminPracticeTasksTable();
       renderAdminSubmissionsQueue();
+      alert(`✓ Practice Task "${title}" successfully broadcast to ${assignedEditorIds.length} editor(s)!`);
     };
 
     window.openClientProjectModal = function(preselectedEditorId) {
@@ -1948,13 +2022,17 @@
         list.innerHTML = appList.map(app => {
           const isChecked = preselectedEditorId ? (app.id === preselectedEditorId) : (app.status === 'selected');
           const statusColor = app.status === 'selected' ? '#10b981' : (app.status === 'trial' ? '#f59e0b' : '#60a5fa');
+          const avatarUrl = (typeof getEditorAvatarSrc === 'function') ? getEditorAvatarSrc(app) : (app.avatarUrl || app.avatar_url || ('https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(app.name)));
           return `
-            <label style="display:flex; align-items:center; gap:8px; font-size:12px; color:#fff; cursor:pointer; padding:6px 8px; border-radius:6px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06);">
-              <input type="checkbox" class="client-proj-ed-cb" value="${app.id}" ${isChecked ? 'checked' : ''} style="cursor:pointer;">
-              <div>
-                <strong style="color:#fff;">${escapeHtml(app.name)}</strong>
-                <span style="display:inline-block; margin-left:4px; font-size:10px; color:${statusColor}; font-weight:700;">[${escapeHtml(app.status || 'pending')}]</span>
-                <div style="font-size:10.5px; color:#888894;">${escapeHtml(app.rate || 'Expected payment per reel/video: standard')}</div>
+            <label style="display:flex; align-items:center; gap:10px; font-size:12px; color:#fff; cursor:pointer; padding:7px 9px; border-radius:8px; background:rgba(255,255,255,0.03); border:1px solid rgba(255,255,255,0.06);">
+              <input type="checkbox" class="client-proj-ed-cb" value="${app.id}" ${isChecked ? 'checked' : ''} style="cursor:pointer; width:16px; height:16px;">
+              <img src="${avatarUrl}" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(app.name)}'" style="width:30px; height:30px; border-radius:50%; object-fit:cover; border:1px solid rgba(255,255,255,0.2); flex-shrink:0;">
+              <div style="flex:1; min-width:0;">
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <strong style="color:#fff; font-size:12px;">${escapeHtml(app.name)}</strong>
+                  <span style="font-size:10px; color:${statusColor}; font-weight:700;">[${escapeHtml(app.status || 'pending')}]</span>
+                </div>
+                <div style="font-size:10.5px; color:#888894; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${escapeHtml(app.rate || 'Expected payment per reel/video: standard')}</div>
               </div>
             </label>
           `;
@@ -2044,8 +2122,256 @@
       }
 
       closeClientProjectModal();
-      alert(`✓ Commercial Project "${title}" for ${clientName} assigned to ${assignedEditorIds.length} editor(s)!`);
+      renderAdminClientProjectsTable();
       renderAdminSubmissionsQueue();
+      alert(`✓ Commercial Project "${title}" for ${clientName} assigned to ${assignedEditorIds.length} editor(s)!`);
+    };
+
+    // =========================================================================
+    // ADMIN TABLES: ACTIVE PRACTICE TASKS & ACTIVE COMMERCIAL CLIENT PROJECTS
+    // =========================================================================
+    window.renderAdminPracticeTasksTable = function() {
+      const containers = [
+        document.getElementById("admin-practice-tasks-table-container"),
+        document.getElementById("pane-practice-tasks-table-container")
+      ].filter(Boolean);
+      const badges = [
+        document.getElementById("admin-practice-tasks-count"),
+        document.getElementById("pane-practice-tasks-count")
+      ].filter(Boolean);
+
+      if (containers.length === 0) return;
+
+      const tasks = (typeof loadPracticeAssignments === 'function')
+        ? loadPracticeAssignments()
+        : (window.practiceAssignments || []);
+
+      badges.forEach(b => {
+        b.textContent = `${tasks.length} Task${tasks.length === 1 ? '' : 's'}`;
+      });
+
+      if (tasks.length === 0) {
+        const emptyHtml = `
+          <div style="text-align:center; padding:28px 20px; color:#888894; background:rgba(255,255,255,0.02); border-radius:12px; border:1px dashed rgba(255,255,255,0.08);">
+            <div style="font-size:24px; margin-bottom:6px;">🎯</div>
+            <strong style="color:#fff; display:block; margin-bottom:4px; font-size:13.5px;">No Practice Tasks Created Yet</strong>
+            <span style="font-size:12px;">Click "+ Give Practice Task" above to assign raw footage links and editing briefs to one or multiple editors.</span>
+          </div>
+        `;
+        containers.forEach(c => c.innerHTML = emptyHtml);
+        return;
+      }
+
+      const appList = getAdminApplicantList();
+
+      const tableHtml = `
+        <div style="overflow-x:auto;">
+          <table class="google-sheets-table" style="width:100%; border-collapse:collapse; min-width:720px;">
+            <thead>
+              <tr style="background:rgba(255,255,255,0.04); border-bottom:1px solid rgba(255,255,255,0.1);">
+                <th style="padding:10px 12px; font-size:11.5px; color:#cbd5e1; text-align:left; width:30%;">Practice Task & Brief</th>
+                <th style="padding:10px 12px; font-size:11.5px; color:#cbd5e1; text-align:left; width:26%;">Attached Links</th>
+                <th style="padding:10px 12px; font-size:11.5px; color:#cbd5e1; text-align:left; width:22%;">Assigned Editors</th>
+                <th style="padding:10px 12px; font-size:11.5px; color:#cbd5e1; text-align:center; width:12%;">Submissions</th>
+                <th style="padding:10px 12px; font-size:11.5px; color:#cbd5e1; text-align:right; width:10%;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tasks.map(asg => {
+                const subCount = asg.submissions ? Object.keys(asg.submissions).length : 0;
+                const linksBadges = (asg.links && Array.isArray(asg.links) && asg.links.length > 0)
+                  ? asg.links.map(l => `
+                    <a href="${l.url}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:4px; background:rgba(59,130,246,0.14); color:#60a5fa; border:1px solid rgba(59,130,246,0.3); padding:3px 8px; border-radius:6px; font-size:11px; text-decoration:none; margin:2px 4px 2px 0;">
+                      <span>📂 ${escapeHtml(l.name || 'Resource Link')} ↗</span>
+                    </a>
+                  `).join('')
+                  : `<span style="font-size:11px; color:#888894;">No links attached</span>`;
+
+                let assignedHtml = '';
+                if (!asg.assignedEditorIds || asg.assignedEditorIds.includes('all')) {
+                  assignedHtml = `<span style="display:inline-flex; align-items:center; gap:4px; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:2px 8px; border-radius:100px; font-size:11px; font-weight:700;">🌐 All Editors Broadcast</span>`;
+                } else {
+                  assignedHtml = `
+                    <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                      ${asg.assignedEditorIds.map(edId => {
+                        const ed = appList.find(a => a.id === edId);
+                        const av = (typeof getEditorAvatarSrc === 'function') ? getEditorAvatarSrc(ed) : 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(ed ? ed.name : 'Editor');
+                        return `
+                          <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); padding:2px 7px; border-radius:20px; font-size:11px; color:#fff;">
+                            <img src="${av}" style="width:16px; height:16px; border-radius:50%; object-fit:cover;">
+                            <span>${escapeHtml(ed ? ed.name.split(' ')[0] : 'Editor')}</span>
+                          </span>
+                        `;
+                      }).join('')}
+                    </div>
+                  `;
+                }
+
+                return `
+                  <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <td style="padding:12px;">
+                      <strong style="color:#fff; font-size:13.5px; display:block; margin-bottom:3px;">${escapeHtml(asg.title)}</strong>
+                      <div style="font-size:11.5px; color:#a0a0ab; line-height:1.4;">${escapeHtml(asg.description || '')}</div>
+                    </td>
+                    <td style="padding:12px;">
+                      <div style="display:flex; flex-wrap:wrap;">${linksBadges}</div>
+                    </td>
+                    <td style="padding:12px;">
+                      ${assignedHtml}
+                    </td>
+                    <td style="padding:12px; text-align:center;">
+                      <span class="badge-mini" style="background:${subCount > 0 ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.05)'}; color:${subCount > 0 ? '#34d399' : '#888894'}; font-size:11px; padding:3px 8px; border-radius:8px;">
+                        ${subCount} Cut${subCount === 1 ? '' : 's'}
+                      </span>
+                    </td>
+                    <td style="padding:12px; text-align:right;">
+                      <button type="button" class="delete-btn" onclick="deletePracticeAssignmentAndRefresh('${asg.id}')" style="padding:4px 9px; font-size:11px;">🗑️ Delete</button>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      containers.forEach(c => c.innerHTML = tableHtml);
+    };
+
+    window.renderAdminClientProjectsTable = function() {
+      const containers = [
+        document.getElementById("admin-client-projects-table-container"),
+        document.getElementById("pane-client-projects-table-container")
+      ].filter(Boolean);
+      const badges = [
+        document.getElementById("admin-client-projects-count"),
+        document.getElementById("pane-client-projects-count")
+      ].filter(Boolean);
+
+      if (containers.length === 0) return;
+
+      const projs = (typeof loadClientProjects === 'function')
+        ? loadClientProjects()
+        : (window.clientProjects || []);
+
+      badges.forEach(b => {
+        b.textContent = `${projs.length} Project${projs.length === 1 ? '' : 's'}`;
+      });
+
+      if (projs.length === 0) {
+        const emptyHtml = `
+          <div style="text-align:center; padding:28px 20px; color:#888894; background:rgba(255,255,255,0.02); border-radius:12px; border:1px dashed rgba(255,255,255,0.08);">
+            <div style="font-size:24px; margin-bottom:6px;">🎬</div>
+            <strong style="color:#fff; display:block; margin-bottom:4px; font-size:13.5px;">No Commercial Client Projects Created Yet</strong>
+            <span style="font-size:12px;">Click "+ Assign Client Project" above to assign commercial client edits with deadlines and asset links.</span>
+          </div>
+        `;
+        containers.forEach(c => c.innerHTML = emptyHtml);
+        return;
+      }
+
+      const appList = getAdminApplicantList();
+
+      const tableHtml = `
+        <div style="overflow-x:auto;">
+          <table class="google-sheets-table" style="width:100%; border-collapse:collapse; min-width:720px;">
+            <thead>
+              <tr style="background:rgba(255,255,255,0.04); border-bottom:1px solid rgba(255,255,255,0.1);">
+                <th style="padding:10px 12px; font-size:11.5px; color:#cbd5e1; text-align:left; width:30%;">Client & Project Title</th>
+                <th style="padding:10px 12px; font-size:11.5px; color:#cbd5e1; text-align:left; width:26%;">Footage & Asset Links</th>
+                <th style="padding:10px 12px; font-size:11.5px; color:#cbd5e1; text-align:left; width:20%;">Assigned To</th>
+                <th style="padding:10px 12px; font-size:11.5px; color:#cbd5e1; text-align:center; width:12%;">Deadline & Status</th>
+                <th style="padding:10px 12px; font-size:11.5px; color:#cbd5e1; text-align:right; width:12%;">Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${projs.map(proj => {
+                const subCount = proj.submissions ? Object.keys(proj.submissions).length : 0;
+                const linksBadges = (proj.links && Array.isArray(proj.links) && proj.links.length > 0)
+                  ? proj.links.map(l => `
+                    <a href="${l.url}" target="_blank" rel="noopener" style="display:inline-flex; align-items:center; gap:4px; background:rgba(217,78,40,0.14); color:var(--accent-orange); border:1px solid rgba(217,78,40,0.3); padding:3px 8px; border-radius:6px; font-size:11px; text-decoration:none; margin:2px 4px 2px 0;">
+                      <span>🎬 ${escapeHtml(l.name || 'Client Asset')} ↗</span>
+                    </a>
+                  `).join('')
+                  : `<span style="font-size:11px; color:#888894;">No links attached</span>`;
+
+                let assignedHtml = '';
+                if (!proj.assignedEditorIds || proj.assignedEditorIds.includes('all')) {
+                  assignedHtml = `<span style="display:inline-flex; align-items:center; gap:4px; background:rgba(16,185,129,0.15); color:#34d399; border:1px solid rgba(16,185,129,0.3); padding:2px 8px; border-radius:100px; font-size:11px; font-weight:700;">🌐 All Editors Broadcast</span>`;
+                } else {
+                  assignedHtml = `
+                    <div style="display:flex; flex-wrap:wrap; gap:4px;">
+                      ${proj.assignedEditorIds.map(edId => {
+                        const ed = appList.find(a => a.id === edId);
+                        const av = (typeof getEditorAvatarSrc === 'function') ? getEditorAvatarSrc(ed) : 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(ed ? ed.name : 'Editor');
+                        return `
+                          <span style="display:inline-flex; align-items:center; gap:5px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.08); padding:2px 7px; border-radius:20px; font-size:11px; color:#fff;">
+                            <img src="${av}" style="width:16px; height:16px; border-radius:50%; object-fit:cover;">
+                            <span>${escapeHtml(ed ? ed.name.split(' ')[0] : 'Editor')}</span>
+                          </span>
+                        `;
+                      }).join('')}
+                    </div>
+                  `;
+                }
+
+                return `
+                  <tr style="border-bottom:1px solid rgba(255,255,255,0.05);">
+                    <td style="padding:12px;">
+                      <span style="font-size:10.5px; background:rgba(217,78,40,0.15); color:var(--accent-orange); border:1px solid rgba(217,78,40,0.3); padding:1px 6px; border-radius:4px; font-weight:700;">${escapeHtml(proj.clientName)}</span>
+                      <strong style="color:#fff; font-size:13.5px; display:block; margin:4px 0 2px;">${escapeHtml(proj.title)}</strong>
+                      <div style="font-size:11.5px; color:#a0a0ab; line-height:1.4;">${escapeHtml(proj.description || '')}</div>
+                    </td>
+                    <td style="padding:12px;">
+                      <div style="display:flex; flex-wrap:wrap;">${linksBadges}</div>
+                    </td>
+                    <td style="padding:12px;">
+                      ${assignedHtml}
+                    </td>
+                    <td style="padding:12px; text-align:center;">
+                      <div style="font-size:11.5px; color:#fbbf24; font-weight:700; margin-bottom:3px;">⏱️ ${escapeHtml(proj.deadline || '24-48 Hours')}</div>
+                      <span class="badge-mini" style="background:${subCount > 0 ? 'rgba(16,185,129,0.15)' : 'rgba(255,255,255,0.05)'}; color:${subCount > 0 ? '#34d399' : '#888894'}; font-size:10.5px; padding:2px 7px; border-radius:8px;">
+                        ${subCount} Cut${subCount === 1 ? '' : 's'}
+                      </span>
+                    </td>
+                    <td style="padding:12px; text-align:right;">
+                      <button type="button" class="delete-btn" onclick="deleteClientProjectAndRefresh('${proj.id}')" style="padding:4px 9px; font-size:11px;">🗑️ Delete</button>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      `;
+
+      containers.forEach(c => c.innerHTML = tableHtml);
+    };
+
+    window.deletePracticeAssignmentAndRefresh = async function(id) {
+      const tasks = (typeof loadPracticeAssignments === 'function') ? loadPracticeAssignments() : (window.practiceAssignments || []);
+      const asg = tasks.find(a => a && a.id === id);
+      const title = asg ? asg.title : "this practice task";
+      if (!confirm(`Permanently delete "${title}"? This removes it from the cloud database and all editor portals.`)) return;
+      if (typeof deletePracticeAssignment === 'function') {
+        deletePracticeAssignment(id);
+      }
+      renderAdminPracticeTasksTable();
+      renderAdminSubmissionsQueue();
+      if (typeof showToast === 'function') showToast("Practice task permanently deleted.");
+    };
+
+    window.deleteClientProjectAndRefresh = async function(id) {
+      const projs = (typeof loadClientProjects === 'function') ? loadClientProjects() : (window.clientProjects || []);
+      const proj = projs.find(p => p && p.id === id);
+      const title = proj ? proj.title : "this client project";
+      if (!confirm(`Permanently delete "${title}"? This removes it from the cloud database and all editor portals.`)) return;
+      if (typeof deleteClientProject === 'function') {
+        deleteClientProject(id);
+      }
+      renderAdminClientProjectsTable();
+      renderAdminSubmissionsQueue();
+      if (typeof showToast === 'function') showToast("Client project permanently deleted.");
     };
 
     window.renderAdminSubmissionsQueue = function() {
@@ -2231,20 +2557,31 @@
       }
     };
 
-    // Auto-refresh counters and folders on start
+    // Auto-refresh counters, tables, and folders on start
     document.addEventListener("DOMContentLoaded", () => {
+      if (typeof renderAdminFolders === 'function') renderAdminFolders();
+      if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
+      if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
+      if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
+
       if (typeof fetchSupabaseAgencyVault === 'function') {
         fetchSupabaseAgencyVault().then(() => {
           if (typeof renderAdminFolders === 'function') renderAdminFolders();
+          if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
+          if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
           if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
         });
       }
       setTimeout(() => {
         if (typeof renderAdminFolders === 'function') renderAdminFolders();
+        if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
+        if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
         if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
-      }, 200);
+      }, 400);
       setTimeout(() => {
         if (typeof renderAdminFolders === 'function') renderAdminFolders();
+        if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
+        if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
         if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
       }, 1200);
     });

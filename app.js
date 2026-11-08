@@ -161,22 +161,62 @@ if (typeof window !== "undefined" && window.supabase) {
   }
 }
 
+// Circular Avatar Helper for Editors (Google photo -> Uploaded photo -> DiceBear initial avatar)
+function getEditorAvatarSrc(app) {
+  if (app && (app.avatarUrl || app.avatar_url)) {
+    return app.avatarUrl || app.avatar_url;
+  }
+  const seed = (app && app.name) ? encodeURIComponent(app.name) : 'Editor';
+  return 'https://api.dicebear.com/7.x/initials/svg?seed=' + seed + '&backgroundColor=d94e28,3b82f6,10b981,8b5cf6,ec4899&fontSize=42';
+}
+
 // Supabase Agency Vault (Asset Folders, Practice Tasks & Client Projects)
 async function syncAgencyVaultToSupabase() {
   if (!globalSupabase) return;
   try {
-    const rawFolders = (profile && Array.isArray(profile.agencyFolders)) ? profile.agencyFolders : [];
+    let rawFolders = (profile && Array.isArray(profile.agencyFolders)) ? profile.agencyFolders : [];
+    if (rawFolders.length === 0) {
+      try {
+        const sf = localStorage.getItem(STORAGE_KEY_AGENCY_FOLDERS);
+        if (sf) rawFolders = JSON.parse(sf);
+      } catch (e) {}
+    }
+    rawFolders = (rawFolders || []).filter(f => f && f.id !== "folder_drive_vault");
+
+    let rawPractice = (Array.isArray(practiceAssignments)) ? practiceAssignments : [];
+    if (rawPractice.length === 0) {
+      try {
+        const sp = localStorage.getItem(STORAGE_KEY_PRACTICE_ASGS);
+        if (sp) rawPractice = JSON.parse(sp);
+      } catch (e) {}
+    }
+    rawPractice = (rawPractice || []).filter(a => a && a.id !== "asg_practice_default");
+
+    let rawClient = (Array.isArray(clientProjects)) ? clientProjects : [];
+    if (rawClient.length === 0) {
+      try {
+        const sc = localStorage.getItem(STORAGE_KEY_CLIENT_PROJS);
+        if (sc) rawClient = JSON.parse(sc);
+      } catch (e) {}
+    }
+    rawClient = (rawClient || []).filter(p => p && p.id !== "proj_client_default");
+
     const payload = {
       id: '__agency_system_vault__',
       name: 'GanaCuts Visuals System Vault',
+      status: 'active',
       assigned_project: {
         agencyFolders: rawFolders,
-        practiceAssignments: Array.isArray(practiceAssignments) ? practiceAssignments : [],
-        clientProjects: Array.isArray(clientProjects) ? clientProjects : [],
+        practiceAssignments: rawPractice,
+        clientProjects: rawClient,
         updatedAt: Date.now()
       }
     };
-    await globalSupabase.from('applicants').upsert(payload, { onConflict: 'id' });
+    const { error } = await globalSupabase.from('applicants').upsert(payload, { onConflict: 'id' });
+    if (error) {
+      console.warn("Supabase vault upsert error:", error.message || error);
+    }
+    persistPortfolioToServer();
   } catch (err) {
     console.warn("Supabase vault sync notice:", err.message || err);
   }
@@ -218,9 +258,13 @@ async function fetchSupabaseAgencyVault() {
 
       if (updated) {
         if (typeof renderAdminFolders === 'function') renderAdminFolders();
-        if (typeof renderAgencyFolders === 'function') renderAgencyFolders();
-        if (typeof renderEditorStudio === 'function') renderEditorStudio();
+        if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
+        if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
         if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
+        if (typeof renderAgencyFolders === 'function') renderAgencyFolders();
+        if (typeof renderEditorStudio === 'function' && typeof currentEditor !== 'undefined' && currentEditor) renderEditorStudio();
+        if (typeof renderPracticeAssignments === 'function' && typeof currentEditor !== 'undefined' && currentEditor) renderPracticeAssignments(currentEditor);
+        if (typeof renderClientProjects === 'function' && typeof currentEditor !== 'undefined' && currentEditor) renderClientProjects(currentEditor);
       }
     }
   } catch (err) {
@@ -556,6 +600,10 @@ if (typeof window !== "undefined") {
   window.STORAGE_KEY_AGENCY_FOLDERS = STORAGE_KEY_AGENCY_FOLDERS;
   window.syncAgencyVaultToSupabase = syncAgencyVaultToSupabase;
   window.fetchSupabaseAgencyVault = fetchSupabaseAgencyVault;
+  window.getEditorAvatarSrc = getEditorAvatarSrc;
+  window.saveAgencyFoldersAndSync = saveAgencyFoldersAndSync;
+  window.savePracticeAssignmentsAndSync = savePracticeAssignmentsAndSync;
+  window.saveClientProjectsAndSync = saveClientProjectsAndSync;
 }
 
 // Application State
@@ -629,8 +677,8 @@ function initData() {
   // Strip legacy demo folder
   profile.agencyFolders = profile.agencyFolders.filter(f => f && f.id !== "folder_drive_vault");
   localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(profile.agencyFolders));
+  localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
   if (typeof window !== "undefined") window.profile = profile;
-  saveProfile();
 
   const storedApps = localStorage.getItem(STORAGE_KEY_APPS);
   applicants = storedApps ? JSON.parse(storedApps) : [...DEFAULT_APPLICANTS];
@@ -728,7 +776,6 @@ function saveProfile() {
   }
   if (typeof window !== "undefined") window.profile = profile;
   persistPortfolioToServer();
-  if (typeof syncAgencyVaultToSupabase === 'function') syncAgencyVaultToSupabase();
 }
 
 function saveApplicants() {
@@ -1534,15 +1581,25 @@ function renderApplicantsManager() {
 
     const waLink = `https://wa.me/${cleanPhone.startsWith('91') ? cleanPhone : '91' + cleanPhone}?text=${encodeURIComponent(waTextMsg)}`;
 
+    const avatarSrc = getEditorAvatarSrc(app);
+
     return `
       <div class="applicant-card" id="app-card-${app.id}">
-        <div class="applicant-top-bar">
-          <div class="applicant-name-group">
-            <span class="applicant-name">${app.name}</span>
-            <span class="status-badge ${statusClass}">${app.status || 'pending'}</span>
-            <span style="font-size:11px; background:rgba(255,255,255,0.06); padding:2px 8px; border-radius:6px; color:#888;">PIN: ${app.password || '1234'}</span>
+        <div class="applicant-top-bar" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div style="position:relative; width:46px; height:46px; flex-shrink:0;">
+              <img src="${avatarSrc}" alt="${escapeHtml(app.name)}" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(app.name)}'" class="roster-avatar-circle" style="width:46px; height:46px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-orange); box-shadow:0 0 12px rgba(217,78,40,0.35); display:block;">
+            </div>
+            <div class="applicant-name-group" style="display:flex; flex-direction:column; gap:3px;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span class="applicant-name" style="font-size:15px; font-weight:700; color:#fff;">${escapeHtml(app.name)}</span>
+                <span class="status-badge ${statusClass}">${escapeHtml(app.status || 'pending')}</span>
+                <span style="font-size:10.5px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); padding:2px 7px; border-radius:6px; color:#a0a0ab;">PIN: ${escapeHtml(app.password || '1234')}</span>
+              </div>
+              <span style="font-size:11px; color:#888894;">📍 ${escapeHtml(app.city || 'Remote')} • 📞 ${escapeHtml(app.phone || 'Google Account')}</span>
+            </div>
           </div>
-          <span class="applied-date">${app.appliedAt || 'Recently Applied'}</span>
+          <span class="applied-date" style="font-size:11.5px; color:#888894;">${escapeHtml(app.appliedAt || 'Recently Applied')}</span>
         </div>
 
         <div class="applicant-details-grid">
@@ -1769,9 +1826,14 @@ window.renderAgencySheet = function(filter = currentSheetFilter, searchQuery = c
             <option value="rejected" ${status === "rejected" ? "selected" : ""}>✕ Rejected</option>
           </select>
         </td>
-        <td>
-          <div style="font-weight:700; color:#fff;">${escapeHtml(app.name)}</div>
-          <div style="font-size:11px; color:#888;">${escapeHtml(app.city || "Remote")}</div>
+        <td style="min-width:200px;">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <img src="${getEditorAvatarSrc(app)}" alt="${escapeHtml(app.name)}" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(app.name)}'" class="sheet-avatar-circle" style="width:34px; height:34px; border-radius:50%; object-fit:cover; border:1.5px solid rgba(255,255,255,0.2); box-shadow:0 0 8px rgba(0,0,0,0.4); flex-shrink:0;">
+            <div>
+              <div style="font-weight:700; color:#fff; font-size:13px;">${escapeHtml(app.name)}</div>
+              <div style="font-size:11px; color:#888;">${escapeHtml(app.city || "Remote")}</div>
+            </div>
+          </div>
         </td>
         <td>
           <a href="mailto:${encodeURIComponent(email)}" style="color:#60a5fa; text-decoration:none; display:inline-flex; align-items:center; gap:4px;">
@@ -2029,12 +2091,31 @@ function loadPracticeAssignments() {
   return practiceAssignments;
 }
 
+function saveAgencyFoldersAndSync(folders) {
+  if (!profile) profile = { ...DEFAULT_PROFILE };
+  profile.agencyFolders = (folders || []).filter(f => f && f.id !== "folder_drive_vault");
+  localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(profile.agencyFolders));
+  localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
+  if (typeof window !== "undefined") window.profile = profile;
+  return syncAgencyVaultToSupabase();
+}
+
+function savePracticeAssignmentsAndSync(tasks) {
+  practiceAssignments = (tasks || []).filter(a => a && a.id !== "asg_practice_default");
+  window.practiceAssignments = practiceAssignments;
+  localStorage.setItem(STORAGE_KEY_PRACTICE_ASGS, JSON.stringify(practiceAssignments));
+  return syncAgencyVaultToSupabase();
+}
+
+function saveClientProjectsAndSync(projs) {
+  clientProjects = (projs || []).filter(p => p && p.id !== "proj_client_default");
+  window.clientProjects = clientProjects;
+  localStorage.setItem(STORAGE_KEY_CLIENT_PROJS, JSON.stringify(clientProjects));
+  return syncAgencyVaultToSupabase();
+}
+
 function savePracticeAssignments() {
-  try {
-    localStorage.setItem(STORAGE_KEY_PRACTICE_ASGS, JSON.stringify(practiceAssignments));
-    window.practiceAssignments = practiceAssignments;
-    if (typeof syncAgencyVaultToSupabase === 'function') syncAgencyVaultToSupabase();
-  } catch (e) {}
+  savePracticeAssignmentsAndSync(practiceAssignments);
 }
 
 function loadClientProjects() {
@@ -2044,7 +2125,6 @@ function loadClientProjects() {
   } catch (e) {
     clientProjects = [];
   }
-  // Strip any legacy demo projects
   if (Array.isArray(clientProjects)) {
     clientProjects = clientProjects.filter(p => p && p.id !== "proj_client_default");
   } else {
@@ -2056,11 +2136,7 @@ function loadClientProjects() {
 }
 
 function saveClientProjects() {
-  try {
-    localStorage.setItem(STORAGE_KEY_CLIENT_PROJS, JSON.stringify(clientProjects));
-    window.clientProjects = clientProjects;
-    if (typeof syncAgencyVaultToSupabase === 'function') syncAgencyVaultToSupabase();
-  } catch (e) {}
+  saveClientProjectsAndSync(clientProjects);
 }
 
 // Initial loader
@@ -2071,11 +2147,14 @@ window.loadPracticeAssignments = loadPracticeAssignments;
 window.savePracticeAssignments = savePracticeAssignments;
 window.loadClientProjects = loadClientProjects;
 window.saveClientProjects = saveClientProjects;
+window.saveAgencyFoldersAndSync = saveAgencyFoldersAndSync;
+window.savePracticeAssignmentsAndSync = savePracticeAssignmentsAndSync;
+window.saveClientProjectsAndSync = saveClientProjectsAndSync;
 
 window.getPracticeAssignmentsForEditor = function(editorId) {
   loadPracticeAssignments();
   return (practiceAssignments || []).filter(a => {
-    if (!a.assignedEditorIds || !Array.isArray(a.assignedEditorIds)) return false;
+    if (!a.assignedEditorIds || !Array.isArray(a.assignedEditorIds) || a.assignedEditorIds.length === 0) return true;
     return a.assignedEditorIds.includes('all') || a.assignedEditorIds.includes(editorId);
   });
 };
@@ -2083,7 +2162,7 @@ window.getPracticeAssignmentsForEditor = function(editorId) {
 window.getClientProjectsForEditor = function(editorId) {
   loadClientProjects();
   return (clientProjects || []).filter(p => {
-    if (!p.assignedEditorIds || !Array.isArray(p.assignedEditorIds)) return false;
+    if (!p.assignedEditorIds || !Array.isArray(p.assignedEditorIds) || p.assignedEditorIds.length === 0) return true;
     return p.assignedEditorIds.includes('all') || p.assignedEditorIds.includes(editorId);
   });
 };
@@ -2100,7 +2179,7 @@ window.createPracticeAssignment = function({ title, description, links, assigned
     createdAt: Date.now()
   };
   practiceAssignments.unshift(newAsg);
-  savePracticeAssignments();
+  savePracticeAssignmentsAndSync(practiceAssignments);
 
   const targetIds = newAsg.assignedEditorIds.includes('all')
     ? applicants.map(a => a.id)
@@ -2129,7 +2208,7 @@ window.createClientProject = function({ clientName, title, description, links, a
     createdAt: Date.now()
   };
   clientProjects.unshift(newProj);
-  saveClientProjects();
+  saveClientProjectsAndSync(clientProjects);
 
   const targetIds = newProj.assignedEditorIds.includes('all')
     ? applicants.map(a => a.id)
@@ -2146,14 +2225,14 @@ window.createClientProject = function({ clientName, title, description, links, a
 
 window.deletePracticeAssignment = function(asgId) {
   loadPracticeAssignments();
-  practiceAssignments = practiceAssignments.filter(a => a.id !== asgId);
-  savePracticeAssignments();
+  practiceAssignments = practiceAssignments.filter(a => a && a.id !== asgId);
+  savePracticeAssignmentsAndSync(practiceAssignments);
 };
 
 window.deleteClientProject = function(projId) {
   loadClientProjects();
-  clientProjects = clientProjects.filter(p => p.id !== projId);
-  saveClientProjects();
+  clientProjects = clientProjects.filter(p => p && p.id !== projId);
+  saveClientProjectsAndSync(clientProjects);
 };
 
 window.submitPracticeAssignmentWork = function(asgId, editorId, videoUrl, notes) {
@@ -2164,7 +2243,7 @@ window.submitPracticeAssignmentWork = function(asgId, editorId, videoUrl, notes)
   const now = new Date();
   const submittedAt = now.toLocaleDateString("en-IN", { day: '2-digit', month: 'short' }) + ", " + now.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
   asg.submissions[editorId] = { videoUrl, notes, submittedAt };
-  savePracticeAssignments();
+  savePracticeAssignmentsAndSync(practiceAssignments);
 
   const ed = applicants.find(a => a.id === editorId);
   if (ed) {
@@ -2188,7 +2267,7 @@ window.submitClientProjectWork = function(projId, editorId, videoUrl, notes) {
   const now = new Date();
   const submittedAt = now.toLocaleDateString("en-IN", { day: '2-digit', month: 'short' }) + ", " + now.toLocaleTimeString("en-IN", { hour: '2-digit', minute: '2-digit' });
   proj.submissions[editorId] = { videoUrl, notes, submittedAt, status: "submitted" };
-  saveClientProjects();
+  saveClientProjectsAndSync(clientProjects);
 
   const ed = applicants.find(a => a.id === editorId);
   if (ed) {
