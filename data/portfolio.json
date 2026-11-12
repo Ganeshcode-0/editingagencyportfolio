@@ -98,37 +98,37 @@
     "tools": [
       {
         "id": "tool_davinci",
+        "icon": "🎨",
         "name": "DaVinci Resolve",
         "role": "Color & Finish",
-        "icon": "🎨",
         "color": "#f59e0b"
       },
       {
         "id": "tool_premiere",
+        "icon": "🎬",
         "name": "Premiere Pro",
         "role": "Timeline & Narrative",
-        "icon": "🎬",
         "color": "#a855f7"
       },
       {
         "id": "tool_ae",
+        "icon": "⚡",
         "name": "After Effects",
         "role": "VFX & Motion Graphics",
-        "icon": "⚡",
         "color": "#38bdf8"
       },
       {
         "id": "tool_capcut",
+        "icon": "✂️",
         "name": "CapCut Pro",
         "role": "Fast Social Retention",
-        "icon": "✂️",
         "color": "#06b6d4"
       },
       {
         "id": "tool_blender",
+        "icon": "🧊",
         "name": "Blender 3D",
         "role": "3D Modeling & Animation",
-        "icon": "🧊",
         "color": "#f97316"
       }
     ],

@@ -1057,7 +1057,7 @@
       <div style="font-size:11px; font-weight:800; color:var(--accent-orange); letter-spacing:1px; margin-bottom:6px; text-transform:uppercase;">
         CREATIVE TEAM STUDIO
       </div>
-      <h1 style="font-size:24px; font-weight:800; color:#fff; margin:0 0 8px;">GanaCuts Visuals</h1>
+      <h1 style="font-size:24px; font-weight:800; color:#121214; margin:0 0 8px;">GanaCuts Visuals</h1>
       <p style="font-size:13.5px; color:var(--text-muted); line-height:1.5; margin:0 auto 20px; max-width:360px;">
         Sign in to access your direct chat with GanaCuts Visuals, download raw client assets, view video assignments, and submit your project cuts.
       </p>
@@ -1499,39 +1499,54 @@
       if (form) form.style.display = form.style.display === "none" ? "block" : "none";
     };
 
-    // Google Sign-In with OAuth
+    // Google Sign-In with OAuth & Instant Fallback
     window.handleGoogleSignIn = async function() {
       const btn = document.getElementById("google-login-btn");
       if (btn) {
         btn.innerHTML = `<span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span> Connecting...`;
         btn.disabled = true;
       }
+
+      let oauthRedirected = false;
       if (supabaseClient && supabaseClient.auth) {
         try {
-          const { error } = await supabaseClient.auth.signInWithOAuth({
+          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("OAuth timeout")), 1800));
+          const oauthPromise = supabaseClient.auth.signInWithOAuth({
             provider: 'google',
-            options: { redirectTo: window.location.origin + '/editor' }
+            options: { redirectTo: window.location.href.split('#')[0].split('?')[0] }
           });
-          if (error) {
-            alert("Google Sign-In notice: " + (error.message || "Could not connect to Google."));
-            if (btn) { btn.innerHTML = `<span>Continue with Google</span>`; btn.disabled = false; }
+          const res = await Promise.race([oauthPromise, timeoutPromise]);
+          if (res && !res.error && res.data?.url) {
+            oauthRedirected = true;
+            window.location.href = res.data.url;
+            return;
           }
         } catch (err) {
-          alert("Could not reach Google Auth. Please check internet connection.");
-          if (btn) { btn.innerHTML = `<span>Continue with Google</span>`; btn.disabled = false; }
+          console.warn("Supabase Google OAuth notice:", err);
         }
+      }
+
+      if (btn) {
+        btn.innerHTML = `<span>Continue with Google</span>`;
+        btn.disabled = false;
+      }
+
+      if (!oauthRedirected) {
+        const input = prompt("Enter your Name, Email, or WhatsApp Number to open your Editor Studio:", "");
+        if (!input || !input.trim()) return;
+        await enterStudioWithIdentifier(input.trim());
       }
     };
 
-    // Phone Login
-    window.handlePhoneLogin = async function(e) {
-      if (e) e.preventDefault();
-      const rawInput = document.getElementById("ed-phone-input").value.trim().toLowerCase();
-      const errorEl = document.getElementById("ed-phone-login-error");
-      if (errorEl) errorEl.innerHTML = "";
+    // Universal Editor Studio Entry (Never deletes existing data; registers new if not in roster)
+    async function enterStudioWithIdentifier(rawInput) {
+      const clean = (rawInput || "").trim();
+      if (!clean) return;
+      const lower = clean.toLowerCase();
 
-      if (rawInput === "designsbygani@gmail.com" || rawInput === "gani" || rawInput === "admin") {
-        window.location.href = "/admin";
+      // If admin enters their email on editor studio, direct to admin
+      if (lower === "designsbygani@gmail.com" || lower === "gani" || lower === "admin" || lower.includes("designsbygani") || lower.includes("mogiliganesh49")) {
+        window.location.href = "admin.html";
         return;
       }
 
@@ -1539,31 +1554,67 @@
         try { await fetchSupabaseApplicants(); } catch(e) {}
       }
 
-      const phoneClean = rawInput.replace(/\D/g, "");
+      const phoneClean = clean.replace(/\D/g, "");
       const last10 = phoneClean.slice(-10);
 
-      let match = applicants.find(a => {
-        const emailMatch = a.email && a.email.toLowerCase() === rawInput;
+      let match = (applicants || []).find(a => {
+        if (!a) return false;
+        const emailMatch = a.email && a.email.toLowerCase() === lower;
+        const nameMatch = a.name && a.name.toLowerCase() === lower;
         const aPhone = (a.phone || "").replace(/\D/g, "");
         const phoneMatch = phoneClean && aPhone && (aPhone === phoneClean || aPhone.endsWith(last10) || phoneClean.endsWith(aPhone.slice(-10)));
-        return (emailMatch || phoneMatch);
+        return (emailMatch || nameMatch || phoneMatch);
       });
 
-      if (match) {
-        localStorage.setItem("cutscale_editor_session", JSON.stringify({
-          phone: match.phone,
-          name: match.name,
-          email: match.email,
-          avatarUrl: match.avatarUrl,
-          ts: Date.now()
-        }));
-        currentEditor = match;
-        renderEditorStudio();
-      } else {
-        if (errorEl) {
-          errorEl.innerHTML = `<span style="color:#f87171;">No account found for "${rawInput}". Please click "Continue with Google" to enter!</span>`;
+      // If editor is not in roster yet, register them without touching any existing data
+      if (!match) {
+        const isEmail = clean.includes("@");
+        const displayName = isEmail ? clean.split("@")[0] : clean;
+        const newApp = {
+          id: "app_" + Date.now(),
+          name: displayName,
+          email: isEmail ? clean : "",
+          phone: !isEmail ? clean : "",
+          city: "Remote",
+          tools: "Premiere Pro, DaVinci Resolve",
+          otherTools: "",
+          portfolio: "",
+          specialization: "Talking Head Reels, 3D Motion Graphics",
+          rate: "Standard / Discuss",
+          status: "pending",
+          adminFeedback: "Welcome to GanaCuts Visuals! Please update your editing tools and portfolio in your profile.",
+          appliedAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
+          avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=d94e28,3b82f6,10b981&fontSize=42`,
+          authProvider: "quick_access"
+        };
+        applicants.unshift(newApp);
+        saveApplicants();
+        if (window.syncApplicantToSupabase) {
+          window.syncApplicantToSupabase(newApp);
         }
+        match = newApp;
       }
+
+      localStorage.setItem("cutscale_editor_session", JSON.stringify({
+        id: match.id,
+        phone: match.phone,
+        name: match.name,
+        email: match.email,
+        avatarUrl: match.avatarUrl,
+        ts: Date.now()
+      }));
+      currentEditor = match;
+      renderEditorStudio();
+    }
+
+    // Phone / Email Login Form Submit
+    window.handlePhoneLogin = async function(e) {
+      if (e) e.preventDefault();
+      const rawInput = document.getElementById("ed-phone-input").value.trim();
+      const errorEl = document.getElementById("ed-phone-login-error");
+      if (errorEl) errorEl.innerHTML = "";
+      if (!rawInput) return;
+      await enterStudioWithIdentifier(rawInput);
     };
 
     // Initialize Auth state
@@ -1575,7 +1626,7 @@
         try { await fetchSupabaseApplicants(); } catch (e) {}
       }
 
-      // Check Supabase Google OAuth session
+      // 1. Check Supabase Google OAuth session
       if (supabaseClient) {
         try {
           const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1500));
@@ -1589,13 +1640,12 @@
             const gName = gUser.user_metadata?.full_name || gUser.user_metadata?.name || gEmail.split('@')[0];
             const gAvatar = gUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(gName)}`;
 
-            if (gEmail === "designsbygani@gmail.com") {
-              alert("Admin account recognized. Redirecting to Admin Studio...");
-              window.location.href = "/admin";
+            if (gEmail === "designsbygani@gmail.com" || gEmail.includes("mogiliganesh49")) {
+              window.location.href = "admin.html";
               return;
             }
 
-            let match = applicants.find(a => a.email && a.email.toLowerCase() === gEmail);
+            let match = (applicants || []).find(a => a && a.email && a.email.toLowerCase() === gEmail);
 
             if (!match) {
               const newApp = {
@@ -1624,6 +1674,7 @@
             }
 
             localStorage.setItem("cutscale_editor_session", JSON.stringify({
+              id: match.id,
               phone: match.phone,
               name: match.name,
               email: match.email,
@@ -1639,23 +1690,23 @@
         } catch (e) {}
       }
 
-      // Check localStorage session
+      // 2. Check localStorage session (keeps logged-in editors in their workspace!)
       const stored = localStorage.getItem("cutscale_editor_session");
       if (stored) {
         try {
           const user = JSON.parse(stored);
-          const match = applicants.find(a => {
+          let match = (applicants || []).find(a => {
+            if (!a) return false;
+            if (user.id && a.id === user.id) return true;
             if (user.email && a.email && a.email.toLowerCase() === user.email.toLowerCase()) return true;
             const d1 = (a.phone || "").replace(/\D/g, "");
             const d2 = (user.phone || "").replace(/\D/g, "");
             return d1 && d2 && (d1.endsWith(d2.slice(-10)) || d2.endsWith(d1.slice(-10)));
           });
 
-          if (match) {
-            currentEditor = match;
-            renderEditorStudio();
-            return;
-          }
+          currentEditor = match || user;
+          renderEditorStudio();
+          return;
         } catch (e) {}
       }
 
