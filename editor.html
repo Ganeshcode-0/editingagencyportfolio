@@ -1528,12 +1528,14 @@
           name: gName,
           email: gEmail,
           phone: "",
-          city: "Remote",
-          tools: "Premiere Pro, DaVinci Resolve",
+          city: "",
+          tools: "",
           otherTools: "",
           portfolio: "",
-          specialization: "Talking Head Reels, 3D Motion Graphics",
-          rate: "Standard / Discuss",
+          specialization: "",
+          rate: "",
+          authUserId: gUser.id,
+          profileReviewStatus: "not_submitted",
           status: "pending",
           adminFeedback: "Welcome to GanaCuts Visuals! Direct access granted via Google Sign-In.",
           appliedAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
@@ -1559,6 +1561,8 @@
       }));
 
       currentEditor = match;
+      currentEditor.authUserId = gUser.id;
+      if (window.syncApplicantToSupabase) await window.syncApplicantToSupabase(currentEditor);
 
       if (window.location.hash || window.location.search) {
         try { history.replaceState(null, null, window.location.pathname); } catch (e) {}
@@ -1609,82 +1613,11 @@
     };
 
     // Universal Editor Studio Entry by ID/Phone (Retained safely without deleting data)
-    async function enterStudioWithIdentifier(rawInput) {
-      const clean = (rawInput || "").trim();
-      if (!clean) return;
-      const lower = clean.toLowerCase();
-
-      if (lower === "designsbygani@gmail.com" || lower === "gani" || lower === "admin" || lower.includes("designsbygani") || lower.includes("mogiliganesh49")) {
-        window.location.href = "admin.html";
-        return;
-      }
-
-      if (typeof fetchSupabaseApplicants === 'function') {
-        try { await fetchSupabaseApplicants(); } catch(e) {}
-      }
-
-      const phoneClean = clean.replace(/\D/g, "");
-      const last10 = phoneClean.slice(-10);
-
-      let match = (applicants || []).find(a => {
-        if (!a) return false;
-        const emailMatch = a.email && a.email.toLowerCase() === lower;
-        const nameMatch = a.name && a.name.toLowerCase() === lower;
-        const aPhone = (a.phone || "").replace(/\D/g, "");
-        const phoneMatch = phoneClean && aPhone && (aPhone === phoneClean || aPhone.endsWith(last10) || phoneClean.endsWith(aPhone.slice(-10)));
-        return (emailMatch || nameMatch || phoneMatch);
-      });
-
-      if (!match) {
-        const isEmail = clean.includes("@");
-        const displayName = isEmail ? clean.split("@")[0] : clean;
-        const newApp = {
-          id: "app_" + Date.now(),
-          name: displayName,
-          email: isEmail ? clean : "",
-          phone: !isEmail ? clean : "",
-          city: "Remote",
-          tools: "Premiere Pro, DaVinci Resolve",
-          otherTools: "",
-          portfolio: "",
-          specialization: "Talking Head Reels, 3D Motion Graphics",
-          rate: "Standard / Discuss",
-          status: "pending",
-          adminFeedback: "Welcome to GanaCuts Visuals! Please update your editing tools and portfolio in your profile.",
-          appliedAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
-          avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=d94e28,3b82f6,10b981&fontSize=42`,
-          authProvider: "quick_access"
-        };
-        applicants.unshift(newApp);
-        saveApplicants();
-        if (window.syncApplicantToSupabase) {
-          window.syncApplicantToSupabase(newApp);
-        }
-        match = newApp;
-      }
-
-      localStorage.setItem("cutscale_editor_session", JSON.stringify({
-        id: match.id,
-        phone: match.phone,
-        name: match.name,
-        email: match.email,
-        avatarUrl: match.avatarUrl,
-        ts: Date.now()
-      }));
-      currentEditor = match;
-      renderEditorStudio();
-    }
-
-    // Phone / Email Login Form Submit
-    window.handlePhoneLogin = async function(e) {
-      if (e) e.preventDefault();
-      const rawInput = document.getElementById("ed-phone-input").value.trim();
+    async function enterStudioWithIdentifier() {
       const errorEl = document.getElementById("ed-phone-login-error");
-      if (errorEl) errorEl.innerHTML = "";
-      if (!rawInput) return;
-      await enterStudioWithIdentifier(rawInput);
-    };
-
+      if (errorEl) errorEl.textContent = "Please sign in using the Google account you registered with."; 
+    }
+    window.handlePhoneLogin = async function(e) { if (e) e.preventDefault(); await enterStudioWithIdentifier(); };
     // Initialize Auth state
     async function initEditorAuth() {
       if (typeof fetchSupabaseAgencyVault === 'function') {
@@ -1718,25 +1651,8 @@
         } catch (e) {}
       }
 
-      // 2. Check localStorage session (keeps logged-in editors in their workspace!)
-      const stored = localStorage.getItem("cutscale_editor_session");
-      if (stored) {
-        try {
-          const user = JSON.parse(stored);
-          let match = (applicants || []).find(a => {
-            if (!a) return false;
-            if (user.id && a.id === user.id) return true;
-            if (user.email && a.email && a.email.toLowerCase() === user.email.toLowerCase()) return true;
-            const d1 = (a.phone || "").replace(/\D/g, "");
-            const d2 = (user.phone || "").replace(/\D/g, "");
-            return d1 && d2 && (d1.endsWith(d2.slice(-10)) || d2.endsWith(d1.slice(-10)));
-          });
-
-          currentEditor = match || user;
-          renderEditorStudio();
-          return;
-        } catch (e) {}
-      }
+      // localStorage alone is not proof of an authenticated editor identity.
+      localStorage.removeItem("cutscale_editor_session");
 
       document.getElementById("editor-auth-screen").classList.remove("hidden");
       document.getElementById("editor-app-screen").classList.add("hidden");
@@ -2412,54 +2328,26 @@
       input.value = "";
     };
 
-    window.handleSaveProfileModal = function(e) {
+    window.handleSaveProfileModal = async function(e) {
       if (e) e.preventDefault();
-      if (!currentEditor) return;
-
+      if (!currentEditor || !supabaseClient) return alert("Please sign in with Google again.");
       const name = document.getElementById("modal-ed-name").value.trim();
       const phone = document.getElementById("modal-ed-phone").value.trim();
       const portfolio = document.getElementById("modal-ed-portfolio").value.trim();
       const rate = document.getElementById("modal-ed-rate").value.trim();
-
-      const standardSelectedTools = Array.from(document.querySelectorAll("#modal-tools-pills .tool-pill.selected")).map(p => p.getAttribute("data-tool"));
-      const customAddedTools = Array.from(document.querySelectorAll("#modal-custom-tools-list .tool-pill")).map(p => p.getAttribute("data-tool"));
-      const selectedTools = Array.from(new Set([...standardSelectedTools, ...customAddedTools])).filter(Boolean);
-
-      const selectedSpecs = Array.from(document.querySelectorAll("#modal-spec-pills .tool-pill.selected")).map(p => p.getAttribute("data-skill"));
-      const customSkills = Array.from(document.querySelectorAll("#modal-custom-skills-list .custom-skill-tag")).map(p => p.getAttribute("data-skill"));
-
-      const finalTools = selectedTools.join(", ") || "Premiere Pro, DaVinci Resolve";
-      const finalSpec = [...selectedSpecs, ...customSkills].join(", ") || "Talking Head Reels, Documentary Videos, AI Videos";
-
-      currentEditor.name = name || currentEditor.name;
-      currentEditor.phone = phone;
-      currentEditor.portfolio = portfolio;
-      currentEditor.rate = rate || "Standard / Discuss";
-      currentEditor.tools = finalTools;
-      currentEditor.specialization = finalSpec;
-
-      const idx = applicants.findIndex(a => a.id === currentEditor.id);
-      if (idx !== -1) {
-        applicants[idx] = { ...applicants[idx], ...currentEditor };
-      }
-      saveApplicants();
-
-      if (window.syncApplicantToSupabase) {
-        window.syncApplicantToSupabase(currentEditor);
-      }
-
-      localStorage.setItem("cutscale_editor_session", JSON.stringify({
-        phone: currentEditor.phone,
-        name: currentEditor.name,
-        email: currentEditor.email,
-        avatarUrl: currentEditor.avatarUrl,
-        ts: Date.now()
-      }));
-
+      const tools = Array.from(document.querySelectorAll("#modal-tools-pills .tool-pill.selected")).map(p => p.getAttribute("data-tool")).concat(Array.from(document.querySelectorAll("#modal-custom-tools-list .tool-pill")).map(p => p.getAttribute("data-tool"))).filter(Boolean).join(", ");
+      const specialization = Array.from(document.querySelectorAll("#modal-spec-pills .tool-pill.selected")).map(p => p.getAttribute("data-skill")).concat(Array.from(document.querySelectorAll("#modal-custom-skills-list .custom-skill-tag")).map(p => p.getAttribute("data-skill"))).filter(Boolean).join(", ");
+      if (!name || !phone || !portfolio || !tools || !specialization) return alert("Complete your name, WhatsApp number, portfolio, software and specialization.");
+      if (!/^https?:\/\//i.test(portfolio)) return alert("Portfolio link must start with http:// or https://.");
+      const auth = await supabaseClient.auth.getUser();
+      if (auth.error || !auth.data.user || auth.data.user.email.toLowerCase() !== currentEditor.email.toLowerCase()) return alert("Google identity verification failed. Please sign in again.");
+      const result = await supabaseClient.from("profile_change_requests").insert({ applicant_id: currentEditor.id, auth_user_id: auth.data.user.id, submitted_profile: { name, phone, portfolio, rate, tools, specialization }, status: "pending" });
+      if (result.error) return alert("Profile submission failed: " + result.error.message);
+      currentEditor.profileReviewStatus = "pending";
       closeEditProfileModal();
       renderEditorStudio();
+      alert("Profile submitted for admin verification. Your existing roster selection status will not change.");
     };
-
     // Trigger Photo Upload
     window.triggerAvatarUpload = function() {
       const fileInput = document.getElementById("ed-avatar-file-input");
