@@ -822,6 +822,7 @@
           <div id="admin-submissions-table-container"></div>
         </div>
 
+        <div class="submissions-queue-card" style="margin-bottom:20px;background:#fff;border:1px solid var(--border-subtle);border-radius:18px;padding:20px;"><h4>🛡️ Editor Profile Verification</h4><small>Review submitted profile changes without changing roster status.</small><div id="admin-profile-review-queue" style="margin-top:14px;">No requests loaded.</div><button type="button" class="secondary-btn light-btn" onclick="loadProfileReviewQueue()" style="margin-top:10px;">↻ Refresh requests</button></div>
         <div style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
           <div>
             <h4 style="font-size:16px; font-weight:800; color:#121214; margin:0 0 2px;">👥 Video Editor Team Roster</h4>
@@ -2487,6 +2488,46 @@
       if (typeof showToast === 'function') showToast("Removed from featured team.");
     };
 
+    // Profile verification queue within the existing Editors Roster pane.
+    async function loadProfileReviewQueue() {
+      const box = document.getElementById("admin-profile-review-queue");
+      if (!box || !supabaseClient) return;
+      const result = await supabaseClient.from("profile_change_requests").select("*").eq("status","pending").order("created_at",{ascending:false});
+      if (result.error) { box.textContent = "Could not load requests: " + result.error.message; return; }
+      if (!result.data || !result.data.length) { box.textContent = "No profile updates waiting for review."; return; }
+      box.innerHTML = result.data.map(function(r) {
+        const p = r.submitted_profile || {};
+        const safe = function(v) { return escapeHtml(String(v || "—")); };
+        const url = /^https?:\/\//i.test(p.portfolio || "") ? p.portfolio : "#";
+        return "<div style=\"border:1px solid #e5e7eb;border-radius:12px;padding:14px;margin:10px 0;\"><b>" + safe(p.name) + "</b> <span style=\"color:#b45309\">PENDING</span>" +
+          "<div style=\"display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:8px;margin:10px 0;font-size:12px;\">" +
+          "<div><b>WhatsApp:</b> " + safe(p.phone) + "</div><div><b>Portfolio:</b> <a href=\"" + url + "\" target=\"_blank\" rel=\"noopener\">Open ↗</a></div>" +
+          "<div><b>Software:</b> " + safe(p.tools) + "</div><div><b>Specialization:</b> " + safe(p.specialization) + "</div><div><b>Rate:</b> " + safe(p.rate) + "</div></div>" +
+          "<button class=\"primary-btn\" type=\"button\" onclick=\"reviewEditorProfileChange(\'" + r.id + "\',\'approved\')\">Approve profile</button> " +
+          "<button class=\"secondary-btn light-btn\" type=\"button\" onclick=\"reviewEditorProfileChange(\'" + r.id + "\',\'changes_requested\')\">Request changes</button></div>";
+      }).join("");
+    }
+    window.loadProfileReviewQueue = loadProfileReviewQueue;
+    window.reviewEditorProfileChange = async function(id, decision) {
+      if (!supabaseClient || ["approved","changes_requested"].indexOf(decision) < 0) return;
+      const got = await supabaseClient.from("profile_change_requests").select("*").eq("id",id).single();
+      if (got.error || !got.data) return alert("Could not load request: " + (got.error && got.error.message));
+      if (decision === "approved") {
+        const p = got.data.submitted_profile || {};
+        const upd = await supabaseClient.from("applicants").update({name:p.name,phone:p.phone,portfolio:p.portfolio,rate:p.rate,tools:p.tools,specialization:p.specialization,profile_review_status:"approved"}).eq("id",got.data.applicant_id);
+        if (upd.error) return alert("Profile update failed: " + upd.error.message);
+      } else {
+        const upd = await supabaseClient.from("applicants").update({profile_review_status:"changes_requested"}).eq("id",got.data.applicant_id);
+        if (upd.error) return alert("Review status update failed: " + upd.error.message);
+      }
+      const auth = await supabaseClient.auth.getUser();
+      const done = await supabaseClient.from("profile_change_requests").update({status:decision,reviewed_at:new Date().toISOString(),reviewed_by:auth.data.user.id}).eq("id",id);
+      if (done.error) return alert("Could not record decision: " + done.error.message);
+      await fetchSupabaseApplicants();
+      await loadProfileReviewQueue();
+      if (typeof showToast === "function") showToast(decision === "approved" ? "Profile approved; roster status unchanged." : "Changes requested.");
+    };
+    document.addEventListener("DOMContentLoaded", function() { loadProfileReviewQueue(); });
     // Helper to safely get the active applicant roster
     function getAdminApplicantList() {
       let list = [];
