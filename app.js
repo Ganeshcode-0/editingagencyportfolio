@@ -147,7 +147,7 @@ const STORAGE_KEY_PRACTICE_ASGS = "cutscale_practice_asgs_v1";
 const STORAGE_KEY_CLIENT_PROJS = "cutscale_client_projs_v1";
 const STORAGE_KEY_AGENCY_FOLDERS = "cutscale_agency_folders_v1";
 const STORAGE_KEY_DELETED_VAULT_IDS = "ganacuts_deleted_vault_ids_v1";
-const ADMIN_PIN = "7075";
+// No client-side administrator PIN is used.
 
 let practiceAssignments = [];
 let clientProjects = [];
@@ -505,7 +505,8 @@ async function syncApplicantToSupabase(app) {
       portfolio: app.portfolio || "",
       specialization: app.specialization || "Video Editing",
       rate: app.rate || "Negotiable",
-      password: app.password || "1234",
+      auth_user_id: app.authUserId || app.auth_user_id || null,
+      profile_review_status: app.profileReviewStatus || app.profile_review_status || "not_submitted",
       status: app.status || "pending",
       admin_feedback: app.adminFeedback || "",
       applied_at: app.appliedAt || new Date().toISOString()
@@ -664,7 +665,8 @@ async function fetchSupabaseApplicants() {
           portfolio: remote.portfolio,
           specialization: remote.specialization,
           rate: remote.rate,
-          password: remote.password || "1234",
+          authUserId: remote.auth_user_id || null,
+          profileReviewStatus: remote.profile_review_status || "not_submitted",
           status: remote.status || "pending",
           adminFeedback: remote.admin_feedback || remote.adminFeedback || "",
           appliedAt: remote.applied_at || remote.appliedAt,
