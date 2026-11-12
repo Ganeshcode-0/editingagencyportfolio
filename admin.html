@@ -1545,10 +1545,10 @@
     </div>
   </div>
 
-  <script src="app.js?v=3.1"></script>
+  <script src="app.js?v=3.3"></script>
   <script>
     // Master Admin Email constant & Supabase Client
-    const MASTER_ADMIN_EMAIL = window.MASTER_ADMIN_EMAIL || "designsbygani@gmail.com";
+    const ADMIN_MASTER_EMAIL = window.MASTER_ADMIN_EMAIL || "designsbygani@gmail.com";
     let supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
 
     // Toggle Password Box visibility
@@ -1559,27 +1559,25 @@
 
     // Helper: Establish Admin Session from Google User
     async function handleAdminGoogleSession(gUser) {
-      if (!gUser) return;
-      const email = (gUser.email || "").toLowerCase();
-      const name = gUser.user_metadata?.full_name || gUser.user_metadata?.name || email.split('@')[0];
-      const avatar = gUser.user_metadata?.avatar_url || "assets/logo.jpg";
-
-      const sessionData = {
-        email: email,
-        name: name || "GanaCuts Admin",
-        role: "admin",
-        avatar: avatar,
-        authProvider: "google",
-        loggedInAt: Date.now()
-      };
-      localStorage.setItem("cutscale_admin_session", JSON.stringify(sessionData));
-
-      if (window.location.hash || window.location.search) {
-        try { history.replaceState(null, null, window.location.pathname); } catch (e) {}
+      const email = (gUser && gUser.email || '').toLowerCase();
+      if (!gUser || email !== ADMIN_MASTER_EMAIL.toLowerCase()) {
+        localStorage.removeItem('cutscale_admin_session');
+        if (supabaseClient) await supabaseClient.auth.signOut();
+        const errorEl = document.getElementById('admin-login-error');
+        if (errorEl) errorEl.textContent = 'Access denied. Use the authorized GanaCuts owner Google account.';
+        return;
       }
-      await initAdminAuth();
+      const sessionData = { email: email, name: gUser.user_metadata && (gUser.user_metadata.full_name || gUser.user_metadata.name) || email.split('@')[0], avatar: gUser.user_metadata && gUser.user_metadata.avatar_url || 'assets/logo.jpg', authProvider: 'google', loggedInAt: Date.now() };
+      localStorage.setItem('cutscale_admin_session', JSON.stringify(sessionData));
+      const authScreen = document.getElementById('full-admin-login');
+      const appScreen = document.getElementById('full-admin-app');
+      if (authScreen) authScreen.classList.add('hidden');
+      if (appScreen) appScreen.classList.remove('hidden');
+      const displayEl = document.getElementById('admin-user-display');
+      if (displayEl) displayEl.textContent = sessionData.name;
+      updateAdminUI();
+      initAdminChat();
     }
-
     // Direct Google OAuth Sign-In for Admin Studio
     window.handleAdminGoogleLogin = async function() {
       const errorEl = document.getElementById("admin-login-error");
@@ -1638,37 +1636,14 @@
         supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
       }
 
-      // Check active Supabase Google session
+      // localStorage is not proof of administrator identity.
       if (supabaseClient && supabaseClient.auth) {
         try {
           const { data: { session } } = await supabaseClient.auth.getSession();
-          if (session && session.user) {
-            await handleAdminGoogleSession(session.user);
-            return;
-          }
+          if (session && session.user) { await handleAdminGoogleSession(session.user); return; }
         } catch (e) {}
       }
-
-      // Check stored session in localStorage
-      const session = localStorage.getItem("cutscale_admin_session");
-      if (session) {
-        try {
-          const user = JSON.parse(session);
-          if (user && (user.role === "admin" || user.authProvider === "google" || user.email === MASTER_ADMIN_EMAIL || (user.email && (user.email.includes("gani") || user.email.includes("admin"))))) {
-            if (authScreen) authScreen.classList.add("hidden");
-            if (appScreen) appScreen.classList.remove("hidden");
-            const displayEl = document.getElementById("admin-user-display");
-            if (displayEl) displayEl.textContent = user.name || "GanaCuts Admin";
-            updateAdminUI();
-            initAdminChat();
-            if (typeof renderAdminFolders === 'function') renderAdminFolders();
-            if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
-            if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
-            if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
-            return;
-          }
-        } catch (e) {}
-      }
+      localStorage.removeItem('cutscale_admin_session');
 
       if (authScreen) authScreen.classList.remove("hidden");
       if (appScreen) appScreen.classList.add("hidden");
@@ -1697,7 +1672,7 @@
         const btn = document.getElementById("admin-login-btn");
         if (errorEl) errorEl.textContent = "";
 
-        const isMaster = email === MASTER_ADMIN_EMAIL || 
+        const isMaster = email === ADMIN_MASTER_EMAIL || 
                          email.includes("gani") || 
                          email.includes("mogili") || 
                          email.includes("admin") || 
@@ -1730,7 +1705,7 @@
           }
 
           const sessionData = {
-            email: MASTER_ADMIN_EMAIL,
+            email: ADMIN_MASTER_EMAIL,
             name: "GanaCuts Admin",
             role: "admin",
             avatar: "assets/logo.jpg",
