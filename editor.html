@@ -1562,7 +1562,6 @@
 
       currentEditor = match;
       currentEditor.authUserId = gUser.id;
-      if (window.syncApplicantToSupabase) await window.syncApplicantToSupabase(currentEditor);
 
       if (window.location.hash || window.location.search) {
         try { history.replaceState(null, null, window.location.pathname); } catch (e) {}
