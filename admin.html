@@ -1666,6 +1666,9 @@
     if (loginForm) {
       loginForm.addEventListener("submit", async (e) => {
         e.preventDefault();
+        const errorEl = document.getElementById("admin-login-error");
+        if (errorEl) errorEl.textContent = "Password login is disabled. Please use the verified owner Google sign-in button.";
+        return;
         const rawEmail = document.getElementById("admin-email").value.trim();
         const email = rawEmail.toLowerCase();
         const pwd = document.getElementById("admin-pwd").value.trim();
