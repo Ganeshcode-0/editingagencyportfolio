@@ -3329,7 +3329,7 @@ function performStatusLookup(query) {
         <div style="font-size:12px; color:var(--text-secondary);">
           <div><strong>Tools:</strong> ${match.tools}</div>
           <div><strong>Expected payment per reel/video:</strong> ${match.rate || 'Negotiable'}</div>
-          <div><strong>Account PIN:</strong> ${match.password || '1234'}</div>
+
         </div>
 
         <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -3426,7 +3426,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const specialization = document.getElementById("apply-specialization") ? document.getElementById("apply-specialization").value : "Video Editing";
       const rate = document.getElementById("apply-rate") ? document.getElementById("apply-rate").value.trim() : "Standard / Discuss";
       const notes = document.getElementById("apply-notes") ? document.getElementById("apply-notes").value.trim() : "";
-      const password = (document.getElementById("apply-password") ? document.getElementById("apply-password").value.trim() : "1234") || "1234";
+
 
       const now = new Date();
       const dateFormatted = now.toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' });
@@ -3442,7 +3442,7 @@ document.addEventListener("DOMContentLoaded", () => {
         specialization: specialization || "Video Editing",
         rate: rate || "Standard / Discuss",
         notes,
-        password: password || "1234",
+
         adminFeedback: "Application received. Portfolio queued for review by GanaCuts Visuals.",
         status: "pending",
         appliedAt: dateFormatted
