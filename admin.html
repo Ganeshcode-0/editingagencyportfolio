@@ -411,21 +411,29 @@
       </div>
 
       <!-- Google Sign-In via Supabase OAuth -->
-      <button type="button" class="google-auth-btn" id="admin-google-auth-btn" onclick="handleAdminGoogleLogin()">
-        <svg width="18" height="18" viewBox="0 0 24 24">
+      <button type="button" class="google-auth-btn" id="admin-google-auth-btn" onclick="handleAdminGoogleLogin()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:12px; padding:14px 22px; font-size:15px; font-weight:700; border-radius:100px; cursor:pointer; background:#ffffff; color:#121214; border:1px solid rgba(18,18,20,0.18); box-shadow:0 4px 16px rgba(18,18,20,0.06); transition:all 0.2s ease;">
+        <svg width="20" height="20" viewBox="0 0 24 24">
           <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.8-2.4 3.66v3.05h3.88c2.27-2.09 3.665-5.17 3.665-9.15z"/>
           <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.24v3.15C3.26 21.36 7.33 24 12 24z"/>
           <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
           <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
         </svg>
-        <span>Sign In with Google</span>
+        <span>Sign In directly with Google</span>
       </button>
 
-      <div class="auth-divider-row">
-        <span>or sign in with password</span>
+      <div style="font-size:12px; color:#888894; margin:12px 0 16px; text-align:center;">
+        ⚡ Instant 1-Click Master Access • No password needed
       </div>
 
-      <form id="real-admin-login-form" class="admin-form">
+      <div id="admin-login-error" class="error-msg" style="margin-bottom:12px; text-align:center;"></div>
+
+      <div style="text-align:center; border-top:1px solid rgba(18,18,20,0.08); padding-top:14px; margin-top:8px;">
+        <button type="button" onclick="toggleAdminPasswordBox()" style="background:none; border:none; color:#888894; font-size:12px; text-decoration:underline; cursor:pointer;">
+          Need password login instead? Click here
+        </button>
+      </div>
+
+      <form id="real-admin-login-form" class="admin-form" style="display:none; margin-top:16px;">
         <div class="form-group">
           <label for="admin-email">Admin Email Address</label>
           <input type="text" id="admin-email" placeholder="admin@ganacutsvisuals.com" required autocomplete="username">
@@ -449,15 +457,12 @@
             <input type="checkbox" id="admin-remember-me" checked>
             <span>Keep me signed in</span>
           </label>
-          <a href="#" onclick="alert('Sign In Assistance:\nSign in using Google (Master Admin) or enter your administrator password.\nPassword can be customized inside the Security tab.'); return false;" style="color:var(--accent-orange); text-decoration:none;">Sign In Help</a>
         </div>
 
         <button type="submit" class="primary-btn full-width" style="padding:14px; font-size:14px;" id="admin-login-btn">
           <span>Sign In to Admin Studio</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
         </button>
-
-        <div id="admin-login-error" class="error-msg" style="margin-top:12px; text-align:center;"></div>
       </form>
 
       <div style="text-align:center; margin-top:20px;">
@@ -1546,38 +1551,110 @@
     const MASTER_ADMIN_EMAIL = window.MASTER_ADMIN_EMAIL || "designsbygani@gmail.com";
     let supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
 
-    // 1-Click Universal Google Sign-In for Admin Studio (Zero-fail guarantee)
+    // Toggle Password Box visibility
+    window.toggleAdminPasswordBox = function() {
+      const f = document.getElementById("real-admin-login-form");
+      if (f) f.style.display = f.style.display === "none" ? "block" : "none";
+    };
+
+    // Helper: Establish Admin Session from Google User
+    async function handleAdminGoogleSession(gUser) {
+      if (!gUser) return;
+      const email = (gUser.email || "").toLowerCase();
+      const name = gUser.user_metadata?.full_name || gUser.user_metadata?.name || email.split('@')[0];
+      const avatar = gUser.user_metadata?.avatar_url || "assets/logo.jpg";
+
+      const sessionData = {
+        email: email,
+        name: name || "GanaCuts Admin",
+        role: "admin",
+        avatar: avatar,
+        authProvider: "google",
+        loggedInAt: Date.now()
+      };
+      localStorage.setItem("cutscale_admin_session", JSON.stringify(sessionData));
+
+      if (window.location.hash || window.location.search) {
+        try { history.replaceState(null, null, window.location.pathname); } catch (e) {}
+      }
+      await initAdminAuth();
+    }
+
+    // Direct Google OAuth Sign-In for Admin Studio
     window.handleAdminGoogleLogin = async function() {
       const errorEl = document.getElementById("admin-login-error");
       const btn = document.getElementById("admin-google-auth-btn");
       if (errorEl) errorEl.textContent = "";
 
-      const sessionData = {
-        email: MASTER_ADMIN_EMAIL,
-        name: "GanaCuts Admin",
-        role: "admin",
-        avatar: "assets/logo.jpg",
-        authProvider: "google_verified_master",
-        loggedInAt: Date.now()
-      };
-      localStorage.setItem("cutscale_admin_session", JSON.stringify(sessionData));
-      await initAdminAuth();
+      if (btn) {
+        btn.innerHTML = `<span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span> Connecting to Google...`;
+        btn.disabled = true;
+      }
+
+      if (!supabaseClient) {
+        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
+      }
+
+      try {
+        const redirectUrl = window.location.href.split('#')[0].split('?')[0];
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: redirectUrl
+          }
+        });
+        if (error) throw error;
+        if (data && data.url) {
+          window.location.href = data.url;
+        }
+      } catch (err) {
+        console.error("Google sign in error:", err);
+        if (btn) {
+          btn.innerHTML = `<span>Sign In directly with Google</span>`;
+          btn.disabled = false;
+        }
+        if (errorEl) errorEl.textContent = "Google Sign-In failed: " + (err.message || err);
+      }
     };
 
     // Full-page Admin Auth Initializer
     document.addEventListener("DOMContentLoaded", async () => {
+      // Listen for Supabase OAuth return
+      if (supabaseClient && supabaseClient.auth) {
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+          if (session && session.user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED')) {
+            await handleAdminGoogleSession(session.user);
+          }
+        });
+      }
       await initAdminAuth();
     });
 
     async function initAdminAuth() {
-      const session = localStorage.getItem("cutscale_admin_session");
       const authScreen = document.getElementById("full-admin-login");
       const appScreen = document.getElementById("full-admin-app");
 
+      if (!supabaseClient) {
+        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
+      }
+
+      // Check active Supabase Google session
+      if (supabaseClient && supabaseClient.auth) {
+        try {
+          const { data: { session } } = await supabaseClient.auth.getSession();
+          if (session && session.user) {
+            await handleAdminGoogleSession(session.user);
+            return;
+          }
+        } catch (e) {}
+      }
+
+      // Check stored session in localStorage
+      const session = localStorage.getItem("cutscale_admin_session");
       if (session) {
         try {
           const user = JSON.parse(session);
-          if (user && (user.role === "admin" || user.email === MASTER_ADMIN_EMAIL || (user.email && (user.email.includes("gani") || user.email.includes("admin"))))) {
+          if (user && (user.role === "admin" || user.authProvider === "google" || user.email === MASTER_ADMIN_EMAIL || (user.email && (user.email.includes("gani") || user.email.includes("admin"))))) {
             if (authScreen) authScreen.classList.add("hidden");
             if (appScreen) appScreen.classList.remove("hidden");
             const displayEl = document.getElementById("admin-user-display");
@@ -1608,7 +1685,7 @@
       });
     }
 
-    // Login Form Submit (Real Supabase Auth + Verified Master Admin Credentials)
+    // Login Form Submit (Optional Password Fallback)
     const loginForm = document.getElementById("real-admin-login-form");
     if (loginForm) {
       loginForm.addEventListener("submit", async (e) => {
@@ -1620,7 +1697,6 @@
         const btn = document.getElementById("admin-login-btn");
         if (errorEl) errorEl.textContent = "";
 
-        // Verify Master Admin Email
         const isMaster = email === MASTER_ADMIN_EMAIL || 
                          email.includes("gani") || 
                          email.includes("mogili") || 
@@ -1673,14 +1749,6 @@
             btn.innerHTML = `<span>Sign In to Admin Studio</span>`;
           }
           if (errorEl) errorEl.textContent = "Invalid password. Default is admin123 or 7075.";
-        }
-      });
-    }
-          if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = `<span>Sign In to Admin Studio</span>`;
-          }
-          if (errorEl) errorEl.textContent = "Please enter your valid password (minimum 4 characters).";
         }
       });
     }
@@ -1844,10 +1912,6 @@
         <a href="${waLink}" target="_blank" class="secondary-btn light-btn" style="padding:4px 10px; font-size:11px; text-decoration:none;">WhatsApp ↗</a>
         <a href="${app.portfolio}" target="_blank" class="secondary-btn light-btn" style="padding:4px 10px; font-size:11px; text-decoration:none;">Portfolio ↗</a>
       `;
-
-      renderAdminConversation();
-      renderAdminChatUsers();
-    };
 
       renderAdminConversation();
       renderAdminChatUsers();

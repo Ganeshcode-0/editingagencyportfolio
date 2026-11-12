@@ -1070,12 +1070,14 @@
           <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.24C.45 8.15 0 9.92 0 12s.45 3.85 1.24 5.42l4.04-3.15z"/>
           <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.24 6.58l4.04 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
         </svg>
-        <span>Continue with Google</span>
+        <span>Sign In directly with Google</span>
       </button>
 
       <div style="font-size:12px; color:var(--text-dim); margin-bottom:16px;">
         ⚡ Instant 1-Click Access • No password needed
       </div>
+
+      <div id="ed-login-error" style="font-size:12px; color:#ef4444; margin-bottom:12px;"></div>
 
       <!-- Quick Phone / Email Fallback for Existing Users -->
       <div style="border-top:1px solid var(--border-subtle); padding-top:14px; margin-top:10px;">
@@ -1499,52 +1501,119 @@
       if (form) form.style.display = form.style.display === "none" ? "block" : "none";
     };
 
-    // Google Sign-In with OAuth & Instant Fallback
+    // Helper: Handle Authenticated Google Editor Session
+    async function handleGoogleOAuthEditorSession(gUser) {
+      if (!gUser) return;
+      const gEmail = (gUser.email || "").toLowerCase();
+      const gName = gUser.user_metadata?.full_name || gUser.user_metadata?.name || (gEmail ? gEmail.split('@')[0] : "Editor");
+      const gAvatar = gUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(gName)}`;
+
+      // If Gani logs in, redirect to Admin Studio
+      if (gEmail === "designsbygani@gmail.com" || gEmail.includes("mogiliganesh49")) {
+        window.location.href = "admin.html";
+        return;
+      }
+
+      // Ensure fresh database roster is loaded
+      if (typeof fetchSupabaseApplicants === 'function' && (!applicants || applicants.length === 0)) {
+        try { await fetchSupabaseApplicants(); } catch (e) {}
+      }
+
+      let match = (applicants || []).find(a => a && a.email && a.email.toLowerCase() === gEmail);
+
+      // Register new Google sign-in without deleting or overwriting any existing data
+      if (!match) {
+        const newApp = {
+          id: "app_" + Date.now(),
+          name: gName,
+          email: gEmail,
+          phone: "",
+          city: "Remote",
+          tools: "Premiere Pro, DaVinci Resolve",
+          otherTools: "",
+          portfolio: "",
+          specialization: "Talking Head Reels, 3D Motion Graphics",
+          rate: "Standard / Discuss",
+          status: "pending",
+          adminFeedback: "Welcome to GanaCuts Visuals! Direct access granted via Google Sign-In.",
+          appliedAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
+          avatarUrl: gAvatar,
+          authProvider: "google"
+        };
+        applicants.unshift(newApp);
+        saveApplicants();
+        if (window.syncApplicantToSupabase) {
+          window.syncApplicantToSupabase(newApp);
+        }
+        match = newApp;
+      }
+
+      localStorage.setItem("cutscale_editor_session", JSON.stringify({
+        id: match.id,
+        phone: match.phone,
+        name: match.name,
+        email: match.email,
+        avatarUrl: match.avatarUrl || gAvatar,
+        authProvider: "google_supabase",
+        ts: Date.now()
+      }));
+
+      currentEditor = match;
+
+      if (window.location.hash || window.location.search) {
+        try { history.replaceState(null, null, window.location.pathname); } catch (e) {}
+      }
+
+      renderEditorStudio();
+    }
+
+    // Direct Google Sign-In with OAuth (Zero roadblocks, purely Google)
     window.handleGoogleSignIn = async function() {
       const btn = document.getElementById("google-login-btn");
+      const errorEl = document.getElementById("ed-login-error");
+      if (errorEl) errorEl.textContent = "";
+
       if (btn) {
-        btn.innerHTML = `<span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span> Connecting...`;
+        btn.innerHTML = `<span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span> Connecting to Google...`;
         btn.disabled = true;
       }
 
-      let oauthRedirected = false;
-      if (supabaseClient && supabaseClient.auth) {
-        try {
-          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("OAuth timeout")), 1800));
-          const oauthPromise = supabaseClient.auth.signInWithOAuth({
-            provider: 'google',
-            options: { redirectTo: window.location.href.split('#')[0].split('?')[0] }
-          });
-          const res = await Promise.race([oauthPromise, timeoutPromise]);
-          if (res && !res.error && res.data?.url) {
-            oauthRedirected = true;
-            window.location.href = res.data.url;
-            return;
+      if (!supabaseClient) {
+        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
+      }
+
+      try {
+        const redirectUrl = window.location.href.split('#')[0].split('?')[0];
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: redirectUrl
           }
-        } catch (err) {
-          console.warn("Supabase Google OAuth notice:", err);
+        });
+        if (error) throw error;
+        if (data && data.url) {
+          window.location.href = data.url;
         }
-      }
-
-      if (btn) {
-        btn.innerHTML = `<span>Continue with Google</span>`;
-        btn.disabled = false;
-      }
-
-      if (!oauthRedirected) {
-        const input = prompt("Enter your Name, Email, or WhatsApp Number to open your Editor Studio:", "");
-        if (!input || !input.trim()) return;
-        await enterStudioWithIdentifier(input.trim());
+      } catch (err) {
+        console.error("Google sign in error:", err);
+        if (btn) {
+          btn.innerHTML = `<span>Sign In directly with Google</span>`;
+          btn.disabled = false;
+        }
+        if (errorEl) {
+          errorEl.textContent = "Google Sign-In failed: " + (err.message || err);
+        } else {
+          alert("Google Sign-In notice: " + (err.message || err));
+        }
       }
     };
 
-    // Universal Editor Studio Entry (Never deletes existing data; registers new if not in roster)
+    // Universal Editor Studio Entry by ID/Phone (Retained safely without deleting data)
     async function enterStudioWithIdentifier(rawInput) {
       const clean = (rawInput || "").trim();
       if (!clean) return;
       const lower = clean.toLowerCase();
 
-      // If admin enters their email on editor studio, direct to admin
       if (lower === "designsbygani@gmail.com" || lower === "gani" || lower === "admin" || lower.includes("designsbygani") || lower.includes("mogiliganesh49")) {
         window.location.href = "admin.html";
         return;
@@ -1566,7 +1635,6 @@
         return (emailMatch || nameMatch || phoneMatch);
       });
 
-      // If editor is not in roster yet, register them without touching any existing data
       if (!match) {
         const isEmail = clean.includes("@");
         const displayName = isEmail ? clean.split("@")[0] : clean;
@@ -1626,65 +1694,25 @@
         try { await fetchSupabaseApplicants(); } catch (e) {}
       }
 
-      // 1. Check Supabase Google OAuth session
-      if (supabaseClient) {
+      if (!supabaseClient) {
+        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
+      }
+
+      // Listen to Supabase Auth state changes
+      if (supabaseClient && supabaseClient.auth) {
+        supabaseClient.auth.onAuthStateChange(async (event, session) => {
+          if (session && session.user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED')) {
+            await handleGoogleOAuthEditorSession(session.user);
+          }
+        });
+      }
+
+      // 1. Check Supabase Google OAuth session directly
+      if (supabaseClient && supabaseClient.auth) {
         try {
-          const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout")), 1500));
-          const sessionPromise = supabaseClient.auth.getSession();
-          const res = await Promise.race([sessionPromise, timeoutPromise]);
-          const session = res?.data?.session;
-
+          const { data: { session } } = await supabaseClient.auth.getSession();
           if (session && session.user) {
-            const gUser = session.user;
-            const gEmail = (gUser.email || "").toLowerCase();
-            const gName = gUser.user_metadata?.full_name || gUser.user_metadata?.name || gEmail.split('@')[0];
-            const gAvatar = gUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(gName)}`;
-
-            if (gEmail === "designsbygani@gmail.com" || gEmail.includes("mogiliganesh49")) {
-              window.location.href = "admin.html";
-              return;
-            }
-
-            let match = (applicants || []).find(a => a && a.email && a.email.toLowerCase() === gEmail);
-
-            if (!match) {
-              const newApp = {
-                id: "app_" + Date.now(),
-                name: gName,
-                email: gEmail,
-                phone: "",
-                city: "Remote",
-                tools: "Premiere Pro, DaVinci Resolve",
-                otherTools: "",
-                portfolio: "",
-                specialization: "Talking Head Reels, 3D Motion Graphics",
-                rate: "Standard / Discuss",
-                status: "pending",
-                adminFeedback: "Welcome to GanaCuts Visuals! Please add your editing tools and portfolio in your profile.",
-                appliedAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
-                avatarUrl: gAvatar,
-                authProvider: "google"
-              };
-              applicants.unshift(newApp);
-              saveApplicants();
-              if (window.syncApplicantToSupabase) {
-                window.syncApplicantToSupabase(newApp);
-              }
-              match = newApp;
-            }
-
-            localStorage.setItem("cutscale_editor_session", JSON.stringify({
-              id: match.id,
-              phone: match.phone,
-              name: match.name,
-              email: match.email,
-              avatarUrl: match.avatarUrl || gAvatar,
-              authProvider: "google_supabase",
-              ts: Date.now()
-            }));
-
-            currentEditor = match;
-            renderEditorStudio();
+            await handleGoogleOAuthEditorSession(session.user);
             return;
           }
         } catch (e) {}
