@@ -1940,7 +1940,6 @@ function renderApplicantsManager() {
               <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
                 <span class="applicant-name" style="font-size:15px; font-weight:700; color:#fff;">${escapeHtml(app.name)}</span>
                 <span class="status-badge ${statusClass}">${escapeHtml(app.status || 'pending')}</span>
-                <span style="font-size:10.5px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); padding:2px 7px; border-radius:6px; color:#a0a0ab;">PIN: ${escapeHtml(app.password || '1234')}</span>
               </div>
               <span style="font-size:11px; color:#888894;">📍 ${escapeHtml(app.city || 'Remote')} • 📞 ${escapeHtml(app.phone || 'Google Account')}</span>
             </div>
