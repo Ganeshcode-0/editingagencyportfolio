@@ -1,34 +1,49 @@
 {
   "categories": [
     {
-      "id": "cat_motion_graphics",
-      "name": "Motion Graphics",
-      "subtitle": "3D TYPOGRAPHY, VISUAL HOOKS & KINETIC INFOGRAPHICS",
+      "id": "cat_1794404652665",
+      "name": "after effects",
+      "subtitle": "after effects motion graphic",
       "aspect": "9:16",
       "order": 1
+    },
+    {
+      "id": "cat_motion_graphics",
+      "name": "Motion Graphics",
+      "subtitle": "3D TYPOGRAPHY, VISUAL HOOKS & MOTION INFOGRAPHICS",
+      "aspect": "9:16",
+      "order": 2
     },
     {
       "id": "cat_talking_head",
       "name": "Talking Head",
       "subtitle": "HIGH-RETENTION HORMOZI-STYLE SUBTITLES, ZOOM CUTS & STORYTELLING",
       "aspect": "9:16",
-      "order": 2
+      "order": 3
     },
     {
       "id": "cat_real_estate",
       "name": "Real Estate",
       "subtitle": "LUXURY VILLA TOURS, DRONE TRANSITIONS & ARCHITECTURAL PACING",
       "aspect": "9:16",
-      "order": 3
+      "order": 4
     }
   ],
   "videos": [
     {
-      "id": "v_1793060747160",
-      "categoryId": "cat_real_estate",
-      "title": "REAL ESTATE",
+      "id": "v_1794404678268",
+      "categoryId": "cat_1794404652665",
+      "title": "after effects",
       "duration": "0:45",
-      "videoUrl": "https://youtube.com/shorts/E0Ng5JR3_WM?si=RrylIgNUnqsqtY7l",
+      "videoUrl": "https://youtube.com/shorts/Od_vTWAzzAw?si=MTGo5J8pH9nzlcP1",
+      "thumbnail": ""
+    },
+    {
+      "id": "v_1793060167914",
+      "categoryId": "cat_motion_graphics",
+      "title": "3D MOTION GRAPHICS",
+      "duration": "0:45",
+      "videoUrl": "https://youtube.com/shorts/kYpdBPpvym0?si=wWdLZBnaU7L5Kdes",
       "thumbnail": ""
     },
     {
@@ -64,11 +79,11 @@
       "thumbnail": ""
     },
     {
-      "id": "v_1793060167914",
-      "categoryId": "cat_motion_graphics",
-      "title": "3D MOTION GRAPGICS",
+      "id": "v_1793060747160",
+      "categoryId": "cat_real_estate",
+      "title": "REAL ESTATE",
       "duration": "0:45",
-      "videoUrl": "https://youtube.com/shorts/kYpdBPpvym0?si=wWdLZBnaU7L5Kdes",
+      "videoUrl": "https://youtube.com/shorts/E0Ng5JR3_WM?si=RrylIgNUnqsqtY7l",
       "thumbnail": ""
     }
   ],
@@ -79,6 +94,92 @@
     "photo": "assets/logo.jpg",
     "waUrl": "https://wa.me/917075081947?text=Hi%20Ganesh,%20I%20saw%20your%20portfolio%20on%20GanaCuts%20Visuals%20and%20would%20like%20to%20hire%20you%20for%20a%20video%20editing%20project.",
     "instaUrl": "https://www.instagram.com/gana_cuts_visuals?dlrf=aXJlY3lsazhraHl4",
-    "agencyFolders": []
-  }
+    "agencyFolders": [],
+    "tools": [
+      {
+        "id": "tool_davinci",
+        "name": "DaVinci Resolve",
+        "role": "Color & Finish",
+        "icon": "🎨",
+        "color": "#f59e0b"
+      },
+      {
+        "id": "tool_premiere",
+        "name": "Premiere Pro",
+        "role": "Timeline & Narrative",
+        "icon": "🎬",
+        "color": "#a855f7"
+      },
+      {
+        "id": "tool_ae",
+        "name": "After Effects",
+        "role": "VFX & Motion Graphics",
+        "icon": "⚡",
+        "color": "#38bdf8"
+      },
+      {
+        "id": "tool_capcut",
+        "name": "CapCut Pro",
+        "role": "Fast Social Retention",
+        "icon": "✂️",
+        "color": "#06b6d4"
+      },
+      {
+        "id": "tool_blender",
+        "name": "Blender 3D",
+        "role": "3D Modeling & Animation",
+        "icon": "🧊",
+        "color": "#f97316"
+      }
+    ],
+    "featuredEditors": []
+  },
+  "agencyFolders": [],
+  "practiceAssignments": [
+    {
+      "id": "asg_1794414554060_6ami",
+      "links": [
+        {
+          "url": "https://drive.google.com/file/d/1De3oNjUQBhvxSBf4tgg8dLbuql2HmlLB/view?usp=drivesdk",
+          "name": "Raw Footage (Drive)"
+        }
+      ],
+      "title": "Helo",
+      "createdAt": 1794414554060,
+      "description": "Hello",
+      "submissions": {},
+      "assignedEditorIds": [
+        "app_1794413682630"
+      ]
+    },
+    {
+      "id": "asg_1794068068701_ozcq",
+      "links": [
+        {
+          "url": "https://drive.google.com/file/d/1JrDVS7Gl5DNd5XpSWyYfDZhamJk0blI5/view?usp=drive_link",
+          "name": "Raw Footage (Drive)"
+        }
+      ],
+      "title": "show  your creativity",
+      "createdAt": 1794068068701,
+      "description": "cretivity",
+      "submissions": {},
+      "assignedEditorIds": [
+        "app_1793025602699",
+        "app_1793026214710",
+        "app_1793026470412",
+        "app_1793042765210",
+        "app_1793410401066",
+        "app_1794028842483",
+        "app_1793439716363",
+        "app_1793726857523",
+        "app_test_1793979730261",
+        "app_1794025203127",
+        "app_1794067105748",
+        "app_1794067270206",
+        "app_1793513323788"
+      ]
+    }
+  ],
+  "clientProjects": []
 }

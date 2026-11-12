@@ -84,24 +84,8 @@
           <h1 class="hero-title" id="hero-name">GANACUTS VISUALS</h1>
           <p class="hero-tagline" id="hero-tagline">High-retention video editing, cinematic color grading, and dynamic motion graphics by <strong>GanaCuts Visuals</strong>. Crafted with <strong>DaVinci Resolve</strong>, <strong>Premiere Pro</strong> & <strong>After Effects</strong>.</p>
           
-          <!-- Tool Badges -->
-          <div class="tools-row" id="tools-row">
-            <div class="tool-badge davinci">
-              <span class="tool-dot"></span>
-              <strong>DaVinci Resolve</strong>
-              <small>Color & Finish</small>
-            </div>
-            <div class="tool-badge premiere">
-              <span class="tool-dot"></span>
-              <strong>Premiere Pro</strong>
-              <small>Timeline & Narrative</small>
-            </div>
-            <div class="tool-badge aftereffects">
-              <span class="tool-dot"></span>
-              <strong>After Effects</strong>
-              <small>VFX & Motion Graphics</small>
-            </div>
-          </div>
+          <!-- Dynamic Tool Badges -->
+          <div class="tools-row" id="tools-row"></div>
 
           <div class="hero-actions">
             <!-- Primary Direct Hire CTA (Instagram) -->
@@ -127,6 +111,18 @@
 
   <!-- Dynamic Categories Container (Sequential Scroll Flow) -->
   <main id="dynamic-categories-container"></main>
+
+  <!-- Featured Creative Editors / Core Team Showcase -->
+  <section class="featured-editors-section" id="featured-editors-container" style="display:none; padding:48px 0 24px;">
+    <div class="container">
+      <div style="text-align:center; margin-bottom:28px;">
+        <span class="sub-badge">CORE CREATIVE SQUAD</span>
+        <h2 style="font-family:var(--font-display); font-size:32px; font-weight:800; color:var(--text-primary); letter-spacing:-0.5px; margin:4px 0 8px;">Featured Video Editors</h2>
+        <p style="color:var(--text-secondary); font-size:14px; max-width:560px; margin:0 auto;">Handpicked specialists crafting high-retention social cuts, documentary visuals, and motion graphics.</p>
+      </div>
+      <div id="featured-editors-list" style="display:grid; grid-template-columns:repeat(auto-fit, minmax(280px, 1fr)); gap:20px;"></div>
+    </div>
+  </section>
 
   <!-- ======================================================================
        EDITOR JOIN SECTION (If you are an editor, join here)

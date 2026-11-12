@@ -11,21 +11,26 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     :root {
-      --bg-studio: #09090c;
-      --card-studio: #121217;
-      --card-studio-hover: #17171e;
-      --border-subtle: rgba(255, 255, 255, 0.08);
+      --bg-studio: #ece7de;
+      --bg-alt: #e3ddd2;
+      --card-studio: #ffffff;
+      --card-studio-hover: #faf7f2;
+      --card-studio-subtle: #f5f2ec;
+      --border-subtle: rgba(18, 18, 20, 0.08);
+      --border-strong: rgba(18, 18, 20, 0.16);
       --border-accent: rgba(217, 78, 40, 0.35);
       --accent-orange: #d94e28;
+      --accent-orange-hover: #c43f1b;
       --accent-glow: rgba(217, 78, 40, 0.25);
-      --accent-gold: #f59e0b;
-      --accent-green: #10b981;
-      --accent-blue: #38bdf8;
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --text-dim: #64748b;
+      --accent-gold: #d97706;
+      --accent-green: #059669;
+      --accent-blue: #0284c7;
+      --text-main: #121214;
+      --text-muted: #5a5a62;
+      --text-dim: #82828e;
       --font-main: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-mono: 'Space Grotesk', monospace;
+      --shadow-card: 0 14px 36px rgba(18, 18, 20, 0.05);
     }
 
     body.editor-body {
@@ -40,6 +45,23 @@
       -webkit-font-smoothing: antialiased;
     }
 
+    /* WhatsApp Green Dot Indicator */
+    .wa-dot {
+      width: 8px;
+      height: 8px;
+      background: #25d366;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #25d366;
+      display: inline-block;
+      flex-shrink: 0;
+      animation: pulseDot 2s infinite ease-in-out;
+    }
+
+    @keyframes pulseDot {
+      0%, 100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.25); opacity: 0.8; }
+    }
+
     /* ==========================================================================
        LOGIN & AUTH CONTAINER
        ========================================================================== */
@@ -49,17 +71,17 @@
       align-items: center;
       justify-content: center;
       padding: 24px;
-      background: radial-gradient(circle at 50% 15%, rgba(217, 78, 40, 0.12), transparent 60%), var(--bg-studio);
+      background: radial-gradient(circle at 50% 15%, rgba(217, 78, 40, 0.08), transparent 60%), var(--bg-studio);
     }
 
     .editor-login-card {
       width: 100%;
       max-width: 460px;
-      background: var(--card-studio);
+      background: #ffffff;
       border: 1px solid var(--border-subtle);
       border-radius: 24px;
       padding: 38px 30px;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.65);
+      box-shadow: 0 20px 50px rgba(18, 18, 20, 0.08);
       text-align: center;
     }
 
@@ -70,8 +92,8 @@
       justify-content: center;
       gap: 12px;
       background: #ffffff;
-      color: #0f172a;
-      border: none;
+      color: #121214;
+      border: 1px solid var(--border-strong);
       padding: 14px 22px;
       border-radius: 100px;
       font-family: inherit;
@@ -79,21 +101,21 @@
       font-weight: 700;
       cursor: pointer;
       transition: all 0.2s ease;
-      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 4px 16px rgba(18, 18, 20, 0.06);
       margin: 20px 0 12px;
     }
 
     .google-hero-btn:hover {
-      background: #f1f5f9;
+      background: #f5f2ec;
       transform: translateY(-2px);
-      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+      box-shadow: 0 8px 24px rgba(18, 18, 20, 0.1);
     }
 
     /* ==========================================================================
        STUDIO TOP NAVIGATION
        ========================================================================== */
     .studio-top-nav {
-      background: rgba(18, 18, 23, 0.85);
+      background: rgba(236, 231, 222, 0.92);
       backdrop-filter: blur(16px);
       -webkit-backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border-subtle);
@@ -125,7 +147,7 @@
       font-size: 15px;
       font-weight: 800;
       letter-spacing: 0.5px;
-      color: #fff;
+      color: #121214;
       display: flex;
       align-items: center;
       gap: 8px;
@@ -133,7 +155,7 @@
 
     .studio-brand-badge {
       font-size: 10px;
-      background: rgba(217, 78, 40, 0.15);
+      background: rgba(217, 78, 40, 0.12);
       color: var(--accent-orange);
       border: 1px solid rgba(217, 78, 40, 0.3);
       padding: 2px 7px;
@@ -152,16 +174,18 @@
       display: flex;
       align-items: center;
       gap: 9px;
-      background: rgba(255, 255, 255, 0.04);
+      background: #ffffff;
       border: 1px solid var(--border-subtle);
       padding: 4px 12px 4px 4px;
       border-radius: 100px;
       cursor: pointer;
-      transition: border-color 0.2s;
+      box-shadow: 0 2px 8px rgba(18, 18, 20, 0.04);
+      transition: all 0.2s ease;
     }
 
     .studio-avatar-pill:hover {
-      border-color: rgba(255, 255, 255, 0.2);
+      border-color: var(--border-strong);
+      background: #f5f2ec;
     }
 
     .studio-avatar-pill img {
@@ -174,7 +198,7 @@
     .studio-avatar-pill span {
       font-size: 12.5px;
       font-weight: 700;
-      color: #fff;
+      color: #121214;
     }
 
     /* ==========================================================================
@@ -184,7 +208,7 @@
       position: sticky;
       top: 61px;
       z-index: 90;
-      background: rgba(9, 9, 12, 0.92);
+      background: rgba(236, 231, 222, 0.94);
       backdrop-filter: blur(12px);
       -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid var(--border-subtle);
@@ -207,8 +231,8 @@
     }
 
     .dock-pill {
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid rgba(255, 255, 255, 0.06);
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
       color: var(--text-muted);
       padding: 6px 14px;
       border-radius: 100px;
@@ -221,12 +245,13 @@
       align-items: center;
       gap: 6px;
       text-decoration: none;
+      box-shadow: 0 2px 6px rgba(18, 18, 20, 0.03);
     }
 
     .dock-pill:hover {
-      background: rgba(255, 255, 255, 0.08);
-      color: #fff;
-      border-color: rgba(255, 255, 255, 0.15);
+      background: #f5f2ec;
+      color: #121214;
+      border-color: var(--border-strong);
     }
 
     .dock-pill.active {
@@ -254,12 +279,13 @@
        SECTION 1: INSTAGRAM-STYLE PROFILE & BIO CARD
        ========================================================================== */
     .ig-profile-card {
-      background: var(--card-studio);
+      background: #ffffff;
       border: 1px solid var(--border-subtle);
       border-radius: 22px;
       padding: 26px 28px;
       position: relative;
       overflow: hidden;
+      box-shadow: 0 14px 36px rgba(18, 18, 20, 0.05);
     }
 
     .ig-profile-card::before {
@@ -293,7 +319,7 @@
       object-fit: cover;
       border: 2.5px solid var(--accent-orange);
       display: block;
-      box-shadow: 0 0 20px var(--accent-glow);
+      box-shadow: 0 0 18px var(--accent-glow);
       transition: transform 0.2s ease;
     }
 
@@ -305,8 +331,8 @@
       position: absolute;
       bottom: -2px;
       right: -2px;
-      background: #18181f;
-      border: 1.5px solid rgba(255, 255, 255, 0.3);
+      background: #ffffff;
+      border: 1.5px solid var(--border-strong);
       border-radius: 50%;
       width: 24px;
       height: 24px;
@@ -314,7 +340,7 @@
       align-items: center;
       justify-content: center;
       font-size: 11px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.5);
+      box-shadow: 0 2px 8px rgba(18, 18, 20, 0.12);
     }
 
     .ig-profile-main {
@@ -333,7 +359,7 @@
     .ig-display-name {
       font-size: 20px;
       font-weight: 800;
-      color: #fff;
+      color: #121214;
       letter-spacing: -0.2px;
     }
 
@@ -343,8 +369,8 @@
       justify-content: center;
       width: 17px;
       height: 17px;
-      background: #38bdf8;
-      color: #0b1120;
+      background: #0284c7;
+      color: #ffffff;
       border-radius: 50%;
       font-size: 10px;
       font-weight: 900;
@@ -363,21 +389,21 @@
     }
 
     .ig-roster-badge.pro {
-      background: rgba(245, 158, 11, 0.15);
-      color: #fbbf24;
-      border: 1px solid rgba(245, 158, 11, 0.35);
+      background: rgba(217, 119, 6, 0.12);
+      color: #b45309;
+      border: 1px solid rgba(217, 119, 6, 0.3);
     }
 
     .ig-roster-badge.trial {
-      background: rgba(56, 189, 248, 0.15);
-      color: #38bdf8;
-      border: 1px solid rgba(56, 189, 248, 0.35);
+      background: rgba(2, 132, 199, 0.12);
+      color: #0284c7;
+      border: 1px solid rgba(2, 132, 199, 0.3);
     }
 
     .ig-roster-badge.pending {
-      background: rgba(217, 78, 40, 0.15);
-      color: #fb923c;
-      border: 1px solid rgba(217, 78, 40, 0.35);
+      background: rgba(217, 78, 40, 0.12);
+      color: #d94e28;
+      border: 1px solid rgba(217, 78, 40, 0.3);
     }
 
     .ig-actions-row {
@@ -388,9 +414,9 @@
     }
 
     .ig-btn {
-      background: rgba(255, 255, 255, 0.05);
+      background: #f5f2ec;
       border: 1px solid var(--border-subtle);
-      color: #e2e8f0;
+      color: #121214;
       padding: 6px 14px;
       border-radius: 8px;
       font-size: 12px;
@@ -403,9 +429,8 @@
     }
 
     .ig-btn:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      border-color: rgba(255, 255, 255, 0.2);
+      background: #ece7de;
+      border-color: var(--border-strong);
     }
 
     .ig-btn.primary {
@@ -415,13 +440,13 @@
     }
 
     .ig-btn.primary:hover {
-      background: #ea580c;
+      background: #c43f1b;
     }
 
     /* Clean Instagram Bio Details */
     .ig-bio-box {
       font-size: 13.5px;
-      color: #cbd5e1;
+      color: #5a5a62;
       line-height: 1.55;
     }
 
@@ -434,12 +459,12 @@
     }
 
     .ig-bio-highlight {
-      color: #fff;
+      color: #121214;
       font-weight: 700;
     }
 
     .ig-bio-link {
-      color: var(--accent-blue);
+      color: #0284c7;
       text-decoration: underline;
       font-weight: 700;
       display: inline-flex;
@@ -451,17 +476,17 @@
        SECTION 2: WHATSAPP / INSTAGRAM HYBRID DM CHAT WITH GANACUTS VISUALS
        ========================================================================== */
     .dm-chat-card {
-      background: var(--card-studio);
+      background: #ffffff;
       border: 1px solid var(--border-subtle);
       border-radius: 22px;
       overflow: hidden;
       display: flex;
       flex-direction: column;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+      box-shadow: 0 14px 36px rgba(18, 18, 20, 0.05);
     }
 
     .dm-chat-header {
-      background: #16161d;
+      background: #f5f2ec;
       border-bottom: 1px solid var(--border-subtle);
       padding: 14px 20px;
       display: flex;
@@ -494,7 +519,7 @@
       width: 10px;
       height: 10px;
       background: #10b981;
-      border: 2px solid #16161d;
+      border: 2px solid #ffffff;
       border-radius: 50%;
       position: absolute;
       bottom: 0;
@@ -505,14 +530,14 @@
     .dm-lead-info h3 {
       font-size: 15px;
       font-weight: 800;
-      color: #fff;
+      color: #121214;
       margin: 0 0 2px;
     }
 
     .dm-lead-info span {
       font-size: 11.5px;
-      color: #34d399;
-      font-weight: 600;
+      color: #059669;
+      font-weight: 700;
     }
 
     .dm-chat-thread {
@@ -522,15 +547,15 @@
       display: flex;
       flex-direction: column;
       gap: 12px;
-      background: radial-gradient(circle at 50% 10%, rgba(255, 255, 255, 0.02), transparent 70%), #0d0d12;
+      background: #faf8f5;
     }
 
     /* Centered Day/Date Separator */
     .dm-date-separator {
       align-self: center;
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: #94a3b8;
+      background: #ece7de;
+      border: 1px solid var(--border-subtle);
+      color: #5a5a62;
       font-size: 11px;
       font-weight: 700;
       padding: 3px 12px;
@@ -574,18 +599,19 @@
 
     /* Sent Bubble (Editor -> Orange Gradient) */
     .dm-msg-row.sent .dm-bubble-box {
-      background: linear-gradient(135deg, rgba(217, 78, 40, 0.85), rgba(234, 88, 12, 0.95));
+      background: linear-gradient(135deg, rgba(217, 78, 40, 0.95), rgba(234, 88, 12, 0.98));
       color: #fff;
       border-bottom-right-radius: 4px;
       box-shadow: 0 4px 14px rgba(217, 78, 40, 0.25);
     }
 
-    /* Received Bubble (GanaCuts Visuals -> Dark Glass) */
+    /* Received Bubble (GanaCuts Visuals -> Clean White Card) */
     .dm-msg-row.received .dm-bubble-box {
-      background: #1c1c24;
-      color: #f1f5f9;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #ffffff;
+      color: #121214;
+      border: 1px solid var(--border-subtle);
       border-bottom-left-radius: 4px;
+      box-shadow: 0 2px 8px rgba(18, 18, 20, 0.04);
     }
 
     /* Message Meta: Time + WhatsApp Double Ticks */
@@ -600,7 +626,7 @@
     }
 
     .dm-msg-row.sent .dm-msg-meta {
-      color: rgba(255, 255, 255, 0.85);
+      color: rgba(255, 255, 255, 0.9);
     }
 
     .dm-msg-row.received .dm-msg-meta {
@@ -609,7 +635,7 @@
 
     /* WhatsApp Style Double Ticks */
     .wa-tick-blue {
-      color: #38bdf8;
+      color: #0284c7;
       font-weight: 800;
       letter-spacing: -1.5px;
       margin-left: 2px;
@@ -627,8 +653,8 @@
     /* Quick Reply Chips */
     .dm-chips-bar {
       padding: 8px 16px;
-      background: #131319;
-      border-top: 1px solid rgba(255, 255, 255, 0.05);
+      background: #f5f2ec;
+      border-top: 1px solid var(--border-subtle);
       display: flex;
       gap: 6px;
       overflow-x: auto;
@@ -640,26 +666,27 @@
     }
 
     .dm-chip-btn {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.08);
-      color: #cbd5e1;
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      color: #121214;
       padding: 5px 12px;
       border-radius: 100px;
       font-size: 11.5px;
+      font-weight: 600;
       white-space: nowrap;
       cursor: pointer;
       transition: all 0.15s ease;
+      box-shadow: 0 1px 4px rgba(18, 18, 20, 0.03);
     }
 
     .dm-chip-btn:hover {
-      background: rgba(255, 255, 255, 0.1);
-      color: #fff;
-      border-color: rgba(255, 255, 255, 0.2);
+      background: #ece7de;
+      border-color: var(--border-strong);
     }
 
     /* Input Bar */
     .dm-input-row {
-      background: #16161d;
+      background: #f5f2ec;
       border-top: 1px solid var(--border-subtle);
       padding: 10px 16px;
       display: flex;
@@ -669,11 +696,11 @@
 
     .dm-input-field {
       flex: 1;
-      background: #0f0f14;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #ffffff;
+      border: 1px solid var(--border-strong);
       border-radius: 100px;
       padding: 10px 18px;
-      color: #fff;
+      color: #121214;
       font-family: inherit;
       font-size: 13.5px;
       outline: none;
@@ -700,13 +727,13 @@
     }
 
     .dm-send-btn:hover {
-      background: #ea580c;
+      background: #c43f1b;
       transform: scale(1.05);
     }
 
     /* Replying Banner */
     .dm-replying-banner {
-      background: rgba(217, 78, 40, 0.1);
+      background: rgba(217, 78, 40, 0.08);
       border-left: 3px solid var(--accent-orange);
       padding: 6px 14px;
       display: flex;
@@ -719,10 +746,11 @@
        SECTION 3: PRACTICE & SKILL ASSIGNMENTS (TABLE VIEW)
        ========================================================================== */
     .assignment-card {
-      background: var(--card-studio);
+      background: #ffffff;
       border: 1px solid var(--border-subtle);
       border-radius: 22px;
       padding: 24px 26px;
+      box-shadow: 0 14px 36px rgba(18, 18, 20, 0.05);
     }
 
     .assignment-header {
@@ -750,40 +778,42 @@
 
     .assignment-badge.passed {
       background: rgba(16, 185, 129, 0.15);
-      color: #34d399;
+      color: #059669;
       border: 1px solid rgba(16, 185, 129, 0.3);
     }
 
     .assignment-badge.active {
-      background: rgba(56, 189, 248, 0.15);
-      color: #38bdf8;
-      border: 1px solid rgba(56, 189, 248, 0.3);
+      background: rgba(2, 132, 199, 0.12);
+      color: #0284c7;
+      border: 1px solid rgba(2, 132, 199, 0.3);
     }
 
     /* ==========================================================================
        SECTION 4: REAL CLIENT PROJECTS (REAL PAID PRODUCTION)
        ========================================================================== */
     .client-projects-card {
-      background: var(--card-studio);
+      background: #ffffff;
       border: 1px solid var(--border-subtle);
       border-radius: 22px;
       padding: 24px 26px;
       position: relative;
+      box-shadow: 0 14px 36px rgba(18, 18, 20, 0.05);
     }
 
     .client-projects-card.has-active {
       border-color: rgba(217, 78, 40, 0.35);
-      background: linear-gradient(180deg, rgba(217, 78, 40, 0.04) 0%, var(--card-studio) 100%);
+      background: linear-gradient(180deg, rgba(217, 78, 40, 0.03) 0%, #ffffff 100%);
     }
 
     /* ==========================================================================
        SECTION 5: AGENCY ASSET FOLDERS (ADMIN ONLY, NO FAKE CARDS)
        ========================================================================== */
     .folders-card {
-      background: var(--card-studio);
+      background: #ffffff;
       border: 1px solid var(--border-subtle);
       border-radius: 22px;
       padding: 24px 26px;
+      box-shadow: 0 14px 36px rgba(18, 18, 20, 0.05);
     }
 
     .folders-grid {
@@ -794,7 +824,7 @@
     }
 
     .folder-item {
-      background: #16161d;
+      background: #f5f2ec;
       border: 1px solid var(--border-subtle);
       border-radius: 14px;
       padding: 16px;
@@ -805,8 +835,9 @@
     }
 
     .folder-item:hover {
-      border-color: rgba(255, 255, 255, 0.2);
+      border-color: var(--border-strong);
       transform: translateY(-2px);
+      box-shadow: 0 6px 18px rgba(18, 18, 20, 0.06);
     }
 
     .folder-top {
@@ -824,7 +855,7 @@
     .folder-title {
       font-size: 14px;
       font-weight: 800;
-      color: #fff;
+      color: #121214;
       margin: 0 0 4px;
     }
 
@@ -836,9 +867,9 @@
     }
 
     .folder-action-btn {
-      background: rgba(255, 255, 255, 0.05);
+      background: #ffffff;
       border: 1px solid var(--border-subtle);
-      color: #fff;
+      color: #121214;
       padding: 7px 14px;
       border-radius: 8px;
       font-size: 12px;
@@ -853,6 +884,7 @@
 
     .folder-action-btn:hover {
       background: var(--accent-orange);
+      color: #ffffff;
       border-color: var(--accent-orange);
     }
 
@@ -863,7 +895,7 @@
       overflow-x: auto;
       border-radius: 14px;
       border: 1px solid var(--border-subtle);
-      background: #121217;
+      background: #ffffff;
       margin-top: 14px;
     }
 
@@ -876,25 +908,25 @@
     .modern-studio-table th {
       text-align: left;
       padding: 12px 16px;
-      color: #94a3b8;
+      color: #5a5a62;
       font-size: 11px;
       font-weight: 800;
       text-transform: uppercase;
       letter-spacing: 0.6px;
-      background: rgba(255, 255, 255, 0.02);
-      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      background: #f5f2ec;
+      border-bottom: 1px solid var(--border-subtle);
       white-space: nowrap;
     }
 
     .modern-studio-table td {
       padding: 14px 16px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid var(--border-subtle);
       vertical-align: middle;
-      color: #e2e8f0;
+      color: #121214;
     }
 
     .modern-studio-table tbody tr:hover {
-      background: rgba(255, 255, 255, 0.02);
+      background: #faf7f2;
     }
 
     .modern-studio-table tbody tr:last-child td {
@@ -906,9 +938,9 @@
       align-items: center;
       gap: 5px;
       padding: 5px 10px;
-      background: rgba(59, 130, 246, 0.12);
-      border: 1px solid rgba(59, 130, 246, 0.3);
-      color: #93c5fd;
+      background: rgba(2, 132, 199, 0.1);
+      border: 1px solid rgba(2, 132, 199, 0.25);
+      color: #0369a1;
       border-radius: 6px;
       font-size: 11.5px;
       font-weight: 600;
@@ -918,21 +950,21 @@
     }
 
     .task-link-badge:hover {
-      background: rgba(59, 130, 246, 0.25);
-      border-color: #60a5fa;
-      color: #fff;
+      background: rgba(2, 132, 199, 0.2);
+      border-color: #0284c7;
+      color: #0c4a6e;
     }
 
     .task-link-badge.client-asset {
-      background: rgba(217, 78, 40, 0.14);
-      border-color: rgba(217, 78, 40, 0.35);
-      color: #fdba74;
+      background: rgba(217, 78, 40, 0.1);
+      border-color: rgba(217, 78, 40, 0.25);
+      color: #c2410c;
     }
 
     .task-link-badge.client-asset:hover {
-      background: rgba(217, 78, 40, 0.28);
-      border-color: #fb923c;
-      color: #fff;
+      background: rgba(217, 78, 40, 0.2);
+      border-color: #d94e28;
+      color: #7c2d12;
     }
 
     /* ==========================================================================
@@ -941,7 +973,7 @@
     .studio-modal-overlay {
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.75);
+      background: rgba(18, 18, 20, 0.65);
       backdrop-filter: blur(8px);
       -webkit-backdrop-filter: blur(8px);
       z-index: 1000;
@@ -952,21 +984,21 @@
     }
 
     .studio-modal-card {
-      background: #15151b;
-      border: 1px solid rgba(255, 255, 255, 0.12);
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
       border-radius: 22px;
       width: 100%;
       max-width: 560px;
       max-height: 90vh;
       overflow-y: auto;
       padding: 28px;
-      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+      box-shadow: 0 25px 60px rgba(18, 18, 20, 0.2);
     }
 
     .tool-pill {
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-      color: #94a3b8;
+      background: #f5f2ec;
+      border: 1px solid var(--border-subtle);
+      color: #5a5a62;
       padding: 6px 12px;
       border-radius: 100px;
       font-size: 12px;
@@ -979,16 +1011,21 @@
       transition: all 0.15s ease;
     }
 
+    .tool-pill:hover {
+      background: #ece7de;
+      color: #121214;
+    }
+
     .tool-pill.selected {
-      background: rgba(217, 78, 40, 0.2);
-      color: #fff;
+      background: rgba(217, 78, 40, 0.15);
+      color: var(--accent-orange);
       border-color: var(--accent-orange);
     }
 
     .custom-skill-tag {
-      background: rgba(217, 78, 40, 0.2);
+      background: rgba(217, 78, 40, 0.12);
       border: 1px solid var(--accent-orange);
-      color: #fff;
+      color: var(--accent-orange);
       padding: 4px 10px;
       border-radius: 100px;
       font-size: 11px;
@@ -1001,7 +1038,7 @@
     .custom-skill-tag button {
       background: none;
       border: none;
-      color: #fff;
+      color: var(--accent-orange);
       cursor: pointer;
       font-size: 12px;
       padding: 0;
@@ -1103,7 +1140,7 @@
     <nav class="studio-dock-wrap">
       <div class="studio-dock">
         <a href="#sec-profile" class="dock-pill active" onclick="highlightDockPill(this)">👤 Profile & Bio</a>
-        <a href="#sec-chat" class="dock-pill" onclick="highlightDockPill(this)">💬 Chat with GanaCuts Visuals <span id="dock-chat-dot" style="display:none; width:6px; height:6px; background:#10b981; border-radius:50%;"></span></a>
+        <a href="#sec-chat" class="dock-pill" onclick="highlightDockPill(this); if(typeof markChatSeen==='function'&&currentEditor) markChatSeen(currentEditor.id, 'editor'); const d=document.getElementById('dock-chat-dot'); if(d) d.style.display='none';">💬 Chat with GanaCuts Visuals <span id="dock-chat-dot" class="wa-dot" style="display:none; margin-left:4px;"></span></a>
         <a href="#sec-assignments" class="dock-pill" onclick="highlightDockPill(this)">🎯 Practice / Assignments</a>
         <a href="#sec-projects" class="dock-pill" onclick="highlightDockPill(this)">🎬 Client Projects</a>
         <a href="#sec-folders" class="dock-pill" onclick="highlightDockPill(this)">📁 Asset Folders</a>
@@ -1304,24 +1341,24 @@
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
         <div>
           <span id="sub-modal-type-badge" class="ig-roster-badge" style="font-size:10px; margin-bottom:4px; display:inline-block;">Assignment Submission</span>
-          <h3 id="sub-modal-title" style="font-size:17px; font-weight:800; color:#fff; margin:0;">Submit Finished Work</h3>
+          <h3 id="sub-modal-title" style="font-size:17px; font-weight:800; color:#121214; margin:0;">Submit Finished Work</h3>
         </div>
         <button type="button" onclick="closeTaskSubmissionModal()" style="background:none; border:none; color:var(--text-muted); font-size:18px; cursor:pointer;">✕</button>
       </div>
-      <p id="sub-modal-desc" style="font-size:12.5px; color:#cbd5e1; margin:0 0 16px; line-height:1.4;"></p>
+      <p id="sub-modal-desc" style="font-size:12.5px; color:#5a5a62; margin:0 0 16px; line-height:1.4;"></p>
 
       <form id="task-submission-form" onsubmit="handleTaskSubmission(event)">
         <input type="hidden" id="sub-task-id">
         <input type="hidden" id="sub-task-type">
 
         <div class="form-group" style="margin-bottom:14px;">
-          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Finished Video URL (Google Drive, Dropbox, YouTube unlisted, Frame.io) *</label>
-          <input type="url" id="sub-video-url" required placeholder="https://drive.google.com/file/d/... or youtube.com/..." style="width:100%; box-sizing:border-box; padding:10px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:13px;">
+          <label style="font-size:12px; font-weight:700; color:#121214; display:block; margin-bottom:4px;">Finished Video URL (Google Drive, Dropbox, YouTube unlisted, Frame.io) *</label>
+          <input type="url" id="sub-video-url" required placeholder="https://drive.google.com/file/d/... or youtube.com/..." style="width:100%; box-sizing:border-box; padding:10px 12px; background:#f5f2ec; border:1px solid var(--border-subtle); border-radius:8px; color:#121214; font-size:13px;">
         </div>
 
         <div class="form-group" style="margin-bottom:16px;">
-          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Work Notes & Software Used</label>
-          <textarea id="sub-work-notes" rows="3" placeholder="e.g. Cut on Premiere Pro & After Effects, sound design with risers, color graded in DaVinci." style="width:100%; box-sizing:border-box; padding:10px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12.5px; resize:vertical;"></textarea>
+          <label style="font-size:12px; font-weight:700; color:#121214; display:block; margin-bottom:4px;">Work Notes & Software Used</label>
+          <textarea id="sub-work-notes" rows="3" placeholder="e.g. Cut on Premiere Pro & After Effects, sound design with risers, color graded in DaVinci." style="width:100%; box-sizing:border-box; padding:10px 12px; background:#f5f2ec; border:1px solid var(--border-subtle); border-radius:8px; color:#121214; font-size:12.5px; resize:vertical;"></textarea>
         </div>
 
         <div style="display:flex; justify-content:flex-end; gap:10px;">
@@ -1340,16 +1377,16 @@
   <div id="edit-profile-modal" class="studio-modal-overlay" style="display:none;" onclick="if(event.target === this) closeEditProfileModal()">
     <div class="studio-modal-card">
       <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px;">
-        <h3 style="font-size:18px; font-weight:800; color:#fff; margin:0;">✏️ Edit Profile & Bio</h3>
+        <h3 style="font-size:18px; font-weight:800; color:#121214; margin:0;">✏️ Edit Profile & Bio</h3>
         <button type="button" onclick="closeEditProfileModal()" style="background:none; border:none; color:var(--text-muted); font-size:16px; cursor:pointer;">✕</button>
       </div>
 
       <form id="edit-profile-modal-form" onsubmit="handleSaveProfileModal(event)">
         <!-- Photo Row -->
-        <div style="display:flex; align-items:center; gap:16px; margin-bottom:18px; padding:12px; background:rgba(255,255,255,0.03); border-radius:12px;">
+        <div style="display:flex; align-items:center; gap:16px; margin-bottom:18px; padding:12px; background:rgba(18,18,20,0.03); border-radius:12px; border:1px solid var(--border-subtle);">
           <img id="modal-avatar-preview" src="assets/logo.jpg" alt="Avatar" style="width:52px; height:52px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-orange);">
           <div>
-            <div style="font-weight:700; color:#fff; font-size:13px; margin-bottom:4px;">Original Profile Photo</div>
+            <div style="font-weight:700; color:#121214; font-size:13px; margin-bottom:4px;">Original Profile Photo</div>
             <button type="button" onclick="triggerAvatarUpload()" class="ig-btn" style="padding:4px 10px; font-size:11px;">
               <span>📷 Upload Photo</span>
             </button>
@@ -1357,28 +1394,28 @@
         </div>
 
         <div class="form-group" style="margin-bottom:12px;">
-          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Full Name *</label>
-          <input type="text" id="modal-ed-name" required style="width:100%; box-sizing:border-box; padding:9px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:13px;">
+          <label style="font-size:12px; font-weight:700; color:#121214; display:block; margin-bottom:4px;">Full Name *</label>
+          <input type="text" id="modal-ed-name" required style="width:100%; box-sizing:border-box; padding:9px 12px; background:#f5f2ec; border:1px solid var(--border-subtle); border-radius:8px; color:#121214; font-size:13px;">
         </div>
 
         <div class="form-group" style="margin-bottom:12px;">
-          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">WhatsApp Number *</label>
-          <input type="text" id="modal-ed-phone" required placeholder="e.g. 9876543210" style="width:100%; box-sizing:border-box; padding:9px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:13px;">
+          <label style="font-size:12px; font-weight:700; color:#121214; display:block; margin-bottom:4px;">WhatsApp Number *</label>
+          <input type="text" id="modal-ed-phone" required placeholder="e.g. 9876543210" style="width:100%; box-sizing:border-box; padding:9px 12px; background:#f5f2ec; border:1px solid var(--border-subtle); border-radius:8px; color:#121214; font-size:13px;">
         </div>
 
         <div class="form-group" style="margin-bottom:12px;">
-          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Portfolio / Work Link (Google Drive / Behance / YouTube) *</label>
-          <input type="url" id="modal-ed-portfolio" required placeholder="https://drive.google.com/..." style="width:100%; box-sizing:border-box; padding:9px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:13px;">
+          <label style="font-size:12px; font-weight:700; color:#121214; display:block; margin-bottom:4px;">Portfolio / Work Link (Google Drive / Behance / YouTube) *</label>
+          <input type="url" id="modal-ed-portfolio" required placeholder="https://drive.google.com/..." style="width:100%; box-sizing:border-box; padding:9px 12px; background:#f5f2ec; border:1px solid var(--border-subtle); border-radius:8px; color:#121214; font-size:13px;">
         </div>
 
         <div class="form-group" style="margin-bottom:12px;">
-          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">Expected payment per reel/video</label>
-          <input type="text" id="modal-ed-rate" placeholder="e.g. ₹1,200 / video or Discuss" style="width:100%; box-sizing:border-box; padding:9px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:13px;">
+          <label style="font-size:12px; font-weight:700; color:#121214; display:block; margin-bottom:4px;">Expected payment per reel/video</label>
+          <input type="text" id="modal-ed-rate" placeholder="e.g. ₹1,200 / video or Discuss" style="width:100%; box-sizing:border-box; padding:9px 12px; background:#f5f2ec; border:1px solid var(--border-subtle); border-radius:8px; color:#121214; font-size:13px;">
         </div>
 
         <!-- Software Multi-Select Pills & Custom Tool Input -->
         <div class="form-group" style="margin-bottom:14px;">
-          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:6px;">Editing Software Used (Select all that apply or add custom)</label>
+          <label style="font-size:12px; font-weight:700; color:#121214; display:block; margin-bottom:6px;">Editing Software Used (Select all that apply or add custom)</label>
           <div style="display:flex; flex-wrap:wrap; gap:6px;" id="modal-tools-pills">
             <span class="tool-pill" data-tool="Premiere Pro" onclick="this.classList.toggle('selected')">Premiere Pro</span>
             <span class="tool-pill" data-tool="DaVinci Resolve" onclick="this.classList.toggle('selected')">DaVinci Resolve</span>
@@ -1394,7 +1431,7 @@
           <!-- Add Any Custom Editing Software Tool -->
           <div style="margin-top:10px;">
             <div style="display:flex; gap:8px;">
-              <input type="text" id="modal-custom-tool-input" placeholder="e.g. Cinema 4D, Filmora, Descript, VN Editor" style="flex:1; padding:7px 10px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12px;">
+              <input type="text" id="modal-custom-tool-input" placeholder="e.g. Cinema 4D, Filmora, Descript, VN Editor" style="flex:1; padding:7px 10px; background:#f5f2ec; border:1px solid var(--border-subtle); border-radius:8px; color:#121214; font-size:12px;">
               <button type="button" class="ig-btn" onclick="addCustomToolInModal()" style="font-size:11px;">+ Add Tool</button>
             </div>
             <div id="modal-custom-tools-list" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;"></div>
@@ -1403,7 +1440,7 @@
 
         <!-- Specialization Styles Multi-Select -->
         <div class="form-group" style="margin-bottom:14px;">
-          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:6px;">Specialized Editing Genres</label>
+          <label style="font-size:12px; font-weight:700; color:#121214; display:block; margin-bottom:6px;">Specialized Editing Genres</label>
           <div style="display:flex; flex-wrap:wrap; gap:6px;" id="modal-spec-pills">
             <span class="tool-pill" data-skill="Talking Head Reels" onclick="this.classList.toggle('selected')">Talking Head Reels</span>
             <span class="tool-pill" data-skill="Documentary Videos" onclick="this.classList.toggle('selected')">Documentary Videos</span>
@@ -1418,9 +1455,9 @@
 
         <!-- Custom Specified Skill Option -->
         <div class="form-group" style="margin-bottom:16px;">
-          <label style="font-size:12px; font-weight:700; color:#cbd5e1; display:block; margin-bottom:4px;">+ Add Custom Specified Skill</label>
+          <label style="font-size:12px; font-weight:700; color:#121214; display:block; margin-bottom:4px;">+ Add Custom Specified Skill</label>
           <div style="display:flex; gap:8px;">
-            <input type="text" id="modal-custom-skill-input" placeholder="e.g. Sound Design, Foley, Telugu Subtitles" style="flex:1; padding:8px 12px; background:#0e0e13; border:1px solid rgba(255,255,255,0.12); border-radius:8px; color:#fff; font-size:12px;">
+            <input type="text" id="modal-custom-skill-input" placeholder="e.g. Sound Design, Foley, Telugu Subtitles" style="flex:1; padding:8px 12px; background:#f5f2ec; border:1px solid var(--border-subtle); border-radius:8px; color:#121214; font-size:12px;">
             <button type="button" class="ig-btn" onclick="addCustomSkillInModal()" style="font-size:11px;">Add Skill</button>
           </div>
           <div id="modal-custom-skills-list" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;"></div>
@@ -2090,6 +2127,8 @@
       if (!container || !currentEditor) return;
 
       markChatSeen(currentEditor.id, "editor");
+      const dotEl = document.getElementById("dock-chat-dot");
+      if (dotEl) dotEl.style.display = "none";
 
       const allMsgs = getStoredMessages();
       const thread = allMsgs.filter(m => m.editorId === currentEditor.id);
@@ -2420,6 +2459,26 @@
         .replace(/"/g, "&quot;")
         .replace(/'/g, "&#039;");
     }
+
+    function checkEditorUnreadMessages() {
+      if (!currentEditor) return;
+      const allMsgs = (typeof getStoredMessages === 'function') ? getStoredMessages() : [];
+      const thread = allMsgs.filter(m => m.editorId === currentEditor.id);
+      const editorSeenTime = (typeof getChatSeenTime === 'function') ? getChatSeenTime(currentEditor.id, "editor") : null;
+      const hasUnread = thread.some(m => m.sender === 'admin' && (!editorSeenTime || m.timestamp > editorSeenTime));
+      
+      const dotEl = document.getElementById("dock-chat-dot");
+      if (dotEl) {
+        dotEl.style.display = hasUnread ? "inline-block" : "none";
+      }
+    }
+
+    setInterval(async () => {
+      if (typeof fetchSupabaseMessages === 'function') {
+        await fetchSupabaseMessages();
+      }
+      checkEditorUnreadMessages();
+    }, 4000);
   </script>
 </body>
 </html>

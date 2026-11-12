@@ -113,14 +113,24 @@ const DEFAULT_VIDEOS = [
 // Real Applicants (Loaded dynamically from Supabase database)
 const DEFAULT_APPLICANTS = [];
 
+const DEFAULT_TOOLS = [
+  { id: "tool_davinci", name: "DaVinci Resolve", role: "Color & Finish", icon: "🎨", color: "#f59e0b" },
+  { id: "tool_premiere", name: "Premiere Pro", role: "Timeline & Narrative", icon: "🎬", color: "#a855f7" },
+  { id: "tool_ae", name: "After Effects", role: "VFX & Motion Graphics", icon: "⚡", color: "#38bdf8" },
+  { id: "tool_capcut", name: "CapCut Pro", role: "Fast Social Retention", icon: "✂️", color: "#06b6d4" },
+  { id: "tool_blender", name: "Blender 3D", role: "3D Modeling & Animation", icon: "🧊", color: "#f97316" }
+];
+
 const DEFAULT_PROFILE = {
   name: "GANACUTS VISUALS",
   badge: "AGENCY TEAM",
-  tagline: "STOP THE SCROLL. KEEP THEM WATCHING.",
+  tagline: "High-retention video editing, cinematic color grading, and dynamic motion graphics by GanaCuts Visuals. Crafted with DaVinci Resolve, Premiere Pro & After Effects.",
   photo: "assets/logo.jpg",
   waUrl: "https://wa.me/917075081947?text=Hi%20GanaCuts%20Visuals,%20I%20saw%20your%20portfolio%20on%20GanaCuts%20Visuals%20and%20would%20like%20to%20hire%20you%20for%20a%20video%20editing%20project.",
   instaUrl: "https://www.instagram.com/gana_cuts_visuals?dlrf=aXJlY3lsazhraHl4",
-  agencyFolders: []
+  agencyFolders: [],
+  tools: DEFAULT_TOOLS,
+  featuredEditors: []
 };
 
 // Real Messages (Loaded dynamically from Supabase database)
@@ -136,6 +146,7 @@ const STORAGE_KEY_MSGS = "cutscale_msgs_v1";
 const STORAGE_KEY_PRACTICE_ASGS = "cutscale_practice_asgs_v1";
 const STORAGE_KEY_CLIENT_PROJS = "cutscale_client_projs_v1";
 const STORAGE_KEY_AGENCY_FOLDERS = "cutscale_agency_folders_v1";
+const STORAGE_KEY_DELETED_VAULT_IDS = "ganacuts_deleted_vault_ids_v1";
 const ADMIN_PIN = "7075";
 
 let practiceAssignments = [];
@@ -170,11 +181,26 @@ function getEditorAvatarSrc(app) {
   return 'https://api.dicebear.com/7.x/initials/svg?seed=' + seed + '&backgroundColor=d94e28,3b82f6,10b981,8b5cf6,ec4899&fontSize=42';
 }
 
+// Deletion tracker to ensure deleted items never revive
+function recordDeletedVaultId(id) {
+  if (!id) return;
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_DELETED_VAULT_IDS);
+    const arr = raw ? JSON.parse(raw) : [];
+    if (!arr.includes(id)) {
+      arr.push(id);
+      localStorage.setItem(STORAGE_KEY_DELETED_VAULT_IDS, JSON.stringify(arr));
+    }
+  } catch (e) {}
+}
+
 // Supabase Agency Vault (Asset Folders, Practice Tasks & Client Projects)
 async function syncAgencyVaultToSupabase() {
-  let rawFolders = (profile && Array.isArray(profile.agencyFolders) && profile.agencyFolders.length > 0)
+  const deletedIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_VAULT_IDS) || "[]"));
+
+  let rawFolders = (profile && Array.isArray(profile.agencyFolders))
     ? profile.agencyFolders
-    : (typeof window !== "undefined" && window.profile && Array.isArray(window.profile.agencyFolders) && window.profile.agencyFolders.length > 0)
+    : (typeof window !== "undefined" && window.profile && Array.isArray(window.profile.agencyFolders))
       ? window.profile.agencyFolders
       : [];
   if (rawFolders.length === 0) {
@@ -183,11 +209,11 @@ async function syncAgencyVaultToSupabase() {
       if (sf) rawFolders = JSON.parse(sf);
     } catch (e) {}
   }
-  rawFolders = (rawFolders || []).filter(f => f && f.id && f.id !== "folder_drive_vault");
+  rawFolders = (rawFolders || []).filter(f => f && f.id && f.id !== "folder_drive_vault" && !deletedIds.has(f.id));
 
-  let rawPractice = (Array.isArray(practiceAssignments) && practiceAssignments.length > 0)
+  let rawPractice = (Array.isArray(practiceAssignments))
     ? practiceAssignments
-    : (typeof window !== "undefined" && Array.isArray(window.practiceAssignments) && window.practiceAssignments.length > 0)
+    : (typeof window !== "undefined" && Array.isArray(window.practiceAssignments))
       ? window.practiceAssignments
       : [];
   if (rawPractice.length === 0) {
@@ -196,11 +222,11 @@ async function syncAgencyVaultToSupabase() {
       if (sp) rawPractice = JSON.parse(sp);
     } catch (e) {}
   }
-  rawPractice = (rawPractice || []).filter(a => a && a.id && a.id !== "asg_practice_default");
+  rawPractice = (rawPractice || []).filter(a => a && a.id && a.id !== "asg_practice_default" && !deletedIds.has(a.id));
 
-  let rawClient = (Array.isArray(clientProjects) && clientProjects.length > 0)
+  let rawClient = (Array.isArray(clientProjects))
     ? clientProjects
-    : (typeof window !== "undefined" && Array.isArray(window.clientProjects) && window.clientProjects.length > 0)
+    : (typeof window !== "undefined" && Array.isArray(window.clientProjects))
       ? window.clientProjects
       : [];
   if (rawClient.length === 0) {
@@ -209,12 +235,14 @@ async function syncAgencyVaultToSupabase() {
       if (sc) rawClient = JSON.parse(sc);
     } catch (e) {}
   }
-  rawClient = (rawClient || []).filter(p => p && p.id && p.id !== "proj_client_default");
+  rawClient = (rawClient || []).filter(p => p && p.id && p.id !== "proj_client_default" && !deletedIds.has(p.id));
 
   const vaultPayload = {
     agencyFolders: rawFolders,
     practiceAssignments: rawPractice,
     clientProjects: rawClient,
+    tools: (profile && Array.isArray(profile.tools)) ? profile.tools : DEFAULT_TOOLS,
+    featuredEditors: (profile && Array.isArray(profile.featuredEditors)) ? profile.featuredEditors : [],
     updatedAt: Date.now()
   };
 
@@ -334,11 +362,12 @@ async function fetchSupabaseAgencyVault() {
 
   if (!vault) return;
 
+  const deletedIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_VAULT_IDS) || "[]"));
   let needPushToRemote = false;
 
   // --- 1. SYNC AGENCY FOLDERS ---
   const remoteFolders = (Array.isArray(vault.agencyFolders) ? vault.agencyFolders : [])
-    .filter(f => f && f.id && f.id !== "folder_drive_vault");
+    .filter(f => f && f.id && f.id !== "folder_drive_vault" && !deletedIds.has(f.id));
 
   let localFolders = [];
   try {
@@ -348,37 +377,26 @@ async function fetchSupabaseAgencyVault() {
   if (!Array.isArray(localFolders) || localFolders.length === 0) {
     if (profile && Array.isArray(profile.agencyFolders)) localFolders = profile.agencyFolders;
   }
-  localFolders = (localFolders || []).filter(f => f && f.id && f.id !== "folder_drive_vault");
+  localFolders = (localFolders || []).filter(f => f && f.id && f.id !== "folder_drive_vault" && !deletedIds.has(f.id));
 
-  if (remoteFolders.length > 0) {
-    const map = new Map();
-    remoteFolders.forEach(f => map.set(f.id, f));
-    const now = Date.now();
-    localFolders.forEach(lf => {
-      if (!map.has(lf.id) && (now - (lf.createdAt || 0) < 60000)) {
-        map.set(lf.id, lf);
-        needPushToRemote = true;
-      }
-    });
-    const finalFolders = Array.from(map.values());
-    if (!profile) profile = { ...DEFAULT_PROFILE };
-    profile.agencyFolders = finalFolders;
-    localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
-    localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(finalFolders));
-    if (typeof window !== "undefined") window.profile = profile;
-  } else if (localFolders.length > 0) {
-    // Non-destructive: preserve local items & push to cloud database
-    if (!profile) profile = { ...DEFAULT_PROFILE };
-    profile.agencyFolders = localFolders;
-    localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
-    localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(localFolders));
-    if (typeof window !== "undefined") window.profile = profile;
-    needPushToRemote = true;
-  }
+  const folderMap = new Map();
+  remoteFolders.forEach(f => folderMap.set(f.id, f));
+  localFolders.forEach(lf => {
+    if (!folderMap.has(lf.id)) {
+      folderMap.set(lf.id, lf);
+      needPushToRemote = true;
+    }
+  });
+  const finalFolders = Array.from(folderMap.values());
+  if (!profile) profile = { ...DEFAULT_PROFILE };
+  profile.agencyFolders = finalFolders;
+  localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
+  localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(finalFolders));
+  if (typeof window !== "undefined") window.profile = profile;
 
   // --- 2. SYNC PRACTICE TASKS ---
   const remotePractice = (Array.isArray(vault.practiceAssignments) ? vault.practiceAssignments : [])
-    .filter(a => a && a.id && a.id !== "asg_practice_default");
+    .filter(a => a && a.id && a.id !== "asg_practice_default" && !deletedIds.has(a.id));
 
   let localPractice = [];
   try {
@@ -388,37 +406,28 @@ async function fetchSupabaseAgencyVault() {
   if (!Array.isArray(localPractice) || localPractice.length === 0) {
     if (Array.isArray(practiceAssignments)) localPractice = practiceAssignments;
   }
-  localPractice = (localPractice || []).filter(a => a && a.id && a.id !== "asg_practice_default");
+  localPractice = (localPractice || []).filter(a => a && a.id && a.id !== "asg_practice_default" && !deletedIds.has(a.id));
 
-  if (remotePractice.length > 0) {
-    const map = new Map();
-    remotePractice.forEach(p => map.set(p.id, p));
-    const now = Date.now();
-    localPractice.forEach(lp => {
-      if (!map.has(lp.id) && (now - (lp.createdAt || 0) < 60000)) {
-        map.set(lp.id, lp);
-        needPushToRemote = true;
-      } else if (map.has(lp.id)) {
-        const remoteItem = map.get(lp.id);
-        if (lp.submissions && Object.keys(lp.submissions).length > 0) {
-          remoteItem.submissions = { ...(remoteItem.submissions || {}), ...lp.submissions };
-        }
+  const practiceMap = new Map();
+  remotePractice.forEach(p => practiceMap.set(p.id, p));
+  localPractice.forEach(lp => {
+    if (!practiceMap.has(lp.id)) {
+      practiceMap.set(lp.id, lp);
+      needPushToRemote = true;
+    } else {
+      const remoteItem = practiceMap.get(lp.id);
+      if (lp.submissions && Object.keys(lp.submissions).length > 0) {
+        remoteItem.submissions = { ...(remoteItem.submissions || {}), ...lp.submissions };
       }
-    });
-    practiceAssignments = Array.from(map.values());
-    window.practiceAssignments = practiceAssignments;
-    localStorage.setItem(STORAGE_KEY_PRACTICE_ASGS, JSON.stringify(practiceAssignments));
-  } else if (localPractice.length > 0) {
-    // Non-destructive: preserve local tasks & push to cloud database
-    practiceAssignments = localPractice;
-    window.practiceAssignments = practiceAssignments;
-    localStorage.setItem(STORAGE_KEY_PRACTICE_ASGS, JSON.stringify(practiceAssignments));
-    needPushToRemote = true;
-  }
+    }
+  });
+  practiceAssignments = Array.from(practiceMap.values());
+  window.practiceAssignments = practiceAssignments;
+  localStorage.setItem(STORAGE_KEY_PRACTICE_ASGS, JSON.stringify(practiceAssignments));
 
   // --- 3. SYNC CLIENT PROJECTS ---
   const remoteClient = (Array.isArray(vault.clientProjects) ? vault.clientProjects : [])
-    .filter(p => p && p.id && p.id !== "proj_client_default");
+    .filter(p => p && p.id && p.id !== "proj_client_default" && !deletedIds.has(p.id));
 
   let localClient = [];
   try {
@@ -428,33 +437,41 @@ async function fetchSupabaseAgencyVault() {
   if (!Array.isArray(localClient) || localClient.length === 0) {
     if (Array.isArray(clientProjects)) localClient = clientProjects;
   }
-  localClient = (localClient || []).filter(p => p && p.id && p.id !== "proj_client_default");
+  localClient = (localClient || []).filter(p => p && p.id && p.id !== "proj_client_default" && !deletedIds.has(p.id));
 
-  if (remoteClient.length > 0) {
-    const map = new Map();
-    remoteClient.forEach(p => map.set(p.id, p));
-    const now = Date.now();
-    localClient.forEach(lc => {
-      if (!map.has(lc.id) && (now - (lc.createdAt || 0) < 60000)) {
-        map.set(lc.id, lc);
-        needPushToRemote = true;
-      } else if (map.has(lc.id)) {
-        const remoteItem = map.get(lc.id);
-        if (lc.submissions && Object.keys(lc.submissions).length > 0) {
-          remoteItem.submissions = { ...(remoteItem.submissions || {}), ...lc.submissions };
-        }
+  const clientMap = new Map();
+  remoteClient.forEach(p => clientMap.set(p.id, p));
+  localClient.forEach(lc => {
+    if (!clientMap.has(lc.id)) {
+      clientMap.set(lc.id, lc);
+      needPushToRemote = true;
+    } else {
+      const remoteItem = clientMap.get(lc.id);
+      if (lc.submissions && Object.keys(lc.submissions).length > 0) {
+        remoteItem.submissions = { ...(remoteItem.submissions || {}), ...lc.submissions };
       }
-    });
-    clientProjects = Array.from(map.values());
-    window.clientProjects = clientProjects;
-    localStorage.setItem(STORAGE_KEY_CLIENT_PROJS, JSON.stringify(clientProjects));
-  } else if (localClient.length > 0) {
-    // Non-destructive: preserve local projects & push to cloud database
-    clientProjects = localClient;
-    window.clientProjects = clientProjects;
-    localStorage.setItem(STORAGE_KEY_CLIENT_PROJS, JSON.stringify(clientProjects));
-    needPushToRemote = true;
+    }
+  });
+  clientProjects = Array.from(clientMap.values());
+  window.clientProjects = clientProjects;
+  localStorage.setItem(STORAGE_KEY_CLIENT_PROJS, JSON.stringify(clientProjects));
+
+  // Sync tools & featured editors if remote has them
+  if (Array.isArray(vault.tools) && vault.tools.length > 0) {
+    if (!profile) profile = { ...DEFAULT_PROFILE };
+    profile.tools = vault.tools;
+    localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
+    if (typeof window !== "undefined") window.profile = profile;
   }
+  if (Array.isArray(vault.featuredEditors)) {
+    if (!profile) profile = { ...DEFAULT_PROFILE };
+    profile.featuredEditors = vault.featuredEditors;
+    localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
+    if (typeof window !== "undefined") window.profile = profile;
+  }
+
+  // Persist synced state to server disk
+  persistPortfolioToServer();
 
   if (needPushToRemote) {
     syncAgencyVaultToSupabase();
@@ -462,6 +479,8 @@ async function fetchSupabaseAgencyVault() {
 
   // Refresh all UI components in Admin Studio and Editor Dashboard
   if (typeof renderAdminFolders === 'function') renderAdminFolders();
+  if (typeof renderAdminToolsList === 'function') renderAdminToolsList();
+  if (typeof renderAdminFeaturedEditorsList === 'function') renderAdminFeaturedEditorsList();
   if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
   if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
   if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
@@ -723,6 +742,7 @@ async function persistPortfolioToServer() {
 }
 
 async function fetchRemotePortfolioData() {
+  const deletedIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_VAULT_IDS) || "[]"));
   try {
     const res = await fetch('/api/portfolio');
     if (res.ok) {
@@ -738,22 +758,46 @@ async function fetchRemotePortfolioData() {
         localStorage.setItem(STORAGE_KEY_CATS, JSON.stringify(categories));
         changed = true;
       }
+      if (data && Array.isArray(data.practiceAssignments) && data.practiceAssignments.length > 0) {
+        const pMap = new Map();
+        (practiceAssignments || []).forEach(a => { if (a && a.id && !deletedIds.has(a.id)) pMap.set(a.id, a); });
+        data.practiceAssignments.forEach(a => { if (a && a.id && !deletedIds.has(a.id)) pMap.set(a.id, a); });
+        practiceAssignments = Array.from(pMap.values());
+        window.practiceAssignments = practiceAssignments;
+        localStorage.setItem(STORAGE_KEY_PRACTICE_ASGS, JSON.stringify(practiceAssignments));
+        changed = true;
+      }
+      if (data && Array.isArray(data.clientProjects) && data.clientProjects.length > 0) {
+        const cMap = new Map();
+        (clientProjects || []).forEach(p => { if (p && p.id && !deletedIds.has(p.id)) cMap.set(p.id, p); });
+        data.clientProjects.forEach(p => { if (p && p.id && !deletedIds.has(p.id)) cMap.set(p.id, p); });
+        clientProjects = Array.from(cMap.values());
+        window.clientProjects = clientProjects;
+        localStorage.setItem(STORAGE_KEY_CLIENT_PROJS, JSON.stringify(clientProjects));
+        changed = true;
+      }
       if (data && data.profile) {
-        let currentFolders = (profile && Array.isArray(profile.agencyFolders) && profile.agencyFolders.length > 0)
-          ? profile.agencyFolders
-          : (Array.isArray(data.profile.agencyFolders) && data.profile.agencyFolders.length > 0
-              ? data.profile.agencyFolders
-              : null);
-        if (!currentFolders) {
-          try {
-            const sf = localStorage.getItem(STORAGE_KEY_AGENCY_FOLDERS);
-            if (sf) currentFolders = JSON.parse(sf);
-          } catch (e) {}
-        }
-        if (!Array.isArray(currentFolders)) currentFolders = [];
-        currentFolders = currentFolders.filter(f => f && f.id !== "folder_drive_vault");
+        let serverFolders = Array.isArray(data.profile.agencyFolders)
+          ? data.profile.agencyFolders
+          : (Array.isArray(data.agencyFolders) ? data.agencyFolders : []);
+        serverFolders = serverFolders.filter(f => f && f.id && f.id !== "folder_drive_vault" && !deletedIds.has(f.id));
 
-        profile = { ...DEFAULT_PROFILE, ...data.profile, agencyFolders: currentFolders };
+        const fMap = new Map();
+        (profile && profile.agencyFolders ? profile.agencyFolders : []).forEach(f => {
+          if (f && f.id && f.id !== "folder_drive_vault" && !deletedIds.has(f.id)) fMap.set(f.id, f);
+        });
+        serverFolders.forEach(f => fMap.set(f.id, f));
+        const currentFolders = Array.from(fMap.values());
+
+        const incomingTools = Array.isArray(data.profile.tools) && data.profile.tools.length > 0
+          ? data.profile.tools
+          : (profile && Array.isArray(profile.tools) && profile.tools.length > 0 ? profile.tools : [...DEFAULT_TOOLS]);
+
+        const incomingFeatured = Array.isArray(data.profile.featuredEditors)
+          ? data.profile.featuredEditors
+          : (profile && Array.isArray(profile.featuredEditors) ? profile.featuredEditors : []);
+
+        profile = { ...DEFAULT_PROFILE, ...data.profile, agencyFolders: currentFolders, tools: incomingTools, featuredEditors: incomingFeatured };
         if (!profile.photo || profile.photo.includes("ganesh.jpg")) {
           profile.photo = "assets/logo.jpg";
         }
@@ -764,7 +808,19 @@ async function fetchRemotePortfolioData() {
       }
       if (changed) {
         if (typeof renderPortfolio === 'function') renderPortfolio();
+        if (typeof renderTools === 'function') renderTools();
+        if (typeof renderFeaturedEditors === 'function') renderFeaturedEditors();
+        if (typeof renderAdminFolders === 'function') renderAdminFolders();
+        if (typeof renderAgencyFolders === 'function') renderAgencyFolders();
+        if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
+        if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
+        if (typeof renderAdminToolsList === 'function') renderAdminToolsList();
+        if (typeof renderAdminFeaturedEditorsList === 'function') renderAdminFeaturedEditorsList();
         if (typeof updateAdminUI === 'function') updateAdminUI();
+        if (typeof currentEditor !== 'undefined' && currentEditor) {
+          if (typeof renderPracticeAssignments === 'function') renderPracticeAssignments(currentEditor);
+          if (typeof renderClientProjects === 'function') renderClientProjects(currentEditor);
+        }
       }
     }
   } catch (e) {
@@ -772,13 +828,35 @@ async function fetchRemotePortfolioData() {
       const res2 = await fetch('/data/portfolio.json');
       if (res2.ok) {
         const data2 = await res2.json();
-        if (data2 && Array.isArray(data2.videos) && data2.videos.length > 0 && !localStorage.getItem(STORAGE_KEY_VIDS)) {
+        if (data2 && Array.isArray(data2.videos) && data2.videos.length > 0) {
           videos = data2.videos;
           localStorage.setItem(STORAGE_KEY_VIDS, JSON.stringify(videos));
         }
-        if (data2 && Array.isArray(data2.categories) && data2.categories.length > 0 && !localStorage.getItem(STORAGE_KEY_CATS)) {
+        if (data2 && Array.isArray(data2.categories) && data2.categories.length > 0) {
           categories = data2.categories;
           localStorage.setItem(STORAGE_KEY_CATS, JSON.stringify(categories));
+        }
+        if (data2 && Array.isArray(data2.practiceAssignments)) {
+          practiceAssignments = data2.practiceAssignments.filter(a => a && a.id && !deletedIds.has(a.id));
+          window.practiceAssignments = practiceAssignments;
+          localStorage.setItem(STORAGE_KEY_PRACTICE_ASGS, JSON.stringify(practiceAssignments));
+        }
+        if (data2 && Array.isArray(data2.clientProjects)) {
+          clientProjects = data2.clientProjects.filter(p => p && p.id && !deletedIds.has(p.id));
+          window.clientProjects = clientProjects;
+          localStorage.setItem(STORAGE_KEY_CLIENT_PROJS, JSON.stringify(clientProjects));
+        }
+        if (data2 && data2.profile) {
+          let currentFolders = Array.isArray(data2.profile.agencyFolders)
+            ? data2.profile.agencyFolders
+            : (Array.isArray(data2.agencyFolders) ? data2.agencyFolders : (profile && profile.agencyFolders ? profile.agencyFolders : []));
+          currentFolders = currentFolders.filter(f => f && f.id && f.id !== "folder_drive_vault" && !deletedIds.has(f.id));
+          profile = { ...DEFAULT_PROFILE, ...data2.profile, agencyFolders: currentFolders };
+          if (!Array.isArray(profile.tools) || profile.tools.length === 0) profile.tools = [...DEFAULT_TOOLS];
+          if (!Array.isArray(profile.featuredEditors)) profile.featuredEditors = [];
+          localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
+          localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(currentFolders));
+          if (typeof window !== "undefined") window.profile = profile;
         }
       }
     } catch (e2) {}
@@ -876,7 +954,14 @@ function initData() {
     profile.agencyFolders = [];
   }
   // Strip legacy demo folder
-  profile.agencyFolders = profile.agencyFolders.filter(f => f && f.id !== "folder_drive_vault");
+  const deletedIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_VAULT_IDS) || "[]"));
+  profile.agencyFolders = profile.agencyFolders.filter(f => f && f.id !== "folder_drive_vault" && !deletedIds.has(f.id));
+  if (!Array.isArray(profile.tools) || profile.tools.length === 0) {
+    profile.tools = [...DEFAULT_TOOLS];
+  }
+  if (!Array.isArray(profile.featuredEditors)) {
+    profile.featuredEditors = [];
+  }
   localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(profile.agencyFolders));
   localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
   if (typeof window !== "undefined") window.profile = profile;
@@ -1179,6 +1264,53 @@ function getCategoryName(catId) {
   return cat ? cat.name : "Portfolio Reel";
 }
 
+// Render Tools on Main Portfolio Page
+function renderTools() {
+  const toolsRow = document.getElementById("tools-row");
+  if (!toolsRow) return;
+  const tools = (profile && Array.isArray(profile.tools) && profile.tools.length > 0)
+    ? profile.tools
+    : DEFAULT_TOOLS;
+
+  toolsRow.innerHTML = tools.map(t => `
+    <div class="tool-badge" style="display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.9); border:1px solid ${t.color ? t.color + '44' : 'rgba(18,18,20,0.1)'}; padding:6px 14px; border-radius:9999px; box-shadow:0 3px 12px rgba(18,18,20,0.04); margin:4px 6px 4px 0;">
+      <span class="tool-dot" style="background:${t.color || '#d94e28'}; width:8px; height:8px; border-radius:50%; box-shadow:0 0 6px ${t.color || '#d94e28'}; display:inline-block;"></span>
+      <span style="font-size:14px; line-height:1;">${t.icon || '🎬'}</span>
+      <strong style="color:var(--text-primary); font-size:13px; font-weight:700;">${escapeHtml(t.name)}</strong>
+      ${t.role ? `<small style="color:var(--text-muted); font-size:11.5px; margin-left:2px;">• ${escapeHtml(t.role)}</small>` : ''}
+    </div>
+  `).join('');
+}
+
+// Render Featured Curated Editors Spotlight on Main Website
+function renderFeaturedEditors() {
+  const container = document.getElementById("featured-editors-container");
+  if (!container) return;
+  const featured = (profile && Array.isArray(profile.featuredEditors)) ? profile.featuredEditors : [];
+  if (featured.length === 0) {
+    container.style.display = "none";
+    return;
+  }
+  container.style.display = "block";
+  const listEl = document.getElementById("featured-editors-list");
+  if (!listEl) return;
+  listEl.innerHTML = featured.map(fe => {
+    const avatar = fe.avatarUrl || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(fe.name || 'Editor') + '&backgroundColor=d94e28,3b82f6,10b981,8b5cf6,ec4899&fontSize=42';
+    return `
+      <div class="featured-editor-card" style="background:#ffffff; border:1px solid rgba(18,18,20,0.08); border-radius:20px; padding:22px; box-shadow:0 12px 30px rgba(18,18,20,0.05); display:flex; flex-direction:column; gap:12px; transition:transform 0.25s ease;">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <img src="${avatar}" alt="${escapeHtml(fe.name)}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-orange); box-shadow:0 0 12px rgba(217,78,40,0.25);">
+          <div>
+            <h4 style="margin:0; font-size:16px; font-weight:800; color:#121214;">${escapeHtml(fe.name)}</h4>
+            <span style="display:inline-block; font-size:11px; font-weight:700; color:#d94e28; background:rgba(217,78,40,0.1); padding:2px 8px; border-radius:9999px; margin-top:3px;">${escapeHtml(fe.roleTitle || 'Creative Video Editor')}</span>
+          </div>
+        </div>
+        <p style="margin:0; font-size:13px; color:#5a5a62; line-height:1.5;">${escapeHtml(fe.customBio || 'Core post-production artist at GanaCuts Visuals.')}</p>
+      </div>
+    `;
+  }).join('');
+}
+
 // Render Entire Website
 function renderPortfolio() {
   // 1. Profile Sync
@@ -1204,6 +1336,10 @@ function renderPortfolio() {
   if (footerInstaBtn) footerInstaBtn.href = profile.instaUrl || DEFAULT_PROFILE.instaUrl;
   const modalInstaCta = document.getElementById("modal-insta-cta");
   if (modalInstaCta) modalInstaCta.href = profile.instaUrl || DEFAULT_PROFILE.instaUrl;
+
+  // 1b. Dynamic Tools & Featured Team
+  renderTools();
+  renderFeaturedEditors();
 
   // 2. Sort categories
   categories.sort((a, b) => a.order - b.order);
@@ -1752,9 +1888,12 @@ function updateAdminUI() {
   safeSetText("trash-total-count", (trashApplicants || []).length);
   if (typeof renderTrashManager === 'function') renderTrashManager();
   if (typeof renderAdminFolders === 'function') renderAdminFolders();
+  if (typeof renderAdminToolsList === 'function') renderAdminToolsList();
+  if (typeof renderAdminFeaturedEditorsList === 'function') renderAdminFeaturedEditorsList();
   if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
   if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
   if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
+  if (typeof renderAdminChatUsers === 'function') renderAdminChatUsers();
 }
 
 // Render Applicants Roster in Admin Studio
@@ -1871,6 +2010,7 @@ function renderApplicantsManager() {
             <button class="primary-btn" onclick="openChatWithEditor('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, #3b82f6, #2563eb); color:#fff;" title="Chat directly in Portal">💬 Chat</button>
             <button class="secondary-btn light-btn" onclick="openPracticeAssignmentModal('${app.id}')" style="padding:6px 12px; font-size:11px;" title="Assign practice brief">🎯 Practice Task</button>
             <button class="primary-btn" onclick="openClientProjectModal('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, var(--accent-orange), #ea580c); color:#fff;" title="Assign commercial client project">🎬 Client Project</button>
+            <button class="secondary-btn light-btn" onclick="openFeaturedEditorModal('${app.id}')" style="padding:6px 12px; font-size:11px; color:#d94e28; border-color:rgba(217,78,40,0.3);" title="Feature in Special Spotlight">⭐ Feature</button>
           </div>
 
           <div style="display:flex;align-items:center;gap:8px;">
@@ -2066,6 +2206,9 @@ window.renderAgencySheet = function(filter = currentSheetFilter, searchQuery = c
             </button>
             <button type="button" class="quick-reply-pill" onclick="assignProjectToEditor('${app.id}')" title="Assign project to this editor" style="padding:4px 8px; font-size:11px; background:rgba(59,130,246,0.15); color:#60a5fa; border-color:rgba(59,130,246,0.3);">
               Task +
+            </button>
+            <button type="button" class="quick-reply-pill" onclick="openFeaturedEditorModal('${app.id}')" title="Feature in Special Spotlight" style="padding:4px 8px; font-size:11px; background:rgba(217,78,40,0.12); color:#d94e28; border-color:rgba(217,78,40,0.3);">
+              ⭐ Feature
             </button>
             <button type="button" class="delete-btn" onclick="moveApplicantToTrash('${app.id}')" title="Move to Recycle Bin" style="padding:4px 8px; font-size:11px;">
               🗑️
@@ -2279,15 +2422,15 @@ function syncApplicantToGoogleSheet(applicant) {
 // PRACTICE ASSIGNMENTS & CLIENT PROJECTS ENGINE (TABLE ARCHITECTURE)
 // =========================================================================
 function loadPracticeAssignments() {
+  const deletedIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_VAULT_IDS) || "[]"));
   try {
     const raw = localStorage.getItem(STORAGE_KEY_PRACTICE_ASGS);
     practiceAssignments = raw ? JSON.parse(raw) : [];
   } catch (e) {
     practiceAssignments = [];
   }
-  // Strip any legacy demo tasks
   if (Array.isArray(practiceAssignments)) {
-    practiceAssignments = practiceAssignments.filter(a => a && a.id !== "asg_practice_default");
+    practiceAssignments = practiceAssignments.filter(a => a && a.id && a.id !== "asg_practice_default" && !deletedIds.has(a.id));
   } else {
     practiceAssignments = [];
   }
@@ -2298,25 +2441,56 @@ function loadPracticeAssignments() {
 
 async function saveAgencyFoldersAndSync(folders) {
   if (!profile) profile = { ...DEFAULT_PROFILE };
-  profile.agencyFolders = (folders || []).filter(f => f && f.id && f.id !== "folder_drive_vault");
+  const deletedIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_VAULT_IDS) || "[]"));
+  profile.agencyFolders = (folders || []).filter(f => f && f.id && f.id !== "folder_drive_vault" && !deletedIds.has(f.id));
   localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(profile.agencyFolders));
   localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
   if (typeof window !== "undefined") window.profile = profile;
-  return await syncAgencyVaultToSupabase();
+  await persistPortfolioToServer();
+  await syncAgencyVaultToSupabase();
+  return true;
 }
 
 async function savePracticeAssignmentsAndSync(tasks) {
-  practiceAssignments = (tasks || []).filter(a => a && a.id && a.id !== "asg_practice_default");
+  const deletedIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_VAULT_IDS) || "[]"));
+  practiceAssignments = (tasks || []).filter(a => a && a.id && a.id !== "asg_practice_default" && !deletedIds.has(a.id));
   window.practiceAssignments = practiceAssignments;
   localStorage.setItem(STORAGE_KEY_PRACTICE_ASGS, JSON.stringify(practiceAssignments));
-  return await syncAgencyVaultToSupabase();
+  await persistPortfolioToServer();
+  await syncAgencyVaultToSupabase();
+  return true;
 }
 
 async function saveClientProjectsAndSync(projs) {
-  clientProjects = (projs || []).filter(p => p && p.id && p.id !== "proj_client_default");
+  const deletedIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_VAULT_IDS) || "[]"));
+  clientProjects = (projs || []).filter(p => p && p.id && p.id !== "proj_client_default" && !deletedIds.has(p.id));
   window.clientProjects = clientProjects;
   localStorage.setItem(STORAGE_KEY_CLIENT_PROJS, JSON.stringify(clientProjects));
-  return await syncAgencyVaultToSupabase();
+  await persistPortfolioToServer();
+  await syncAgencyVaultToSupabase();
+  return true;
+}
+
+async function saveToolsAndSync(tools) {
+  if (!profile) profile = { ...DEFAULT_PROFILE };
+  profile.tools = Array.isArray(tools) ? tools : [...DEFAULT_TOOLS];
+  localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
+  if (typeof window !== "undefined") window.profile = profile;
+  await persistPortfolioToServer();
+  await syncAgencyVaultToSupabase();
+  if (typeof renderTools === 'function') renderTools();
+  return true;
+}
+
+async function saveFeaturedEditorsAndSync(editors) {
+  if (!profile) profile = { ...DEFAULT_PROFILE };
+  profile.featuredEditors = Array.isArray(editors) ? editors : [];
+  localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
+  if (typeof window !== "undefined") window.profile = profile;
+  await persistPortfolioToServer();
+  await syncAgencyVaultToSupabase();
+  if (typeof renderFeaturedEditors === 'function') renderFeaturedEditors();
+  return true;
 }
 
 function savePracticeAssignments() {
@@ -2324,6 +2498,7 @@ function savePracticeAssignments() {
 }
 
 function loadClientProjects() {
+  const deletedIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_VAULT_IDS) || "[]"));
   try {
     const raw = localStorage.getItem(STORAGE_KEY_CLIENT_PROJS);
     clientProjects = raw ? JSON.parse(raw) : [];
@@ -2331,7 +2506,7 @@ function loadClientProjects() {
     clientProjects = [];
   }
   if (Array.isArray(clientProjects)) {
-    clientProjects = clientProjects.filter(p => p && p.id && p.id !== "proj_client_default");
+    clientProjects = clientProjects.filter(p => p && p.id && p.id !== "proj_client_default" && !deletedIds.has(p.id));
   } else {
     clientProjects = [];
   }
@@ -2355,6 +2530,9 @@ window.saveClientProjects = saveClientProjects;
 window.saveAgencyFoldersAndSync = saveAgencyFoldersAndSync;
 window.savePracticeAssignmentsAndSync = savePracticeAssignmentsAndSync;
 window.saveClientProjectsAndSync = saveClientProjectsAndSync;
+window.saveToolsAndSync = saveToolsAndSync;
+window.saveFeaturedEditorsAndSync = saveFeaturedEditorsAndSync;
+window.recordDeletedVaultId = recordDeletedVaultId;
 
 window.getPracticeAssignmentsForEditor = function(editorId) {
   loadPracticeAssignments();
@@ -2429,12 +2607,14 @@ window.createClientProject = async function({ clientName, title, description, li
 };
 
 window.deletePracticeAssignment = async function(asgId) {
+  if (typeof recordDeletedVaultId === 'function') recordDeletedVaultId(asgId);
   loadPracticeAssignments();
   practiceAssignments = practiceAssignments.filter(a => a && a.id !== asgId);
   return await savePracticeAssignmentsAndSync(practiceAssignments);
 };
 
 window.deleteClientProject = async function(projId) {
+  if (typeof recordDeletedVaultId === 'function') recordDeletedVaultId(projId);
   loadClientProjects();
   clientProjects = clientProjects.filter(p => p && p.id !== projId);
   return await saveClientProjectsAndSync(clientProjects);
