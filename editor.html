@@ -2268,10 +2268,12 @@
       document.getElementById("modal-ed-name").value = currentEditor.name || "";
       document.getElementById("modal-ed-phone").value = currentEditor.phone && currentEditor.phone !== 'Google Account' ? currentEditor.phone : "";
       document.getElementById("modal-ed-portfolio").value = currentEditor.portfolio && !currentEditor.portfolio.includes("Google Auth") ? currentEditor.portfolio : "";
-      document.getElementById("modal-ed-rate").value = currentEditor.rate || "₹1,000 / Reel";
+      document.getElementById("modal-ed-rate").value = profileWasAutoCreated && currentEditor.rate === "Standard / Discuss" ? "" : (currentEditor.rate || "");
 
       // Select active tools
-      const activeTools = (currentEditor.tools || "").toLowerCase();
+      let activeTools = (currentEditor.tools || "").toLowerCase();
+      const profileWasAutoCreated = (!currentEditor.phone || currentEditor.phone === "Google Account") && (!currentEditor.portfolio || currentEditor.portfolio.includes("Google Auth"));
+      if (profileWasAutoCreated && activeTools === "premiere pro, davinci resolve") activeTools = "";
       const standardToolNames = [];
       document.querySelectorAll("#modal-tools-pills .tool-pill").forEach(p => {
         const val = p.getAttribute("data-tool");
