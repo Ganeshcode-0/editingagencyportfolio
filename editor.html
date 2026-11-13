@@ -1473,7 +1473,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=3.2"></script>
+  <script src="app.js?v=3.4"></script>
   <script>
     // =========================================================================
     // STATE & INITIALIZATION
@@ -1572,39 +1572,34 @@
       const btn = document.getElementById("google-login-btn");
       const errorEl = document.getElementById("ed-login-error");
       if (errorEl) errorEl.textContent = "";
-
       if (btn) {
-        btn.innerHTML = `<span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span> Connecting to Google...`;
         btn.disabled = true;
+        btn.innerHTML = '<span style="display:inline-block;animation:spin 1s linear infinite;">⏳</span> Opening Google sign-in...';
       }
-
-      if (!supabaseClient) {
-        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
-      }
-
       try {
-        const redirectUrl = window.location.href.split('#')[0].split('?')[0];
-        const { data, error } = await supabaseClient.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: redirectUrl
-          }
+        // Resolve Supabase inside the guarded block so setup failures are shown instead of freezing the button.
+        let client = supabaseClient || window.SUPABASE_CLIENT;
+        if (!client && window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON) {
+          client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON);
+        }
+        if (!client || !client.auth) throw new Error("Supabase Auth did not load. Refresh this page and try again.");
+        supabaseClient = client;
+        const redirectUrl = window.location.origin + "/editor";
+        const { data, error } = await client.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: redirectUrl, skipBrowserRedirect: true }
         });
         if (error) throw error;
-        if (data && data.url) {
-          window.location.href = data.url;
-        }
+        if (!data || !data.url) throw new Error("Supabase did not return a Google sign-in URL. Check the Google provider configuration.");
+        // Perform a top-level navigation explicitly after Supabase returns the URL.
+        window.location.assign(data.url);
       } catch (err) {
-        console.error("Google sign in error:", err);
+        console.error("GanaCuts Google sign-in error:", err);
         if (btn) {
-          btn.innerHTML = `<span>Sign In directly with Google</span>`;
           btn.disabled = false;
+          btn.innerHTML = "<span>Sign In directly with Google</span>";
         }
-        if (errorEl) {
-          errorEl.textContent = "Google Sign-In failed: " + (err.message || err);
-        } else {
-          alert("Google Sign-In notice: " + (err.message || err));
-        }
+        if (errorEl) errorEl.textContent = "Google sign-in failed: " + (err && err.message ? err.message : String(err));
       }
     };
 
