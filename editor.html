@@ -1575,39 +1575,34 @@
       const btn = document.getElementById("google-login-btn");
       const errorEl = document.getElementById("ed-login-error");
       if (errorEl) errorEl.textContent = "";
-
       if (btn) {
-        btn.innerHTML = `<span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span> Connecting to Google...`;
         btn.disabled = true;
+        btn.innerHTML = '<span style="display:inline-block;animation:spin 1s linear infinite;">⏳</span> Opening Google sign-in...';
       }
-
-      if (!supabaseClient) {
-        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
-      }
-
       try {
-        const redirectUrl = window.location.href.split('#')[0].split('?')[0];
-        const { data, error } = await supabaseClient.auth.signInWithOAuth({
-          provider: 'google',
-          options: {
-            redirectTo: redirectUrl
-          }
+        // Resolve the client inside try/catch so a missing client never leaves the button stuck.
+        let client = supabaseClient || window.SUPABASE_CLIENT;
+        if (!client && window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON) {
+          client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON);
+        }
+        if (!client || !client.auth) throw new Error("Supabase Auth did not load. Refresh the page and try again.");
+        supabaseClient = client;
+        const redirectUrl = window.location.origin + "/editor";
+        const result = await client.auth.signInWithOAuth({
+          provider: "google",
+          options: { redirectTo: redirectUrl, skipBrowserRedirect: true }
         });
-        if (error) throw error;
-        if (data && data.url) {
-          window.location.href = data.url;
-        }
+        if (result.error) throw result.error;
+        if (!result.data || !result.data.url) throw new Error("Google did not return a sign-in URL. Check the Supabase Google provider configuration.");
+        // Redirect explicitly instead of relying on the SDK automatic browser redirect.
+        window.location.assign(result.data.url);
       } catch (err) {
-        console.error("Google sign in error:", err);
+        console.error("GanaCuts Google sign-in failed:", err);
         if (btn) {
-          btn.innerHTML = `<span>Sign In directly with Google</span>`;
           btn.disabled = false;
+          btn.innerHTML = "<span>Sign In directly with Google</span>";
         }
-        if (errorEl) {
-          errorEl.textContent = "Google Sign-In failed: " + (err.message || err);
-        } else {
-          alert("Google Sign-In notice: " + (err.message || err));
-        }
+        if (errorEl) errorEl.textContent = "Sign-in could not start: " + (err && err.message ? err.message : String(err));
       }
     };
 
