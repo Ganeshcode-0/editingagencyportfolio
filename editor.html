@@ -1508,9 +1508,20 @@
       const gName = gUser.user_metadata?.full_name || gUser.user_metadata?.name || (gEmail ? gEmail.split('@')[0] : "Editor");
       const gAvatar = gUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(gName)}`;
 
-      // If Gani logs in, redirect to Admin Studio
+      // Keep the Join Our Team flow inside the editor portal.
+      // Admin Studio has its own explicit entry point (/admin); do not switch portals
+      // merely because the same Google account is recognized as the agency owner.
       if (gEmail === "designsbygani@gmail.com" || gEmail.includes("mogiliganesh49")) {
-        window.location.href = "admin.html";
+        currentEditor = null;
+        localStorage.removeItem("cutscale_editor_session");
+        const authScreen = document.getElementById("editor-auth-screen");
+        const appScreen = document.getElementById("editor-app-screen");
+        const errorEl = document.getElementById("ed-login-error");
+        if (authScreen) authScreen.classList.remove("hidden");
+        if (appScreen) appScreen.classList.add("hidden");
+        if (errorEl) {
+          errorEl.textContent = "This is the GanaCuts admin Google account. To join the editor team, sign in with your editor Google account. Admin Studio is available separately from the public homepage.";
+        }
         return;
       }
 
@@ -1610,7 +1621,8 @@
       const lower = clean.toLowerCase();
 
       if (lower === "designsbygani@gmail.com" || lower === "gani" || lower === "admin" || lower.includes("designsbygani") || lower.includes("mogiliganesh49")) {
-        window.location.href = "admin.html";
+        const errorEl = document.getElementById("ed-phone-login-error");
+        if (errorEl) errorEl.textContent = "This is the GanaCuts admin account. Use the separate Admin Studio link for administration, or sign in with your editor account to join the team.";
         return;
       }
 
