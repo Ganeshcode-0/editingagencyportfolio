@@ -1473,7 +1473,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=3.4"></script>
+  <script src="app.js?v=3.2"></script>
   <script>
     // =========================================================================
     // STATE & INITIALIZATION
@@ -1508,20 +1508,9 @@
       const gName = gUser.user_metadata?.full_name || gUser.user_metadata?.name || (gEmail ? gEmail.split('@')[0] : "Editor");
       const gAvatar = gUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(gName)}`;
 
-      // Keep the Join Our Team flow inside the editor portal.
-      // Admin Studio has its own explicit entry point (/admin); do not switch portals
-      // merely because the same Google account is recognized as the agency owner.
+      // If Gani logs in, redirect to Admin Studio
       if (gEmail === "designsbygani@gmail.com" || gEmail.includes("mogiliganesh49")) {
-        currentEditor = null;
-        localStorage.removeItem("cutscale_editor_session");
-        const authScreen = document.getElementById("editor-auth-screen");
-        const appScreen = document.getElementById("editor-app-screen");
-        const errorEl = document.getElementById("ed-login-error");
-        if (authScreen) authScreen.classList.remove("hidden");
-        if (appScreen) appScreen.classList.add("hidden");
-        if (errorEl) {
-          errorEl.textContent = "This is the GanaCuts admin Google account. To join the editor team, sign in with your editor Google account. Admin Studio is available separately from the public homepage.";
-        }
+        window.location.href = "admin.html";
         return;
       }
 
@@ -1583,34 +1572,39 @@
       const btn = document.getElementById("google-login-btn");
       const errorEl = document.getElementById("ed-login-error");
       if (errorEl) errorEl.textContent = "";
+
       if (btn) {
+        btn.innerHTML = `<span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span> Connecting to Google...`;
         btn.disabled = true;
-        btn.innerHTML = '<span style="display:inline-block;animation:spin 1s linear infinite;">⏳</span> Opening Google sign-in...';
       }
+
+      if (!supabaseClient) {
+        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
+      }
+
       try {
-        // Resolve Supabase inside the guarded block so setup failures are shown instead of freezing the button.
-        let client = supabaseClient || window.SUPABASE_CLIENT;
-        if (!client && window.supabase && window.SUPABASE_URL && window.SUPABASE_ANON) {
-          client = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON);
-        }
-        if (!client || !client.auth) throw new Error("Supabase Auth did not load. Refresh this page and try again.");
-        supabaseClient = client;
-        const redirectUrl = window.location.origin + "/editor";
-        const { data, error } = await client.auth.signInWithOAuth({
-          provider: "google",
-          options: { redirectTo: redirectUrl, skipBrowserRedirect: true }
+        const redirectUrl = window.location.href.split('#')[0].split('?')[0];
+        const { data, error } = await supabaseClient.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: redirectUrl
+          }
         });
         if (error) throw error;
-        if (!data || !data.url) throw new Error("Supabase did not return a Google sign-in URL. Check the Google provider configuration.");
-        // Perform a top-level navigation explicitly after Supabase returns the URL.
-        window.location.assign(data.url);
-      } catch (err) {
-        console.error("GanaCuts Google sign-in error:", err);
-        if (btn) {
-          btn.disabled = false;
-          btn.innerHTML = "<span>Sign In directly with Google</span>";
+        if (data && data.url) {
+          window.location.href = data.url;
         }
-        if (errorEl) errorEl.textContent = "Google sign-in failed: " + (err && err.message ? err.message : String(err));
+      } catch (err) {
+        console.error("Google sign in error:", err);
+        if (btn) {
+          btn.innerHTML = `<span>Sign In directly with Google</span>`;
+          btn.disabled = false;
+        }
+        if (errorEl) {
+          errorEl.textContent = "Google Sign-In failed: " + (err.message || err);
+        } else {
+          alert("Google Sign-In notice: " + (err.message || err));
+        }
       }
     };
 
@@ -1621,8 +1615,7 @@
       const lower = clean.toLowerCase();
 
       if (lower === "designsbygani@gmail.com" || lower === "gani" || lower === "admin" || lower.includes("designsbygani") || lower.includes("mogiliganesh49")) {
-        const errorEl = document.getElementById("ed-phone-login-error");
-        if (errorEl) errorEl.textContent = "This is the GanaCuts admin account. Use the separate Admin Studio link for administration, or sign in with your editor account to join the team.";
+        window.location.href = "admin.html";
         return;
       }
 
