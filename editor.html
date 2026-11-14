@@ -1612,11 +1612,6 @@
       if (!clean) return;
       const lower = clean.toLowerCase();
 
-      if (lower === "designsbygani@gmail.com" || lower === "gani" || lower === "admin" || lower.includes("designsbygani") || lower.includes("mogiliganesh49")) {
-        window.location.href = "admin.html";
-        return;
-      }
-
       if (typeof fetchSupabaseApplicants === 'function') {
         try { await fetchSupabaseApplicants(); } catch(e) {}
       }
