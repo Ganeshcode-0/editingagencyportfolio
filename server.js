@@ -2,6 +2,34 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
+// Safely load local .env without leaking secrets to client
+try {
+  const envPath = path.join(__dirname, '.env');
+  if (fs.existsSync(envPath)) {
+    const envContent = fs.readFileSync(envPath, 'utf8');
+    envContent.split('\n').forEach(line => {
+      const match = line.match(/^\s*([\w.-]+)\s*=\s*(.*)?\s*$/);
+      if (match) {
+        const key = match[1];
+        let val = match[2] || '';
+        val = val.trim().replace(/^['"](.*)['"]$/, '$1');
+        if (val.length > 25) {
+          process.env[key] = val;
+        } else if (!process.env[key]) {
+          process.env[key] = val;
+        }
+      }
+    });
+  }
+} catch (e) {}
+
+let aiHandler = null;
+try {
+  aiHandler = require('./api/ai.js');
+} catch (e) {
+  console.warn('AI handler load note:', e.message);
+}
+
 const PORT = process.env.PORT || 3000;
 const DATA_FILE = path.join(__dirname, 'data', 'portfolio.json');
 
@@ -32,6 +60,11 @@ const server = http.createServer((req, res) => {
   }
 
   let cleanUrl = req.url.split('?')[0].replace(/\/+$/, '');
+
+  // API Route: /api/ai (Gemini AI Profile Analysis & Direct Email Automation)
+  if ((cleanUrl === '/api/ai' || cleanUrl.startsWith('/api/ai/')) && aiHandler) {
+    return aiHandler(req, res);
+  }
 
   // API Route: GET /api/portfolio
   if (cleanUrl === '/api/portfolio' && req.method === 'GET') {

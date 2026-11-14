@@ -394,6 +394,100 @@
     .modal h3, .modal h4 {
       color: var(--text-primary) !important;
     }
+
+    /* =========================================================================
+       EDITOR PHASES / TIERS & GEMINI AI STYLING (ADMIN EXCLUSIVE)
+       ========================================================================= */
+    .phase-tier-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 8px;
+      line-height: 1.2;
+    }
+    .phase-special {
+      background: #fffbeb !important;
+      color: #b45309 !important;
+      border: 1px solid rgba(245, 158, 11, 0.5) !important;
+      box-shadow: 0 0 10px rgba(245, 158, 11, 0.12);
+    }
+    .phase-normal {
+      background: #eff6ff !important;
+      color: #1d4ed8 !important;
+      border: 1px solid rgba(59, 130, 246, 0.4) !important;
+    }
+    .phase-basic {
+      background: #f5f3ff !important;
+      color: #6d28d9 !important;
+      border: 1px solid rgba(139, 92, 246, 0.4) !important;
+    }
+    .tier-select {
+      background: #ffffff !important;
+      color: #121214 !important;
+      border: 1px solid var(--border-strong) !important;
+      padding: 5px 8px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .tier-tab-btn {
+      padding: 6px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      border-radius: 8px;
+      border: 1px solid var(--border-subtle);
+      background: #f5f2ec;
+      color: #5a5a62;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .tier-tab-btn:hover {
+      background: #ece7de;
+      color: #121214;
+    }
+    .tier-tab-btn.active {
+      background: #121214 !important;
+      color: #ffffff !important;
+      border-color: #121214 !important;
+    }
+    .ai-prompt-chip {
+      background: #f5f3ff;
+      border: 1px solid rgba(139, 92, 246, 0.3);
+      color: #6d28d9;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+    .ai-prompt-chip:hover {
+      background: #ede9fe;
+      border-color: #8b5cf6;
+      transform: translateY(-1px);
+    }
+    .divided-phase-section {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      border-radius: 18px;
+      padding: 22px 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 30px rgba(18, 18, 20, 0.04);
+    }
+    .divided-phase-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--border-subtle);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
   </style>
 </head>
 <body class="admin-body">
@@ -822,12 +916,53 @@
           <div id="admin-submissions-table-container"></div>
         </div>
 
-        <div style="margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
-          <div>
-            <h4 style="font-size:16px; font-weight:800; color:#121214; margin:0 0 2px;">👥 Video Editor Team Roster</h4>
-            <small style="color:#5a5a62; font-size:12px;">Active editors and applicants with profile face logos and contact controls.</small>
+        <!-- Editor Phase Tiers & AI Operations Toolbar -->
+        <div class="roster-tier-toolbar" style="background:#ffffff; border:1px solid var(--border-subtle); border-radius:18px; padding:18px 20px; margin-bottom:18px; box-shadow:0 10px 30px rgba(18,18,20,0.04);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <h4 style="font-size:17px; font-weight:800; color:#121214; margin:0;">👥 Video Editor Team Roster & Divided Phases</h4>
+                <span class="badge-mini" style="background:rgba(99,102,241,0.12); color:#6366f1; border:1px solid rgba(99,102,241,0.3); font-size:11px; padding:2px 8px; border-radius:10px; font-weight:700;">🤖 Gemini AI Active</span>
+              </div>
+              <small style="color:#5a5a62; font-size:12px; margin-top:2px; display:block;">Divided into Special, Normal, and Basic phases. Private to admin — hidden from editor portal.</small>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="primary-btn" onclick="runBatchGeminiAnalysis()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; padding:7px 14px; font-size:12px; box-shadow:0 4px 14px rgba(139,92,246,0.25);" title="Analyze all editor profiles using Google Gemini AI">
+                <span>⚡ AI Analyze All Profiles</span>
+              </button>
+              <div class="view-mode-toggle" style="display:flex; background:#f5f2ec; border:1px solid var(--border-subtle); border-radius:10px; padding:2px;">
+                <button type="button" id="btn-view-grouped" class="view-mode-btn active" onclick="toggleRosterViewMode('grouped')" style="padding:6px 12px; font-size:11.5px; border-radius:8px; border:none; background:#ffffff; font-weight:700; cursor:pointer;" title="View editors neatly divided into Special, Normal, and Basic sections">
+                  📋 Divided Sections
+                </button>
+                <button type="button" id="btn-view-flat" class="view-mode-btn" onclick="toggleRosterViewMode('flat')" style="padding:6px 12px; font-size:11.5px; border-radius:8px; border:none; background:transparent; color:#5a5a62; cursor:pointer;" title="View all editors in one continuous list">
+                  📑 Single List
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Phase Tabs Filter Strip -->
+          <div style="display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; border-top:1px solid var(--border-subtle); padding-top:14px;">
+            <div class="tier-filter-tabs" style="display:flex; gap:6px; flex-wrap:wrap;">
+              <button type="button" class="tier-tab-btn active" data-tier="all" onclick="filterApplicantsByTier('all')">
+                All Editors (<span id="count-tier-all">0</span>)
+              </button>
+              <button type="button" class="tier-tab-btn" data-tier="special" onclick="filterApplicantsByTier('special')" style="color:#b45309;">
+                ⭐ Special Editors (<span id="count-tier-special">0</span>)
+              </button>
+              <button type="button" class="tier-tab-btn" data-tier="normal" onclick="filterApplicantsByTier('normal')" style="color:#1d4ed8;">
+                💼 Normal Editors (<span id="count-tier-normal">0</span>)
+              </button>
+              <button type="button" class="tier-tab-btn" data-tier="basic" onclick="filterApplicantsByTier('basic')" style="color:#6d28d9;">
+                🔰 Basic Editors (<span id="count-tier-basic">0</span>)
+              </button>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <input type="text" id="roster-search-input" oninput="handleRosterSearch(this.value)" placeholder="Search editors by name, tool, city..." style="padding:7px 12px; font-size:12px; border-radius:8px; border:1px solid var(--border-subtle); background:#f5f2ec; min-width:230px;">
+            </div>
           </div>
         </div>
+
         <div class="manage-list" id="applicants-manage-list"></div>
       </div>
 
@@ -1545,7 +1680,108 @@
     </div>
   </div>
 
-  <script src="app.js?v=3.1"></script>
+  <!-- MODAL: DIRECT GMAIL & GEMINI AI EMAIL DRAFTER -->
+  <div id="admin-gmail-ai-modal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(18,18,20,0.65); backdrop-filter:blur(8px); align-items:center; justify-content:center; z-index:99999; padding:20px;" onclick="if(event.target === this) closeDirectGmailModal()">
+    <div class="admin-modal-card" style="background:#ffffff; border-radius:20px; padding:26px 28px; width:100%; max-width:640px; box-shadow:0 25px 60px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto; border:1px solid var(--border-subtle);">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg, #ea4335, #c5221f); display:flex; align-items:center; justify-content:center; color:#fff; font-size:22px; flex-shrink:0; box-shadow:0 4px 12px rgba(234,67,53,0.3);">
+            ✉️
+          </div>
+          <div>
+            <h3 style="font-size:18px; font-weight:800; color:#121214; margin:0;">Direct Gmail & AI Email Assistant</h3>
+            <p style="font-size:12px; color:#5a5a62; margin:2px 0 0;">Email editor directly from your Gmail (<strong style="color:#d94e28;">designsbygani@gmail.com</strong>) with 1-click AI drafts.</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeDirectGmailModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#888894; line-height:1;">&times;</button>
+      </div>
+
+      <!-- Recipient Header -->
+      <div style="background:#faf7f2; border:1px solid var(--border-subtle); border-radius:12px; padding:12px 14px; margin-bottom:16px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div style="display:flex; align-items:center; gap:10px;">
+          <img id="gmail-modal-avatar" src="" style="width:36px; height:36px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-orange); display:block;">
+          <div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <strong id="gmail-modal-editor-name" style="font-size:14.5px; color:#121214;">Editor Name</strong>
+              <span id="gmail-modal-tier-badge" class="phase-tier-badge phase-normal">💼 Normal Editor</span>
+            </div>
+            <span id="gmail-modal-editor-sub" style="font-size:11.5px; color:#5a5a62;">Talking Head Reels • ₹1,500</span>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <label style="font-size:11px; font-weight:700; color:#5a5a62;">To Email:</label>
+          <input type="email" id="gmail-modal-to-email" style="padding:5px 9px; font-size:12px; border-radius:6px; border:1px solid var(--border-strong); background:#fff; font-weight:600; width:200px;">
+        </div>
+      </div>
+
+      <!-- Quick AI Draft Prompt Presets -->
+      <div style="margin-bottom:14px;">
+        <label style="font-size:11.5px; font-weight:700; color:#6366f1; display:flex; align-items:center; gap:5px; margin-bottom:7px;">
+          <span>✨ 1-Click AI Draft Presets (Powered by Gemini AI)</span>
+        </label>
+        <div style="display:flex; flex-wrap:wrap; gap:6px;">
+          <button type="button" class="ai-prompt-chip" onclick="draftEmailWithPreset('Commercial Client Project Assignment (High-ticket reel with deadline & payout)')">
+            🚀 Project Offer
+          </button>
+          <button type="button" class="ai-prompt-chip" onclick="draftEmailWithPreset('Practice / Trial Task Brief with raw footage and pacing instructions')">
+            🎯 Practice / Trial Task
+          </button>
+          <button type="button" class="ai-prompt-chip" onclick="draftEmailWithPreset('Congratulations on promotion to Special Editor tier for priority client projects')">
+            🌟 Special Tier Promotion
+          </button>
+          <button type="button" class="ai-prompt-chip" onclick="draftEmailWithPreset('Constructive feedback on submitted cut, sound design polish, and pacing adjustments')">
+            ✍️ Revision & Feedback
+          </button>
+          <button type="button" class="ai-prompt-chip" onclick="draftEmailWithPreset('Checking weekly availability for upcoming commercial video editing projects')">
+            💬 Check Availability
+          </button>
+        </div>
+      </div>
+
+      <!-- Custom AI Instructions -->
+      <div style="margin-bottom:14px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
+          <label style="font-size:11.5px; font-weight:700; color:#121214;">Custom Notes / Context for AI (Optional):</label>
+          <button type="button" id="btn-generate-ai-email" class="primary-btn" onclick="generateAiEmailNow()" style="padding:4px 10px; font-size:11px; background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; box-shadow:0 2px 8px rgba(139,92,246,0.3);">
+            <span>✨ Generate with Gemini AI</span>
+          </button>
+        </div>
+        <input type="text" id="gmail-modal-custom-notes" placeholder="e.g. 2 tech talking-head reels, ₹2,000 per video, need rough cut in 36 hours" style="width:100%; box-sizing:border-box; padding:8px 12px; font-size:12px; border-radius:8px; border:1px solid var(--border-subtle); background:#f5f2ec;">
+      </div>
+
+      <!-- Email Subject -->
+      <div style="margin-bottom:12px;">
+        <label style="font-size:12px; font-weight:700; color:#121214; display:block; margin-bottom:4px;">Email Subject *</label>
+        <input type="text" id="gmail-modal-subject" placeholder="Subject line..." style="width:100%; box-sizing:border-box; padding:9px 12px; font-size:13px; font-weight:600; border-radius:8px; border:1px solid var(--border-strong); background:#ffffff;">
+      </div>
+
+      <!-- Email Body -->
+      <div style="margin-bottom:18px;">
+        <label style="font-size:12px; font-weight:700; color:#121214; display:block; margin-bottom:4px;">Email Message Body *</label>
+        <textarea id="gmail-modal-body" rows="9" placeholder="Type your message or click any AI preset above to auto-generate..." style="width:100%; box-sizing:border-box; padding:10px 12px; font-size:13px; line-height:1.5; border-radius:8px; border:1px solid var(--border-strong); background:#ffffff; resize:vertical; font-family:inherit;"></textarea>
+      </div>
+
+      <!-- Modal Action Buttons -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-top:1px solid var(--border-subtle); padding-top:14px;">
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="secondary-btn light-btn" onclick="copyEmailDraft()" style="font-size:12px;">
+            📋 Copy Message
+          </button>
+          <a id="gmail-mailto-link" href="#" class="secondary-btn light-btn" style="text-decoration:none; font-size:12px;" title="Open in default mail client">
+            ✉️ Mailto
+          </a>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button type="button" class="secondary-btn light-btn" onclick="closeDirectGmailModal()" style="font-size:12px;">Cancel</button>
+          <button type="button" class="primary-btn" onclick="openGmailComposeNow()" style="background:linear-gradient(135deg, #ea4335, #c5221f); border:none; padding:10px 18px; font-size:13px; font-weight:700; box-shadow:0 4px 14px rgba(234,67,53,0.35);">
+            <span>🚀 Open in Gmail (1-Click) ↗</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js?v=4.0"></script>
   <script>
     // Master Admin Email & Supabase Client
     window.MASTER_ADMIN_EMAIL = window.MASTER_ADMIN_EMAIL || "designsbygani@gmail.com";

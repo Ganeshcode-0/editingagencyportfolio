@@ -1896,136 +1896,568 @@ function updateAdminUI() {
   if (typeof renderAdminChatUsers === 'function') renderAdminChatUsers();
 }
 
+// =========================================================================
+// VIDEO EDITOR TEAM ROSTER & PHASE SECTIONS (ADMIN EXCLUSIVE)
+// Divided Phases: ⭐ Special Editors | 💼 Normal Editors | 🔰 Basic Editors
+// Private Admin Description & Gemini AI Profile & Email Automation
+// =========================================================================
+
+let currentRosterTierFilter = "all";
+let currentRosterViewMode = "grouped"; // "grouped" = Divided Phase Sections; "flat" = Single List
+let currentRosterSearchQuery = "";
+let currentEmailEditor = null;
+
+// Roster View Mode Switcher
+window.toggleRosterViewMode = function(mode) {
+  currentRosterViewMode = mode;
+  const btnGrouped = document.getElementById("btn-view-grouped");
+  const btnFlat = document.getElementById("btn-view-flat");
+  if (btnGrouped) {
+    btnGrouped.classList.toggle("active", mode === "grouped");
+    btnGrouped.style.background = mode === "grouped" ? "#ffffff" : "transparent";
+    btnGrouped.style.color = mode === "grouped" ? "#121214" : "#5a5a62";
+  }
+  if (btnFlat) {
+    btnFlat.classList.toggle("active", mode === "flat");
+    btnFlat.style.background = mode === "flat" ? "#ffffff" : "transparent";
+    btnFlat.style.color = mode === "flat" ? "#121214" : "#5a5a62";
+  }
+  renderApplicantsManager();
+};
+
+// Filter Roster by Tier Tab
+window.filterApplicantsByTier = function(tier) {
+  currentRosterTierFilter = tier;
+  document.querySelectorAll(".tier-tab-btn").forEach(btn => {
+    btn.classList.toggle("active", btn.getAttribute("data-tier") === tier);
+  });
+  renderApplicantsManager();
+};
+
+// Roster Search Handler
+window.handleRosterSearch = function(query) {
+  currentRosterSearchQuery = (query || "").trim().toLowerCase();
+  renderApplicantsManager();
+};
+
+// Save Private Admin Description
+window.saveApplicantDescription = async function(id) {
+  const app = applicants.find(a => a.id === id);
+  if (!app) return;
+  const textarea = document.getElementById(`admin-desc-${id}`);
+  if (textarea) {
+    app.adminDescription = textarea.value.trim();
+    saveApplicants();
+    if (window.syncApplicantToSupabase) {
+      await window.syncApplicantToSupabase(app);
+    }
+    showToast(`✓ Saved private description for ${app.name}`);
+  }
+};
+
+// Update Applicant Phase / Tier
+window.updateApplicantTier = async function(id, newTier) {
+  const app = applicants.find(a => a.id === id);
+  if (!app) return;
+  app.editorTier = newTier;
+  saveApplicants();
+  if (window.syncApplicantToSupabase) {
+    await window.syncApplicantToSupabase(app);
+  }
+  const tierLabels = { special: "⭐ Special Editor", normal: "💼 Normal Editor", basic: "🔰 Basic Editor" };
+  showToast(`✓ ${app.name} updated to ${tierLabels[newTier] || newTier}`);
+  renderApplicantsManager();
+};
+
+// Apply AI Recommended Tier
+window.applyAiRecommendedTier = async function(id, recommendedTier) {
+  const validTier = ['special', 'normal', 'basic'].includes(recommendedTier) ? recommendedTier : 'normal';
+  await window.updateApplicantTier(id, validTier);
+};
+
+// Trigger Gemini AI Profile Analysis for Single Editor
+window.triggerGeminiEditorAnalysis = async function(id) {
+  const app = applicants.find(a => a.id === id);
+  if (!app) return;
+
+  const btn = document.getElementById(`btn-ai-analyze-${id}`);
+  if (btn) {
+    btn.innerHTML = `<span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span> Analyzing...`;
+    btn.disabled = true;
+  }
+
+  // Capture latest description from textarea if typed
+  const descEl = document.getElementById(`admin-desc-${id}`);
+  if (descEl) app.adminDescription = descEl.value.trim();
+
+  try {
+    const res = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'analyze_editor',
+        editor: app,
+        adminDescription: app.adminDescription || ''
+      })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Gemini AI analysis failed');
+
+    app.aiAnalysis = data.analysis;
+    saveApplicants();
+    if (window.syncApplicantToSupabase) {
+      await window.syncApplicantToSupabase(app);
+    }
+    showToast(`✨ Gemini AI analysis complete for ${app.name}! Score: ${data.analysis.rating}/100`);
+    renderApplicantsManager();
+  } catch (err) {
+    console.error('Gemini analysis error:', err);
+    alert('Gemini AI Analysis: ' + (err.message || err));
+    if (btn) {
+      btn.innerHTML = `<span>✨ AI Analysis</span>`;
+      btn.disabled = false;
+    }
+  }
+};
+
+// Batch Gemini Analysis across all editors
+window.runBatchGeminiAnalysis = async function() {
+  if (!applicants || applicants.length === 0) {
+    alert("No editors in roster to analyze.");
+    return;
+  }
+  if (!confirm(`Analyze all ${applicants.length} editors with Google Gemini AI?\nThis evaluates tools, portfolio, and your admin notes to suggest optimal phases.`)) {
+    return;
+  }
+
+  showToast(`🤖 Starting Gemini AI batch analysis for ${applicants.length} editors...`);
+  let analyzed = 0;
+
+  for (let i = 0; i < applicants.length; i++) {
+    const app = applicants[i];
+    try {
+      const res = await fetch('/api/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'analyze_editor',
+          editor: app,
+          adminDescription: app.adminDescription || ''
+        })
+      });
+      const data = await res.json();
+      if (data.success && data.analysis) {
+        app.aiAnalysis = data.analysis;
+        analyzed++;
+      }
+    } catch (e) {
+      console.warn('Batch AI error for', app.name, e);
+    }
+  }
+
+  saveApplicants();
+  if (typeof syncAllApplicantsToSupabase === 'function') syncAllApplicantsToSupabase();
+  showToast(`✨ Batch analysis complete! Evaluated ${analyzed} editors.`);
+  renderApplicantsManager();
+};
+
+// Direct Gmail Modal & AI Email Drafter
+window.openDirectGmailModal = function(id) {
+  const app = applicants.find(a => a.id === id);
+  if (!app) return;
+  currentEmailEditor = app;
+
+  const modal = document.getElementById("admin-gmail-ai-modal");
+  const avatar = document.getElementById("gmail-modal-avatar");
+  const nameEl = document.getElementById("gmail-modal-editor-name");
+  const subEl = document.getElementById("gmail-modal-editor-sub");
+  const emailInput = document.getElementById("gmail-modal-to-email");
+  const tierBadge = document.getElementById("gmail-modal-tier-badge");
+  const notesInput = document.getElementById("gmail-modal-custom-notes");
+  const subjectInput = document.getElementById("gmail-modal-subject");
+  const bodyInput = document.getElementById("gmail-modal-body");
+
+  if (avatar) avatar.src = getEditorAvatarSrc(app);
+  if (nameEl) nameEl.textContent = app.name || "Editor";
+  if (subEl) subEl.textContent = `${app.specialization || 'Video Editing'} • Rate: ${app.rate || 'Standard'}`;
+  if (emailInput) emailInput.value = app.email || "";
+  if (notesInput) notesInput.value = "";
+
+  const tier = app.editorTier || (app.status === 'selected' ? 'special' : (app.status === 'trial' ? 'normal' : 'basic'));
+  if (tierBadge) {
+    tierBadge.className = `phase-tier-badge phase-${tier}`;
+    tierBadge.textContent = tier === 'special' ? '⭐ Special Editor' : (tier === 'basic' ? '🔰 Basic Editor' : '💼 Normal Editor');
+  }
+
+  // Pre-fill initial subject and body
+  if (subjectInput) subjectInput.value = `GanaCuts Visuals: Video Project Collaboration (${app.name})`;
+  if (bodyInput) {
+    bodyInput.value = `Hi ${app.name},\n\nI hope you're doing well.\n\nWe reviewed your portfolio and editing work at GanaCuts Visuals and wanted to discuss upcoming commercial video editing opportunities.\n\nPlease let me know your availability for this week so we can coordinate footage delivery.\n\nBest regards,\n\nGanesh Mogili\nFounder & Creative Director | GanaCuts Visuals\ndesignsbygani@gmail.com`;
+  }
+
+  updateMailtoLink();
+  if (modal) modal.style.display = "flex";
+};
+
+window.closeDirectGmailModal = function() {
+  const modal = document.getElementById("admin-gmail-ai-modal");
+  if (modal) modal.style.display = "none";
+  currentEmailEditor = null;
+};
+
+window.draftEmailWithPreset = async function(preset) {
+  if (!currentEmailEditor) return;
+  const btn = document.getElementById("btn-generate-ai-email");
+  if (btn) {
+    btn.innerHTML = `<span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span> Drafting with AI...`;
+    btn.disabled = true;
+  }
+
+  const customNotes = document.getElementById("gmail-modal-custom-notes")?.value || '';
+
+  try {
+    const res = await fetch('/api/ai', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'draft_email',
+        editor: currentEmailEditor,
+        purpose: preset,
+        customNotes: customNotes
+      })
+    });
+    const data = await res.json();
+    if (!data.success) throw new Error(data.error || 'Failed to generate email');
+
+    const subjectInput = document.getElementById("gmail-modal-subject");
+    const bodyInput = document.getElementById("gmail-modal-body");
+    if (subjectInput && data.email?.subject) subjectInput.value = data.email.subject;
+    if (bodyInput && data.email?.body) bodyInput.value = data.email.body;
+
+    updateMailtoLink();
+    showToast("✨ AI email drafted with Gemini!");
+  } catch (err) {
+    alert("AI Email Drafter: " + (err.message || err));
+  } finally {
+    if (btn) {
+      btn.innerHTML = `<span>✨ Generate with Gemini AI</span>`;
+      btn.disabled = false;
+    }
+  }
+};
+
+window.generateAiEmailNow = function() {
+  const notes = document.getElementById("gmail-modal-custom-notes")?.value || 'Commercial Project Assignment';
+  window.draftEmailWithPreset(notes);
+};
+
+window.openGmailComposeNow = function() {
+  const toEmail = document.getElementById("gmail-modal-to-email")?.value.trim();
+  const subject = document.getElementById("gmail-modal-subject")?.value.trim() || '';
+  const body = document.getElementById("gmail-modal-body")?.value.trim() || '';
+
+  if (!toEmail) {
+    alert("Please enter the editor's Gmail / email address.");
+    return;
+  }
+
+  if (currentEmailEditor && toEmail !== currentEmailEditor.email) {
+    currentEmailEditor.email = toEmail;
+    saveApplicants();
+  }
+
+  const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(toEmail)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  window.open(gmailUrl, '_blank');
+  showToast(`🚀 Opening Gmail compose to ${toEmail}...`);
+};
+
+window.copyEmailDraft = function() {
+  const subject = document.getElementById("gmail-modal-subject")?.value.trim() || '';
+  const body = document.getElementById("gmail-modal-body")?.value.trim() || '';
+  const fullText = `Subject: ${subject}\n\n${body}`;
+  navigator.clipboard.writeText(fullText).then(() => {
+    showToast("📋 Email draft copied to clipboard!");
+  }).catch(() => {
+    alert("Copied to clipboard!");
+  });
+};
+
+function updateMailtoLink() {
+  const toEmail = document.getElementById("gmail-modal-to-email")?.value.trim() || '';
+  const subject = document.getElementById("gmail-modal-subject")?.value.trim() || '';
+  const body = document.getElementById("gmail-modal-body")?.value.trim() || '';
+  const link = document.getElementById("gmail-mailto-link");
+  if (link) {
+    link.href = `mailto:${encodeURIComponent(toEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+  }
+}
+
+// Render Single Applicant Card Helper
+function renderSingleApplicantCard(app) {
+  const statusClass = `status-${app.status || 'pending'}`;
+  const cleanPhone = (app.phone || "").replace(/\D/g, "");
+  const tier = app.editorTier || (app.status === 'selected' ? 'special' : (app.status === 'trial' ? 'normal' : 'basic'));
+
+  let tierBadge = `<span class="phase-tier-badge phase-normal">💼 Normal Editor</span>`;
+  if (tier === 'special') tierBadge = `<span class="phase-tier-badge phase-special">⭐ Special Editor</span>`;
+  else if (tier === 'basic') tierBadge = `<span class="phase-tier-badge phase-basic">🔰 Basic Editor</span>`;
+
+  let waTextMsg = `Hi ${app.name}, this is GanaCuts Visuals. We reviewed your editor portfolio (${app.specialization}) and wanted to connect with you.`;
+  if (app.status === 'trial') {
+    waTextMsg = `Hi ${app.name}, this is GanaCuts Visuals. Great news! Your portfolio passed our initial review. We have a paid trial video project ready for you. Let's discuss details and footage delivery.`;
+  } else if (app.status === 'selected') {
+    waTextMsg = `Hi ${app.name}, congratulations! You've been officially selected to join our creative editing team. We have projects lined up and want to coordinate your availability.`;
+  }
+  const waLink = `https://wa.me/${cleanPhone.startsWith('91') ? cleanPhone : '91' + cleanPhone}?text=${encodeURIComponent(waTextMsg)}`;
+  const avatarSrc = getEditorAvatarSrc(app);
+
+  return `
+    <div class="applicant-card" id="app-card-${app.id}" style="margin-bottom:16px;">
+      <div class="applicant-top-bar" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="position:relative; width:48px; height:48px; flex-shrink:0;">
+            <img src="${avatarSrc}" alt="${escapeHtml(app.name)}" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(app.name)}'" class="roster-avatar-circle" style="width:48px; height:48px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-orange); box-shadow:0 0 12px rgba(217,78,40,0.35); display:block;">
+          </div>
+          <div class="applicant-name-group" style="display:flex; flex-direction:column; gap:3px;">
+            <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <span class="applicant-name" style="font-size:15.5px; font-weight:800; color:#121214;">${escapeHtml(app.name)}</span>
+              ${tierBadge}
+              <span class="status-badge ${statusClass}">${escapeHtml(app.status || 'pending')}</span>
+              <span style="font-size:10.5px; background:rgba(0,0,0,0.04); border:1px solid rgba(0,0,0,0.08); padding:2px 7px; border-radius:6px; color:#5a5a62;">PIN: ${escapeHtml(app.password || '1234')}</span>
+            </div>
+            <span style="font-size:11px; color:#888894;">📍 ${escapeHtml(app.city || 'Remote')} • 📞 ${escapeHtml(app.phone || 'Google Account')} • ✉️ ${escapeHtml(app.email || 'No email')}</span>
+          </div>
+        </div>
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span class="applied-date" style="font-size:11.5px; color:#888894;">${escapeHtml(app.appliedAt || 'Recently Applied')}</span>
+        </div>
+      </div>
+
+      <div class="applicant-details-grid" style="margin-top:12px;">
+        <div class="applicant-detail-item">
+          <strong>Location & Contact</strong>
+          <span>📍 ${app.city || 'Remote'} • 📞 ${app.phone || 'Google Account'}</span>
+        </div>
+        <div class="applicant-detail-item">
+          <strong>Specialization & Tools</strong>
+          <span>🎬 ${app.specialization || 'Video Editing'} (${app.tools || 'Video Editor'})</span>
+        </div>
+        <div class="applicant-detail-item">
+          <strong>Expected Rate per reel/video</strong>
+          <span>💰 ${app.rate || 'Standard / Discuss'}</span>
+        </div>
+      </div>
+
+      <!-- Private Admin Notes / Description Box (Confidential) -->
+      <div class="admin-private-desc-box" style="background:#faf7f2; border:1px solid rgba(18,18,20,0.1); padding:10px 14px; border-radius:12px; margin-top:12px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label style="font-size:11px; font-weight:700; color:#121214; display:flex; align-items:center; gap:5px;">
+            <span>🔒 PRIVATE ADMIN NOTES & DESCRIPTION</span>
+            <span style="font-size:10px; color:#888894; font-weight:500;">(Private to admin • Analyzed by Gemini AI)</span>
+          </label>
+          <button type="button" class="primary-btn" style="padding:3px 9px; font-size:11px; background:#121214; color:#fff;" onclick="saveApplicantDescription('${app.id}')">💾 Save Note</button>
+        </div>
+        <textarea id="admin-desc-${app.id}" placeholder="Describe this editor (e.g. exceptional at fast pacing, 3D motion design, reliable turnaround under 24hrs, needs sound guidance)..." style="width:100%; box-sizing:border-box; padding:8px 10px; font-size:12px; border-radius:8px; border:1px solid rgba(18,18,20,0.12); background:#fff; color:#121214; resize:vertical; min-height:46px; font-family:inherit;">${escapeHtml(app.adminDescription || '')}</textarea>
+      </div>
+
+      <!-- Gemini AI Profile Analysis Card (Interactive) -->
+      ${app.aiAnalysis ? `
+        <div class="ai-analysis-card" id="ai-card-${app.id}" style="background:linear-gradient(135deg, rgba(139,92,246,0.06), rgba(99,102,241,0.04)); border:1px solid rgba(139,92,246,0.28); border-radius:12px; padding:12px 16px; margin-top:12px;">
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
+            <div style="display:flex; align-items:center; gap:8px;">
+              <span style="font-size:15px;">✨</span>
+              <div>
+                <span style="font-size:12.5px; font-weight:800; color:#6366f1;">AI ARCHETYPE: ${escapeHtml(app.aiAnalysis.archetype || 'Video Editor')}</span>
+                <span style="font-size:11px; background:#6366f1; color:#fff; font-weight:700; padding:1px 7px; border-radius:10px; margin-left:6px;">Score: ${app.aiAnalysis.rating || 85}/100</span>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:6px;">
+              <span style="font-size:11px; color:#5a5a62;">AI Recommended Phase:</span>
+              <span class="phase-tier-badge phase-${app.aiAnalysis.recommendedTier || 'normal'}">${escapeHtml(app.aiAnalysis.recommendedTierLabel || app.aiAnalysis.recommendedTier || 'Normal')}</span>
+              ${(tier !== app.aiAnalysis.recommendedTier) ? `
+                <button type="button" class="secondary-btn light-btn" onclick="applyAiRecommendedTier('${app.id}', '${app.aiAnalysis.recommendedTier}')" style="padding:2px 7px; font-size:10px; border-color:#6366f1; color:#6366f1; font-weight:700;">Apply Tier ✓</button>
+              ` : ''}
+            </div>
+          </div>
+          <div style="font-size:11.5px; color:#374151; margin-top:6px; line-height:1.45;"><strong>Executive Summary:</strong> ${escapeHtml(app.aiAnalysis.executiveSummary || '')}</div>
+          ${app.aiAnalysis.strengths && app.aiAnalysis.strengths.length ? `
+            <div style="font-size:11px; color:#4b5563; margin-top:4px; display:flex; flex-wrap:wrap; gap:8px;">
+              ${app.aiAnalysis.strengths.map(s => `<span style="background:rgba(99,102,241,0.08); padding:2px 8px; border-radius:6px;">✓ ${escapeHtml(s)}</span>`).join('')}
+            </div>
+          ` : ''}
+          <div style="font-size:11.5px; color:#374151; margin-top:4px;"><strong>Best Client Fit:</strong> ${escapeHtml(app.aiAnalysis.bestFit || '')}</div>
+          <div style="font-size:11.5px; color:#6b7280; margin-top:4px; font-style:italic;">💡 <strong>Coaching Advice for Admin:</strong> ${escapeHtml(app.aiAnalysis.coachingAdvice || '')}</div>
+        </div>
+      ` : ''}
+
+      <!-- Admin Feedback for applicant status view (Visible to editor in status tracker) -->
+      <div style="background:rgba(217,78,40,0.05); border:1px solid rgba(217,78,40,0.2); padding:10px 12px; border-radius:8px; margin-top:10px;">
+        <label style="font-size:11px; font-weight:700; color:var(--accent-orange); display:block; margin-bottom:4px;">PUBLIC STATUS FEEDBACK (Visible to Editor):</label>
+        <div style="display:flex; gap:8px;">
+          <input type="text" id="admin-feedback-${app.id}" placeholder="e.g. Sent sample raw footage on WhatsApp. Submit rough cut by 27 Oct" value="${escapeHtml(app.adminFeedback || '')}" style="flex:1; padding:6px 10px; font-size:12px; border-radius:6px; border:1px solid var(--border-subtle); background:#fff;">
+          <button class="primary-btn" style="padding:6px 12px; font-size:11px; white-space:nowrap;" onclick="saveApplicantFeedback('${app.id}')">Save</button>
+        </div>
+      </div>
+
+      <div class="applicant-actions-bar" style="margin-top:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
+        <div class="applicant-action-left" style="display:flex; flex-wrap:wrap; gap:6px;">
+          <!-- AI Profile Analysis Button -->
+          <button class="primary-btn" id="btn-ai-analyze-${app.id}" onclick="triggerGeminiEditorAnalysis('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, #8b5cf6, #6366f1); color:#fff; border:none; box-shadow:0 2px 8px rgba(139,92,246,0.3);" title="Analyze editor profile and notes with Google Gemini AI">
+            <span>✨ AI Analysis</span>
+          </button>
+          <!-- Direct Gmail Button -->
+          <button class="primary-btn" onclick="openDirectGmailModal('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, #ea4335, #c5221f); color:#fff; border:none; box-shadow:0 2px 8px rgba(234,67,53,0.3);" title="Email editor directly via your Gmail & AI Assistant">
+            <span>📧 Email via Gmail</span>
+          </button>
+          <a href="${app.portfolio}" target="_blank" rel="noopener" class="portfolio-link-btn" title="Inspect Editor Work">
+            <span>View Portfolio ↗</span>
+          </a>
+          <a href="${waLink}" target="_blank" rel="noopener" class="wa-msg-btn" title="Contact on WhatsApp">
+            <span>WhatsApp</span>
+          </a>
+          <button class="primary-btn" onclick="openChatWithEditor('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, #3b82f6, #2563eb); color:#fff;" title="Chat directly in Portal">💬 Chat</button>
+          <button class="secondary-btn light-btn" onclick="openPracticeAssignmentModal('${app.id}')" style="padding:6px 12px; font-size:11px;" title="Assign practice brief">🎯 Practice Task</button>
+          <button class="primary-btn" onclick="openClientProjectModal('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, var(--accent-orange), #ea580c); color:#fff;" title="Assign commercial client project">🎬 Client Project</button>
+          <button class="secondary-btn light-btn" onclick="openFeaturedEditorModal('${app.id}')" style="padding:6px 12px; font-size:11px; color:#d94e28; border-color:rgba(217,78,40,0.3);" title="Feature in Special Spotlight">⭐ Feature</button>
+        </div>
+
+        <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <!-- Phase / Tier Selector (Admin Exclusive) -->
+          <select class="tier-select" onchange="updateApplicantTier('${app.id}', this.value)" title="Admin Phase Tier (Confidential)">
+            <option value="special" ${tier === 'special' ? 'selected' : ''}>⭐ Special Editor</option>
+            <option value="normal" ${tier === 'normal' ? 'selected' : ''}>💼 Normal Editor</option>
+            <option value="basic" ${tier === 'basic' ? 'selected' : ''}>🔰 Basic Editor</option>
+          </select>
+          <select class="status-select" onchange="updateApplicantStatus('${app.id}', this.value)">
+            <option value="pending" ${app.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
+            <option value="trial" ${app.status === 'trial' ? 'selected' : ''}>🎯 Trial</option>
+            <option value="selected" ${app.status === 'selected' ? 'selected' : ''}>✅ Selected</option>
+            <option value="rejected" ${app.status === 'rejected' ? 'selected' : ''}>❌ Rejected</option>
+          </select>
+          <button class="delete-btn" onclick="moveApplicantToTrash('${app.id}')" title="Move to Recycle Bin">Delete</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
 // Render Applicants Roster in Admin Studio
 function renderApplicantsManager() {
   const listEl = document.getElementById("applicants-manage-list");
   if (!listEl) return;
 
-  if (applicants.length === 0) {
+  if (!applicants || applicants.length === 0) {
     listEl.innerHTML = `
       <div class="empty-cat-box">
         <h4>No editor applications received yet</h4>
-        <p>When video editors click "Join as Editor" on your website and submit their details, they appear here.</p>
+        <p>When video editors apply or sign in on your website, they appear here.</p>
       </div>
     `;
     return;
   }
 
-  listEl.innerHTML = applicants.map(app => {
-    const statusClass = `status-${app.status || 'pending'}`;
-    const cleanPhone = (app.phone || "").replace(/\D/g, "");
+  // Calculate Tier Counts
+  const specialTotal = applicants.filter(a => a.editorTier === 'special' || (!a.editorTier && a.status === 'selected')).length;
+  const normalTotal = applicants.filter(a => ((!a.editorTier && a.status !== 'selected' && a.status !== 'pending') || a.editorTier === 'normal')).length;
+  const basicTotal = applicants.filter(a => (a.editorTier === 'basic' || (!a.editorTier && a.status === 'pending'))).length;
 
-    // Dynamic tailored WhatsApp text based on stage
-    let waTextMsg = `Hi ${app.name}, this is GanaCuts Visuals. We reviewed your editor portfolio (${app.specialization}) and wanted to connect with you.`;
-    if (app.status === 'trial') {
-      waTextMsg = `Hi ${app.name}, this is GanaCuts Visuals. Great news! Your portfolio passed our initial review. We have a paid trial video project ready for you. Let's discuss details and footage delivery.`;
-    } else if (app.status === 'selected') {
-      waTextMsg = `Hi ${app.name}, congratulations! You've been officially selected to join our creative editing team. We have projects lined up and want to coordinate your availability.`;
-    }
+  safeSetText("count-tier-all", applicants.length);
+  safeSetText("count-tier-special", specialTotal);
+  safeSetText("count-tier-normal", normalTotal);
+  safeSetText("count-tier-basic", basicTotal);
+  safeSetText("dash-applicants-total", applicants.length);
+  safeSetText("cta-app-count", applicants.length);
 
-    const waLink = `https://wa.me/${cleanPhone.startsWith('91') ? cleanPhone : '91' + cleanPhone}?text=${encodeURIComponent(waTextMsg)}`;
+  // Filter list by Search
+  let filtered = [...applicants];
+  if (currentRosterSearchQuery) {
+    const q = currentRosterSearchQuery;
+    filtered = filtered.filter(a => {
+      return (a.name || "").toLowerCase().includes(q) ||
+        (a.email || "").toLowerCase().includes(q) ||
+        (a.phone || "").includes(q) ||
+        (a.tools || "").toLowerCase().includes(q) ||
+        (a.specialization || "").toLowerCase().includes(q) ||
+        (a.city || "").toLowerCase().includes(q) ||
+        (a.adminDescription || "").toLowerCase().includes(q);
+    });
+  }
 
-    const avatarSrc = getEditorAvatarSrc(app);
+  // Filter by Tier Tab if active
+  if (currentRosterTierFilter !== "all") {
+    filtered = filtered.filter(a => {
+      const tier = a.editorTier || (a.status === 'selected' ? 'special' : (a.status === 'trial' ? 'normal' : 'basic'));
+      return tier === currentRosterTierFilter;
+    });
+  }
 
-    return `
-      <div class="applicant-card" id="app-card-${app.id}">
-        <div class="applicant-top-bar" style="display:flex; align-items:center; justify-content:space-between; gap:12px;">
-          <div style="display:flex; align-items:center; gap:12px;">
-            <div style="position:relative; width:46px; height:46px; flex-shrink:0;">
-              <img src="${avatarSrc}" alt="${escapeHtml(app.name)}" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(app.name)}'" class="roster-avatar-circle" style="width:46px; height:46px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-orange); box-shadow:0 0 12px rgba(217,78,40,0.35); display:block;">
-            </div>
-            <div class="applicant-name-group" style="display:flex; flex-direction:column; gap:3px;">
-              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-                <span class="applicant-name" style="font-size:15px; font-weight:700; color:#fff;">${escapeHtml(app.name)}</span>
-                <span class="status-badge ${statusClass}">${escapeHtml(app.status || 'pending')}</span>
-                <span style="font-size:10.5px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.1); padding:2px 7px; border-radius:6px; color:#a0a0ab;">PIN: ${escapeHtml(app.password || '1234')}</span>
-              </div>
-              <span style="font-size:11px; color:#888894;">📍 ${escapeHtml(app.city || 'Remote')} • 📞 ${escapeHtml(app.phone || 'Google Account')}</span>
-            </div>
-          </div>
-          <span class="applied-date" style="font-size:11.5px; color:#888894;">${escapeHtml(app.appliedAt || 'Recently Applied')}</span>
-        </div>
-
-        <div class="applicant-details-grid">
-          <div class="applicant-detail-item">
-            <strong>Location & Contact</strong>
-            <span>📍 ${app.city || 'Remote'} • 📞 ${app.phone || 'Google Account'}</span>
-          </div>
-          <div class="applicant-detail-item">
-            <strong>Specialization & Tools</strong>
-            <span>🎬 ${app.specialization || 'Video Editing'} (${app.tools || 'Video Editor'})</span>
-          </div>
-          <div class="applicant-detail-item">
-            <strong>Expected payment per reel/video</strong>
-            <span>💰 ${app.rate || 'Standard / Discuss'}</span>
-          </div>
-        </div>
-
-        ${app.notes ? `<div style="font-size:12px;color:var(--text-secondary);background:rgba(0,0,0,0.03);padding:8px 12px;border-radius:8px;"><strong>Applicant Note:</strong> ${app.notes}</div>` : ''}
-
-        <!-- Active Assigned Project View -->
-        ${app.assignedProject ? `
-          <div style="background:rgba(16,185,129,0.06); border:1px solid rgba(16,185,129,0.25); border-radius:8px; padding:10px 12px; font-size:12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <strong style="color:#10b981;">PROJECT ASSIGNED: ${app.assignedProject.title}</strong>
-              <span style="font-weight:700; color:#10b981;">${app.assignedProject.payout || app.rate || '₹1,000'}</span>
-            </div>
-            <div style="color:var(--text-secondary); margin-bottom:6px;">${app.assignedProject.instructions || ''}</div>
-            <a href="${app.assignedProject.footageUrl}" target="_blank" style="color:var(--accent-orange); font-weight:700; text-decoration:none;">Inspect Raw Footage Link ↗</a>
-          </div>
-        ` : ''}
-
-        <!-- Submitted Draft for GanaCuts Visuals to Review -->
-        ${app.submittedDraft ? `
-          <div style="background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.3); border-radius:8px; padding:10px 12px; font-size:12px;">
-            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:4px;">
-              <strong style="color:#60a5fa;">🎬 SUBMITTED VIDEO DRAFT FOR REVIEW:</strong>
-              <span style="color:#94a3b8; font-size:11px;">${app.submittedDraft.date}</span>
-            </div>
-            <div style="margin-bottom:6px;"><strong>Note:</strong> ${app.submittedDraft.notes || 'None'}</div>
-            <div style="display:flex; gap:10px; align-items:center;">
-              <a href="${app.submittedDraft.url}" target="_blank" class="primary-btn" style="padding:4px 10px; font-size:11px; text-decoration:none;">Review Video Cut ↗</a>
-              <button onclick="approveEditorDraft('${app.id}')" class="secondary-btn" style="padding:4px 10px; font-size:11px; color:#10b981; border-color:#10b981;">Approve Cut & Hire to Roster ✓</button>
-            </div>
-          </div>
-        ` : ''}
-
-        <!-- Admin Feedback for applicant status view -->
-        <div style="background:rgba(217,78,40,0.05);border:1px solid rgba(217,78,40,0.2);padding:10px 12px;border-radius:8px;margin-top:4px;">
-          <label style="font-size:11px;font-weight:700;color:var(--accent-orange);display:block;margin-bottom:4px;">ADMIN FEEDBACK (Visible to Editor in Status Tracker):</label>
-          <div style="display:flex;gap:8px;">
-            <input type="text" id="admin-feedback-${app.id}" placeholder="e.g. Sent sample raw footage on WhatsApp. Submit rough cut by 27 Oct" value="${app.adminFeedback || ''}" style="flex:1;padding:6px 10px;font-size:12px;border-radius:6px;border:1px solid var(--border-subtle);background:#fff;">
-            <button class="primary-btn" style="padding:6px 12px;font-size:11px;white-space:nowrap;" onclick="saveApplicantFeedback('${app.id}')">Save Note</button>
-          </div>
-        </div>
-
-        <div class="applicant-actions-bar">
-          <div class="applicant-action-left" style="flex-wrap:wrap; gap:6px;">
-            <a href="${app.portfolio}" target="_blank" rel="noopener" class="portfolio-link-btn" title="Inspect Editor Work">
-              <span>View Portfolio ↗</span>
-            </a>
-            <a href="${waLink}" target="_blank" rel="noopener" class="wa-msg-btn" title="Contact on WhatsApp">
-              <span>WhatsApp</span>
-            </a>
-            <button class="primary-btn" onclick="openChatWithEditor('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, #3b82f6, #2563eb); color:#fff;" title="Chat directly in Portal">💬 Chat</button>
-            <button class="secondary-btn light-btn" onclick="openPracticeAssignmentModal('${app.id}')" style="padding:6px 12px; font-size:11px;" title="Assign practice brief">🎯 Practice Task</button>
-            <button class="primary-btn" onclick="openClientProjectModal('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, var(--accent-orange), #ea580c); color:#fff;" title="Assign commercial client project">🎬 Client Project</button>
-            <button class="secondary-btn light-btn" onclick="openFeaturedEditorModal('${app.id}')" style="padding:6px 12px; font-size:11px; color:#d94e28; border-color:rgba(217,78,40,0.3);" title="Feature in Special Spotlight">⭐ Feature</button>
-          </div>
-
-          <div style="display:flex;align-items:center;gap:8px;">
-            <select class="status-select" onchange="updateApplicantStatus('${app.id}', this.value)">
-              <option value="pending" ${app.status === 'pending' ? 'selected' : ''}>⏳ Pending Review</option>
-              <option value="trial" ${app.status === 'trial' ? 'selected' : ''}>🎯 Trial Clip Sent</option>
-              <option value="selected" ${app.status === 'selected' ? 'selected' : ''}>✅ Selected / Hired</option>
-              <option value="rejected" ${app.status === 'rejected' ? 'selected' : ''}>❌ Rejected</option>
-            </select>
-            <button class="delete-btn" onclick="moveApplicantToTrash('${app.id}')" title="Move to Recycle Bin">Delete</button>
-          </div>
-        </div>
+  if (filtered.length === 0) {
+    listEl.innerHTML = `
+      <div class="empty-cat-box" style="padding:32px 20px; text-align:center; background:#ffffff; border-radius:16px; border:1px solid var(--border-subtle);">
+        <h4>No editors found matching criteria</h4>
+        <p style="color:#5a5a62; font-size:12px;">Try clearing your search query or switching phase tabs.</p>
       </div>
     `;
-  }).join("");
+    return;
+  }
+
+  // DIVIDED PHASE SECTIONS VIEW MODE (Grouped into Special, Normal, Basic)
+  if (currentRosterViewMode === "grouped" && currentRosterTierFilter === "all" && !currentRosterSearchQuery) {
+    const specialList = filtered.filter(a => (a.editorTier === 'special' || (!a.editorTier && a.status === 'selected')));
+    const normalList = filtered.filter(a => ((!a.editorTier && a.status !== 'selected' && a.status !== 'pending') || a.editorTier === 'normal'));
+    const basicList = filtered.filter(a => (a.editorTier === 'basic' || (!a.editorTier && a.status === 'pending')));
+
+    listEl.innerHTML = `
+      <!-- PHASE 1: ⭐ SPECIAL EDITORS SECTION -->
+      <div class="divided-phase-section" style="border-left: 4.5px solid #f59e0b;">
+        <div class="divided-phase-header">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:22px;">⭐</span>
+            <div>
+              <h4 style="font-size:16px; font-weight:800; color:#121214; margin:0;">Special Editors Phase (${specialList.length})</h4>
+              <small style="color:#5a5a62; font-size:12px;">Elite talent • High-retention & 3D motion experts • Assigned to high-budget commercial client projects</small>
+            </div>
+          </div>
+          <span class="phase-tier-badge phase-special">⭐ Special Tier</span>
+        </div>
+        ${specialList.length ? specialList.map(renderSingleApplicantCard).join('') : '<div style="color:#888894; font-size:12px; padding:16px; text-align:center; background:#faf7f2; border-radius:10px;">No editors in Special Phase yet. Use the tier dropdown on any editor card below to promote them!</div>'}
+      </div>
+
+      <!-- PHASE 2: 💼 NORMAL EDITORS SECTION -->
+      <div class="divided-phase-section" style="border-left: 4.5px solid #3b82f6;">
+        <div class="divided-phase-header">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:22px;">💼</span>
+            <div>
+              <h4 style="font-size:16px; font-weight:800; color:#121214; margin:0;">Normal Editors Phase (${normalList.length})</h4>
+              <small style="color:#5a5a62; font-size:12px;">Core reliable editors • Consistent turnaround • Standard client reels & YouTube video cuts</small>
+            </div>
+          </div>
+          <span class="phase-tier-badge phase-normal">💼 Normal Tier</span>
+        </div>
+        ${normalList.length ? normalList.map(renderSingleApplicantCard).join('') : '<div style="color:#888894; font-size:12px; padding:16px; text-align:center; background:#faf7f2; border-radius:10px;">No editors in Normal Phase.</div>'}
+      </div>
+
+      <!-- PHASE 3: 🔰 BASIC EDITORS SECTION -->
+      <div class="divided-phase-section" style="border-left: 4.5px solid #8b5cf6;">
+        <div class="divided-phase-header">
+          <div style="display:flex; align-items:center; gap:10px;">
+            <span style="font-size:22px;">🔰</span>
+            <div>
+              <h4 style="font-size:16px; font-weight:800; color:#121214; margin:0;">Basic Editors Phase (${basicList.length})</h4>
+              <small style="color:#5a5a62; font-size:12px;">Junior & trial editors • Developing pacing skills • In practice assignments and onboarding</small>
+            </div>
+          </div>
+          <span class="phase-tier-badge phase-basic">🔰 Basic Tier</span>
+        </div>
+        ${basicList.length ? basicList.map(renderSingleApplicantCard).join('') : '<div style="color:#888894; font-size:12px; padding:16px; text-align:center; background:#faf7f2; border-radius:10px;">No editors in Basic Phase.</div>'}
+      </div>
+    `;
+    return;
+  }
+
+  // FLAT LIST VIEW
+  listEl.innerHTML = filtered.map(renderSingleApplicantCard).join('');
 }
 
 function escapeHtml(str) {
