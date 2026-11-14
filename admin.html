@@ -1547,9 +1547,11 @@
 
   <script src="app.js?v=3.1"></script>
   <script>
-    // Master Admin Email constant & Supabase Client
-    const MASTER_ADMIN_EMAIL = window.MASTER_ADMIN_EMAIL || "designsbygani@gmail.com";
-    let supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
+    // Master Admin Email & Supabase Client
+    window.MASTER_ADMIN_EMAIL = window.MASTER_ADMIN_EMAIL || "designsbygani@gmail.com";
+    const SUPABASE_PROJECT_URL = window.SUPABASE_URL || "https://urrvvmmurxjwqocrpxct.supabase.co";
+    const SUPABASE_PROJECT_KEY = window.SUPABASE_ANON || "sb_publishable_pef_sQ4erO4VhiILPGo6Rw_HgRXR496";
+    let supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PROJECT_KEY) : null);
 
     // Toggle Password Box visibility
     window.toggleAdminPasswordBox = function() {
@@ -1592,7 +1594,7 @@
       }
 
       if (!supabaseClient) {
-        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
+        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PROJECT_KEY) : null);
       }
 
       try {
@@ -1635,7 +1637,7 @@
       const appScreen = document.getElementById("full-admin-app");
 
       if (!supabaseClient) {
-        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
+        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PROJECT_KEY) : null);
       }
 
       // Check active Supabase Google session

@@ -1480,7 +1480,9 @@
     // =========================================================================
     let currentEditor = null;
     let editorPendingReply = null;
-    let supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
+    const SUPABASE_PROJECT_URL = window.SUPABASE_URL || "https://urrvvmmurxjwqocrpxct.supabase.co";
+    const SUPABASE_PROJECT_KEY = window.SUPABASE_ANON || "sb_publishable_pef_sQ4erO4VhiILPGo6Rw_HgRXR496";
+    let supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PROJECT_KEY) : null);
 
     document.addEventListener("DOMContentLoaded", () => {
       initEditorAuth();
@@ -1508,11 +1510,7 @@
       const gName = gUser.user_metadata?.full_name || gUser.user_metadata?.name || (gEmail ? gEmail.split('@')[0] : "Editor");
       const gAvatar = gUser.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(gName)}`;
 
-      // If Gani logs in, redirect to Admin Studio
-      if (gEmail === "designsbygani@gmail.com" || gEmail.includes("mogiliganesh49")) {
-        window.location.href = "admin.html";
-        return;
-      }
+      const isAdminUser = gEmail === "designsbygani@gmail.com" || gEmail.includes("mogiliganesh49") || gEmail.includes("gani");
 
       // Ensure fresh database roster is loaded
       if (typeof fetchSupabaseApplicants === 'function' && (!applicants || applicants.length === 0)) {
@@ -1579,7 +1577,7 @@
       }
 
       if (!supabaseClient) {
-        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
+        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PROJECT_KEY) : null);
       }
 
       try {
@@ -1695,7 +1693,7 @@
       }
 
       if (!supabaseClient) {
-        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON) : null);
+        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PROJECT_KEY) : null);
       }
 
       // Listen to Supabase Auth state changes
