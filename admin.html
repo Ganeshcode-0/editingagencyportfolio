@@ -793,7 +793,7 @@
                 <th style="min-width:140px;">Agency Status</th>
                 <th style="min-width:170px;">Editor Name</th>
                 <th style="min-width:200px;">Gmail / Email</th>
-                <th style="min-width:140px;">WhatsApp Phone</th>
+                <th style="min-width:140px;">Contact Phone</th>
                 <th style="min-width:170px;">Editing Software</th>
                 <th style="min-width:180px;">Specialization</th>
                 <th style="min-width:110px;">Rate</th>
@@ -1781,7 +1781,7 @@
     </div>
   </div>
 
-  <script src="app.js?v=4.0"></script>
+  <script src="app.js?v=4.1"></script>
   <script>
     // Master Admin Email & Supabase Client
     window.MASTER_ADMIN_EMAIL = window.MASTER_ADMIN_EMAIL || "designsbygani@gmail.com";
@@ -2143,11 +2143,8 @@
       document.getElementById("admin-active-chat-sub").textContent = `${app.specialization} • ${(app.status || 'pending').toUpperCase()} • ${app.phone || 'Remote'}`;
 
       const actionsEl = document.getElementById("admin-active-chat-actions");
-      const cleanPhone = (app.phone || "").replace(/\D/g, "");
-      const waLink = `https://wa.me/${cleanPhone.startsWith('91') ? cleanPhone : '91' + cleanPhone}?text=${encodeURIComponent('Hi ' + app.name + ', GanaCuts Visuals here.')}`;
-
       actionsEl.innerHTML = `
-        <a href="${waLink}" target="_blank" class="secondary-btn light-btn" style="padding:4px 10px; font-size:11px; text-decoration:none;">WhatsApp ↗</a>
+        <button type="button" class="primary-btn" onclick="openDirectGmailModal('${app.id}')" style="padding:4px 10px; font-size:11px; background:linear-gradient(135deg, #ea4335, #c5221f); border:none; color:#fff;">📧 Email via Gmail</button>
         <a href="${app.portfolio}" target="_blank" class="secondary-btn light-btn" style="padding:4px 10px; font-size:11px; text-decoration:none;">Portfolio ↗</a>
       `;
 

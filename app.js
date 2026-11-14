@@ -2202,13 +2202,6 @@ function renderSingleApplicantCard(app) {
   if (tier === 'special') tierBadge = `<span class="phase-tier-badge phase-special">⭐ Special Editor</span>`;
   else if (tier === 'basic') tierBadge = `<span class="phase-tier-badge phase-basic">🔰 Basic Editor</span>`;
 
-  let waTextMsg = `Hi ${app.name}, this is GanaCuts Visuals. We reviewed your editor portfolio (${app.specialization}) and wanted to connect with you.`;
-  if (app.status === 'trial') {
-    waTextMsg = `Hi ${app.name}, this is GanaCuts Visuals. Great news! Your portfolio passed our initial review. We have a paid trial video project ready for you. Let's discuss details and footage delivery.`;
-  } else if (app.status === 'selected') {
-    waTextMsg = `Hi ${app.name}, congratulations! You've been officially selected to join our creative editing team. We have projects lined up and want to coordinate your availability.`;
-  }
-  const waLink = `https://wa.me/${cleanPhone.startsWith('91') ? cleanPhone : '91' + cleanPhone}?text=${encodeURIComponent(waTextMsg)}`;
   const avatarSrc = getEditorAvatarSrc(app);
 
   return `
@@ -2294,7 +2287,7 @@ function renderSingleApplicantCard(app) {
       <div style="background:rgba(217,78,40,0.05); border:1px solid rgba(217,78,40,0.2); padding:10px 12px; border-radius:8px; margin-top:10px;">
         <label style="font-size:11px; font-weight:700; color:var(--accent-orange); display:block; margin-bottom:4px;">PUBLIC STATUS FEEDBACK (Visible to Editor):</label>
         <div style="display:flex; gap:8px;">
-          <input type="text" id="admin-feedback-${app.id}" placeholder="e.g. Sent sample raw footage on WhatsApp. Submit rough cut by 27 Oct" value="${escapeHtml(app.adminFeedback || '')}" style="flex:1; padding:6px 10px; font-size:12px; border-radius:6px; border:1px solid var(--border-subtle); background:#fff;">
+          <input type="text" id="admin-feedback-${app.id}" placeholder="e.g. Sent project brief via email. Submit rough cut by Friday" value="${escapeHtml(app.adminFeedback || '')}" style="flex:1; padding:6px 10px; font-size:12px; border-radius:6px; border:1px solid var(--border-subtle); background:#fff;">
           <button class="primary-btn" style="padding:6px 12px; font-size:11px; white-space:nowrap;" onclick="saveApplicantFeedback('${app.id}')">Save</button>
         </div>
       </div>
@@ -2311,9 +2304,6 @@ function renderSingleApplicantCard(app) {
           </button>
           <a href="${app.portfolio}" target="_blank" rel="noopener" class="portfolio-link-btn" title="Inspect Editor Work">
             <span>View Portfolio ↗</span>
-          </a>
-          <a href="${waLink}" target="_blank" rel="noopener" class="wa-msg-btn" title="Contact on WhatsApp">
-            <span>WhatsApp</span>
           </a>
           <button class="primary-btn" onclick="openChatWithEditor('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, #3b82f6, #2563eb); color:#fff;" title="Chat directly in Portal">💬 Chat</button>
           <button class="secondary-btn light-btn" onclick="openPracticeAssignmentModal('${app.id}')" style="padding:6px 12px; font-size:11px;" title="Assign practice brief">🎯 Practice Task</button>
@@ -2617,10 +2607,8 @@ window.renderAgencySheet = function(filter = currentSheetFilter, searchQuery = c
             <span>${escapeHtml(email)}</span>
           </a>
         </td>
-        <td>
-          <a href="https://wa.me/${waPhone}?text=${encodeURIComponent(waText)}" target="_blank" rel="noopener" style="color:#34d399; text-decoration:none; display:inline-flex; align-items:center; gap:4px; font-weight:600;">
-            <span>💬 +${waPhone}</span>
-          </a>
+        <td style="color:#121214; font-weight:600; white-space:nowrap;">
+          <span>📞 ${escapeHtml(cleanPhone ? (cleanPhone.startsWith('91') ? '+' + cleanPhone : '+91 ' + cleanPhone) : (app.phone || 'Google Account'))}</span>
         </td>
         <td style="color:#d4d4d8;">${escapeHtml(app.tools || "Premiere Pro / DaVinci")}</td>
         <td style="font-weight:600; color:#e4e4e7;">${escapeHtml(app.specialization || "Video Editing")}</td>
@@ -2633,6 +2621,9 @@ window.renderAgencySheet = function(filter = currentSheetFilter, searchQuery = c
         <td style="font-size:11px; color:#a1a1aa;">${escapeHtml(app.appliedAt || "Recent")}</td>
         <td>
           <div style="display:flex; gap:6px; align-items:center;">
+            <button type="button" class="quick-reply-pill" onclick="openDirectGmailModal('${app.id}')" title="Email via Gmail & AI" style="padding:4px 8px; font-size:11px; background:rgba(234,67,53,0.12); color:#ea4335; border-color:rgba(234,67,53,0.3); font-weight:700;">
+              Gmail ✉️
+            </button>
             <button type="button" class="quick-reply-pill" onclick="openChatWithEditor('${app.id}')" title="Chat directly in Admin Studio" style="padding:4px 8px; font-size:11px;">
               Chat 💬
             </button>
@@ -2664,7 +2655,7 @@ window.exportAgencyRosterToCSV = function() {
     "Status",
     "Editor Name",
     "Gmail / Email",
-    "WhatsApp Phone",
+    "Contact Phone",
     "City / Location",
     "Editing Software",
     "Specialization Style",
@@ -2723,7 +2714,7 @@ window.copySheetDataForGoogleSheets = function() {
     "Status",
     "Editor Name",
     "Gmail / Email",
-    "WhatsApp Phone",
+    "Contact Phone",
     "City",
     "Editing Tools",
     "Specialization",
@@ -3697,7 +3688,6 @@ function performStatusLookup(query) {
   }
 
   const cleanPhone = (match.phone || "").replace(/\D/g, "");
-  const waContactLink = `https://wa.me/917075081947?text=${encodeURIComponent(`Hi GanaCuts Visuals, I am checking the status of my editor application (${match.name} - ${cleanPhone}).`)}`;
 
   resultArea.innerHTML = `
     <div class="status-tracker-card">
@@ -3766,8 +3756,8 @@ function performStatusLookup(query) {
           <a href="/editor" target="_blank" class="secondary-btn light-btn" style="padding:8px 14px; font-size:12px; text-decoration:none;">
             <span>Editor Portal Dashboard ↗</span>
           </a>
-          <a href="${waContactLink}" target="_blank" rel="noopener" class="primary-btn" style="padding:8px 14px; font-size:12px;">
-            <span>Message GanaCuts Visuals on WhatsApp</span>
+          <a href="mailto:designsbygani@gmail.com?subject=GanaCuts%20Visuals%20Application%20Status" class="primary-btn" style="padding:8px 14px; font-size:12px; text-decoration:none; background:linear-gradient(135deg, #ea4335, #c5221f); border:none;">
+            <span>✉️ Email GanaCuts Visuals</span>
           </a>
         </div>
       </div>
