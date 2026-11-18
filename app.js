@@ -113,13 +113,51 @@ const DEFAULT_VIDEOS = [
 // Real Applicants (Loaded dynamically from Supabase database)
 const DEFAULT_APPLICANTS = [];
 
+
+// Official crisp vector SVG logos for creative editing tools
+const TOOL_LOGOS = {
+  davinci: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%23121316'/%3E%3Ccircle cx='24' cy='16' r='6' fill='%23ef4444'/%3E%3Ccircle cx='16' cy='28' r='6' fill='%233b82f6'/%3E%3Ccircle cx='32' cy='28' r='6' fill='%23eab308'/%3E%3Ccircle cx='24' cy='24' r='4' fill='%23ffffff'/%3E%3C/svg%3E",
+  premiere: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%2300005B'/%3E%3Ctext x='50%25' y='58%25' text-anchor='middle' dominant-baseline='middle' font-family='Arial,sans-serif' font-weight='900' font-size='22' fill='%23EA77FF'%3EPr%3C/text%3E%3C/svg%3E",
+  aftereffects: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%2300005B'/%3E%3Ctext x='50%25' y='58%25' text-anchor='middle' dominant-baseline='middle' font-family='Arial,sans-serif' font-weight='900' font-size='22' fill='%239999FF'%3EAe%3C/text%3E%3C/svg%3E",
+  capcut: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%23000000'/%3E%3Cpath d='M13 18 L24 24 L13 30 Z M35 18 L24 24 L35 30 Z' fill='%2300f2fe'/%3E%3Cline x1='24' y1='14' x2='24' y2='34' stroke='%23ffffff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E",
+  blender: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%2318181c'/%3E%3Ccircle cx='24' cy='26' r='10' fill='%23ea7600'/%3E%3Ccircle cx='24' cy='26' r='5' fill='%232269a3'/%3E%3Ccircle cx='24' cy='26' r='2' fill='%23ffffff'/%3E%3Cpath d='M24 12 L24 16 M14 18 L18 20 M34 18 L30 20' stroke='%23ea7600' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E",
+  photoshop: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%23001e36'/%3E%3Ctext x='50%25' y='58%25' text-anchor='middle' dominant-baseline='middle' font-family='Arial,sans-serif' font-weight='900' font-size='22' fill='%2331A8FF'%3EPs%3C/text%3E%3C/svg%3E",
+  audition: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%23001e36'/%3E%3Ctext x='50%25' y='58%25' text-anchor='middle' dominant-baseline='middle' font-family='Arial,sans-serif' font-weight='900' font-size='22' fill='%2300E4BB'%3EAu%3C/text%3E%3C/svg%3E",
+  finalcut: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%231c1c20'/%3E%3Cpath d='M14 16 L34 16 L30 32 L18 32 Z' fill='%233b82f6'/%3E%3Ccircle cx='24' cy='24' r='4' fill='%23f59e0b'/%3E%3Cpath d='M12 16 L36 16' stroke='%23ffffff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E",
+  default: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%2318181c'/%3E%3Cpath d='M16 16 L32 24 L16 32 Z' fill='%23d94e28'/%3E%3C/svg%3E"
+};
+
+function getToolImage(tool) {
+  if (!tool) return TOOL_LOGOS.default;
+  if (tool.imageUrl) return tool.imageUrl;
+  if (tool.image) return tool.image;
+  if (tool.photo) return tool.photo;
+  if (tool.iconUrl) return tool.iconUrl;
+  
+  const n = (tool.name || "").toLowerCase();
+  if (n.includes('davinci') || n.includes('resolve')) return TOOL_LOGOS.davinci;
+  if (n.includes('premiere')) return TOOL_LOGOS.premiere;
+  if (n.includes('after') || n.includes('effects') || n.includes(' ae')) return TOOL_LOGOS.aftereffects;
+  if (n.includes('capcut')) return TOOL_LOGOS.capcut;
+  if (n.includes('blender')) return TOOL_LOGOS.blender;
+  if (n.includes('photoshop')) return TOOL_LOGOS.photoshop;
+  if (n.includes('audition')) return TOOL_LOGOS.audition;
+  if (n.includes('final cut') || n.includes('fcp')) return TOOL_LOGOS.finalcut;
+  return TOOL_LOGOS.default;
+}
+if (typeof window !== "undefined") {
+  window.TOOL_LOGOS = TOOL_LOGOS;
+  window.getToolImage = getToolImage;
+}
+
 const DEFAULT_TOOLS = [
-  { id: "tool_davinci", name: "DaVinci Resolve", role: "Color & Finish", icon: "🎨", color: "#f59e0b" },
-  { id: "tool_premiere", name: "Premiere Pro", role: "Timeline & Narrative", icon: "🎬", color: "#a855f7" },
-  { id: "tool_ae", name: "After Effects", role: "VFX & Motion Graphics", icon: "⚡", color: "#38bdf8" },
-  { id: "tool_capcut", name: "CapCut Pro", role: "Fast Social Retention", icon: "✂️", color: "#06b6d4" },
-  { id: "tool_blender", name: "Blender 3D", role: "3D Modeling & Animation", icon: "🧊", color: "#f97316" }
+  { id: "tool_davinci", name: "DaVinci Resolve", role: "Color & Finish", imageUrl: TOOL_LOGOS.davinci, color: "#f59e0b" },
+  { id: "tool_premiere", name: "Premiere Pro", role: "Timeline & Narrative", imageUrl: TOOL_LOGOS.premiere, color: "#a855f7" },
+  { id: "tool_ae", name: "After Effects", role: "VFX & Motion Graphics", imageUrl: TOOL_LOGOS.aftereffects, color: "#38bdf8" },
+  { id: "tool_capcut", name: "CapCut Pro", role: "Fast Social Retention", imageUrl: TOOL_LOGOS.capcut, color: "#06b6d4" },
+  { id: "tool_blender", name: "Blender 3D", role: "3D Modeling & Animation", imageUrl: TOOL_LOGOS.blender, color: "#f97316" }
 ];
+
 
 const DEFAULT_PROFILE = {
   name: "GANACUTS VISUALS",
@@ -1265,6 +1303,62 @@ function getCategoryName(catId) {
 }
 
 // Render Tools on Main Portfolio Page
+
+// Smooth Drag-to-Scroll momentum controller for tools
+function initSmoothToolsScroller() {
+  const slider = document.getElementById("tools-row");
+  if (!slider || slider._hasSmoothScroller) return;
+  slider._hasSmoothScroller = true;
+
+  let isDown = false;
+  let startX;
+  let scrollLeft;
+  let velX = 0;
+  let momentumID;
+
+  slider.addEventListener('mousedown', (e) => {
+    isDown = true;
+    slider.style.cursor = 'grabbing';
+    startX = e.pageX - slider.offsetLeft;
+    scrollLeft = slider.scrollLeft;
+    cancelAnimationFrame(momentumID);
+  });
+
+  slider.addEventListener('mouseleave', () => {
+    if (!isDown) return;
+    isDown = false;
+    slider.style.cursor = 'grab';
+    beginMomentum();
+  });
+
+  slider.addEventListener('mouseup', () => {
+    if (!isDown) return;
+    isDown = false;
+    slider.style.cursor = 'grab';
+    beginMomentum();
+  });
+
+  slider.addEventListener('mousemove', (e) => {
+    if (!isDown) return;
+    e.preventDefault();
+    const x = e.pageX - slider.offsetLeft;
+    const walk = (x - startX) * 1.5;
+    const prevScroll = slider.scrollLeft;
+    slider.scrollLeft = scrollLeft - walk;
+    velX = slider.scrollLeft - prevScroll;
+  });
+
+  function beginMomentum() {
+    cancelAnimationFrame(momentumID);
+    if (Math.abs(velX) > 0.5) {
+      slider.scrollLeft += velX;
+      velX *= 0.94;
+      momentumID = requestAnimationFrame(beginMomentum);
+    }
+  }
+}
+
+// Render Tools on Main Portfolio Page with photos and ultra-smooth scrolling
 function renderTools() {
   const toolsRow = document.getElementById("tools-row");
   if (!toolsRow) return;
@@ -1272,17 +1366,21 @@ function renderTools() {
     ? profile.tools
     : DEFAULT_TOOLS;
 
-  toolsRow.innerHTML = tools.map(t => `
-    <div class="tool-badge" style="display:inline-flex; align-items:center; gap:8px; background:rgba(255,255,255,0.9); border:1px solid ${t.color ? t.color + '44' : 'rgba(18,18,20,0.1)'}; padding:6px 14px; border-radius:9999px; box-shadow:0 3px 12px rgba(18,18,20,0.04); margin:4px 6px 4px 0;">
-      <span class="tool-dot" style="background:${t.color || '#d94e28'}; width:8px; height:8px; border-radius:50%; box-shadow:0 0 6px ${t.color || '#d94e28'}; display:inline-block;"></span>
-      <span style="font-size:14px; line-height:1;">${t.icon || '🎬'}</span>
-      <strong style="color:var(--text-primary); font-size:13px; font-weight:700;">${escapeHtml(t.name)}</strong>
-      ${t.role ? `<small style="color:var(--text-muted); font-size:11.5px; margin-left:2px;">• ${escapeHtml(t.role)}</small>` : ''}
-    </div>
-  `).join('');
+  toolsRow.innerHTML = tools.map(t => {
+    const toolImg = getToolImage(t);
+    return `
+      <div class="tool-badge" title="${escapeHtml(t.name)}${t.role ? ' — ' + escapeHtml(t.role) : ''}" style="border-color:${t.color ? t.color + '33' : 'rgba(18,18,20,0.08)'};">
+        <img src="${toolImg}" alt="${escapeHtml(t.name)}" class="tool-photo-img" loading="eager" onerror="this.src=window.TOOL_LOGOS.default">
+        <strong>${escapeHtml(t.name)}</strong>
+        ${t.role ? `<small>• ${escapeHtml(t.role)}</small>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  initSmoothToolsScroller();
 }
 
-// Render Featured Curated Editors Spotlight on Main Website
+// Render Featured Curated Editors Spotlight on Main Website (Original Dark Card Theme)
 function renderFeaturedEditors() {
   const container = document.getElementById("featured-editors-container");
   if (!container) return;
@@ -1297,19 +1395,20 @@ function renderFeaturedEditors() {
   listEl.innerHTML = featured.map(fe => {
     const avatar = fe.avatarUrl || 'https://api.dicebear.com/7.x/initials/svg?seed=' + encodeURIComponent(fe.name || 'Editor') + '&backgroundColor=d94e28,3b82f6,10b981,8b5cf6,ec4899&fontSize=42';
     return `
-      <div class="featured-editor-card" style="background:#ffffff; border:1px solid rgba(18,18,20,0.08); border-radius:20px; padding:22px; box-shadow:0 12px 30px rgba(18,18,20,0.05); display:flex; flex-direction:column; gap:12px; transition:transform 0.25s ease;">
+      <div class="featured-editor-card" style="background:#18181c; border:1px solid rgba(255,255,255,0.09); border-radius:20px; padding:22px; box-shadow:0 14px 35px rgba(0,0,0,0.3); display:flex; flex-direction:column; gap:12px; transition:transform 0.25s ease;">
         <div style="display:flex; align-items:center; gap:14px;">
-          <img src="${avatar}" alt="${escapeHtml(fe.name)}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-orange); box-shadow:0 0 12px rgba(217,78,40,0.25);">
+          <img src="${avatar}" alt="${escapeHtml(fe.name)}" style="width:50px; height:50px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-orange); box-shadow:0 0 12px rgba(217,78,40,0.35);">
           <div>
-            <h4 style="margin:0; font-size:16px; font-weight:800; color:#121214;">${escapeHtml(fe.name)}</h4>
-            <span style="display:inline-block; font-size:11px; font-weight:700; color:#d94e28; background:rgba(217,78,40,0.1); padding:2px 8px; border-radius:9999px; margin-top:3px;">${escapeHtml(fe.roleTitle || 'Creative Video Editor')}</span>
+            <h4 style="margin:0; font-size:16px; font-weight:800; color:#ffffff;">${escapeHtml(fe.name)}</h4>
+            <span style="display:inline-block; font-size:11px; font-weight:700; color:#d94e28; background:rgba(217,78,40,0.15); padding:2px 8px; border-radius:9999px; margin-top:3px; border:1px solid rgba(217,78,40,0.25);">${escapeHtml(fe.roleTitle || 'Creative Video Editor')}</span>
           </div>
         </div>
-        <p style="margin:0; font-size:13px; color:#5a5a62; line-height:1.5;">${escapeHtml(fe.customBio || 'Core post-production artist at GanaCuts Visuals.')}</p>
+        <p style="margin:0; font-size:13px; color:#a1a1aa; line-height:1.5;">${escapeHtml(fe.customBio || 'Core post-production artist at GanaCuts Visuals.')}</p>
       </div>
     `;
   }).join('');
 }
+
 
 // Render Entire Website
 function renderPortfolio() {
@@ -1956,6 +2055,25 @@ window.saveApplicantDescription = async function(id) {
 };
 
 // Update Applicant Phase / Tier
+
+// Update Applicant Role (Editor vs Manager with Admin Access)
+window.updateApplicantRole = async function(id, newRole) {
+  const app = applicants.find(a => a.id === id);
+  if (!app) return;
+  app.role = newRole;
+  app.isManager = (newRole === 'manager');
+  saveApplicants();
+  if (window.syncApplicantToSupabase) {
+    await window.syncApplicantToSupabase(app);
+  }
+  if (newRole === 'manager') {
+    showToast(`👑 Assigned ${app.name} as Agency Manager! They now have full Admin Studio dashboard access.`);
+  } else {
+    showToast(`✓ Updated ${app.name} role to Editor.`);
+  }
+  renderApplicantsManager();
+};
+
 window.updateApplicantTier = async function(id, newTier) {
   const app = applicants.find(a => a.id === id);
   if (!app) return;
@@ -2194,18 +2312,22 @@ function updateMailtoLink() {
 
 // Render Single Applicant Card Helper
 function renderSingleApplicantCard(app) {
-  const statusClass = `status-${app.status || 'pending'}`;
-  const cleanPhone = (app.phone || "").replace(/\D/g, "");
-  const tier = app.editorTier || (app.status === 'selected' ? 'special' : (app.status === 'trial' ? 'normal' : 'basic'));
+  const statusClass = (app.status || 'pending').toLowerCase();
+  const tier = app.editorTier || 'normal';
+  const isManager = app.role === 'manager' || app.isManager === true;
 
   let tierBadge = `<span class="phase-tier-badge phase-normal">💼 Normal Editor</span>`;
   if (tier === 'special') tierBadge = `<span class="phase-tier-badge phase-special">⭐ Special Editor</span>`;
   else if (tier === 'basic') tierBadge = `<span class="phase-tier-badge phase-basic">🔰 Basic Editor</span>`;
 
+  const managerBadge = isManager
+    ? `<span class="manager-badge" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; font-size:10px; font-weight:800; padding:2px 7px; border-radius:6px; box-shadow:0 2px 8px rgba(245,158,11,0.35);">👑 MANAGER</span>`
+    : '';
+
   const avatarSrc = getEditorAvatarSrc(app);
 
   return `
-    <div class="applicant-card" id="app-card-${app.id}" style="margin-bottom:16px;">
+    <div class="applicant-card" id="app-card-${app.id}" style="background:#18181c !important; border:1px solid rgba(255,255,255,0.09) !important; color:#ffffff !important; border-radius:16px; padding:16px 20px; margin-bottom:16px; box-shadow:0 10px 30px rgba(0,0,0,0.3) !important;">
       <div class="applicant-top-bar" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
         <div style="display:flex; align-items:center; gap:12px;">
           <div style="position:relative; width:48px; height:48px; flex-shrink:0;">
@@ -2213,12 +2335,13 @@ function renderSingleApplicantCard(app) {
           </div>
           <div class="applicant-name-group" style="display:flex; flex-direction:column; gap:3px;">
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              <span class="applicant-name" style="font-size:15.5px; font-weight:800; color:#121214;">${escapeHtml(app.name)}</span>
+              <span class="applicant-name" style="font-size:15.5px; font-weight:800; color:#ffffff !important;">${escapeHtml(app.name)}</span>
+              ${managerBadge}
               ${tierBadge}
               <span class="status-badge ${statusClass}">${escapeHtml(app.status || 'pending')}</span>
-              <span style="font-size:10.5px; background:rgba(0,0,0,0.04); border:1px solid rgba(0,0,0,0.08); padding:2px 7px; border-radius:6px; color:#5a5a62;">PIN: ${escapeHtml(app.password || '1234')}</span>
+              <span style="font-size:10.5px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); padding:2px 7px; border-radius:6px; color:#a1a1aa;">PIN: ${escapeHtml(app.password || '1234')}</span>
             </div>
-            <span style="font-size:11px; color:#888894;">📍 ${escapeHtml(app.city || 'Remote')} • 📞 ${escapeHtml(app.phone || 'Google Account')} • ✉️ ${escapeHtml(app.email || 'No email')}</span>
+            <span style="font-size:11px; color:#a1a1aa;">📍 ${escapeHtml(app.city || 'Remote')} • 📞 ${escapeHtml(app.phone || 'Google Account')} • ✉️ ${escapeHtml(app.email || 'No email')}</span>
           </div>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
@@ -2228,97 +2351,103 @@ function renderSingleApplicantCard(app) {
 
       <div class="applicant-details-grid" style="margin-top:12px;">
         <div class="applicant-detail-item">
-          <strong>Location & Contact</strong>
-          <span>📍 ${app.city || 'Remote'} • 📞 ${app.phone || 'Google Account'}</span>
+          <strong style="color:#ffffff;">Location & Contact</strong>
+          <span style="color:#a1a1aa;">📍 ${app.city || 'Remote'} • 📞 ${app.phone || 'Google Account'}</span>
         </div>
         <div class="applicant-detail-item">
-          <strong>Specialization & Tools</strong>
-          <span>🎬 ${app.specialization || 'Video Editing'} (${app.tools || 'Video Editor'})</span>
+          <strong style="color:#ffffff;">Specialization & Tools</strong>
+          <span style="color:#a1a1aa;">🎬 ${app.specialization || 'Video Editing'} (${app.tools || 'Video Editor'})</span>
         </div>
         <div class="applicant-detail-item">
-          <strong>Expected Rate per reel/video</strong>
-          <span>💰 ${app.rate || 'Standard / Discuss'}</span>
+          <strong style="color:#ffffff;">Expected Rate per reel/video</strong>
+          <span style="color:#a1a1aa;">💰 ${app.rate || 'Standard / Discuss'}</span>
         </div>
       </div>
 
       <!-- Private Admin Notes / Description Box (Confidential) -->
-      <div class="admin-private-desc-box" style="background:#faf7f2; border:1px solid rgba(18,18,20,0.1); padding:10px 14px; border-radius:12px; margin-top:12px;">
+      <div class="admin-private-desc-box" style="background:#121214; border:1px solid rgba(255,255,255,0.1); padding:10px 14px; border-radius:12px; margin-top:12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <label style="font-size:11px; font-weight:700; color:#121214; display:flex; align-items:center; gap:5px;">
+          <label style="font-size:11px; font-weight:700; color:#ffffff; display:flex; align-items:center; gap:5px;">
             <span>🔒 PRIVATE ADMIN NOTES & DESCRIPTION</span>
             <span style="font-size:10px; color:#888894; font-weight:500;">(Private to admin • Analyzed by Gemini AI)</span>
           </label>
-          <button type="button" class="primary-btn" style="padding:3px 9px; font-size:11px; background:#121214; color:#fff;" onclick="saveApplicantDescription('${app.id}')">💾 Save Note</button>
+          <button type="button" class="primary-btn" style="padding:3px 9px; font-size:11px; background:var(--accent-orange); color:#fff; border:none;" onclick="saveApplicantDescription('${app.id}')">💾 Save Note</button>
         </div>
-        <textarea id="admin-desc-${app.id}" placeholder="Describe this editor (e.g. exceptional at fast pacing, 3D motion design, reliable turnaround under 24hrs, needs sound guidance)..." style="width:100%; box-sizing:border-box; padding:8px 10px; font-size:12px; border-radius:8px; border:1px solid rgba(18,18,20,0.12); background:#fff; color:#121214; resize:vertical; min-height:46px; font-family:inherit;">${escapeHtml(app.adminDescription || '')}</textarea>
+        <textarea id="admin-desc-${app.id}" placeholder="Describe this editor (e.g. exceptional at fast pacing, 3D motion design, reliable turnaround under 24hrs, needs sound guidance)..." style="width:100%; box-sizing:border-box; padding:8px 10px; font-size:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.12); background:#1c1c22; color:#ffffff; resize:vertical; min-height:46px; font-family:inherit;">${escapeHtml(app.adminDescription || '')}</textarea>
       </div>
 
       <!-- Gemini AI Profile Analysis Card (Interactive) -->
       ${app.aiAnalysis ? `
-        <div class="ai-analysis-card" id="ai-card-${app.id}" style="background:linear-gradient(135deg, rgba(139,92,246,0.06), rgba(99,102,241,0.04)); border:1px solid rgba(139,92,246,0.28); border-radius:12px; padding:12px 16px; margin-top:12px;">
+        <div class="ai-analysis-card" id="ai-card-${app.id}" style="background:linear-gradient(135deg, rgba(139,92,246,0.12), rgba(99,102,241,0.08)); border:1px solid rgba(139,92,246,0.35); border-radius:12px; padding:12px 16px; margin-top:12px;">
           <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
             <div style="display:flex; align-items:center; gap:8px;">
               <span style="font-size:15px;">✨</span>
               <div>
-                <span style="font-size:12.5px; font-weight:800; color:#6366f1;">AI ARCHETYPE: ${escapeHtml(app.aiAnalysis.archetype || 'Video Editor')}</span>
+                <span style="font-size:12.5px; font-weight:800; color:#a78bfa;">AI ARCHETYPE: ${escapeHtml(app.aiAnalysis.archetype || 'Video Editor')}</span>
                 <span style="font-size:11px; background:#6366f1; color:#fff; font-weight:700; padding:1px 7px; border-radius:10px; margin-left:6px;">Score: ${app.aiAnalysis.rating || 85}/100</span>
               </div>
             </div>
             <div style="display:flex; align-items:center; gap:6px;">
-              <span style="font-size:11px; color:#5a5a62;">AI Recommended Phase:</span>
+              <span style="font-size:11px; color:#d4d4d8;">AI Recommended Phase:</span>
               <span class="phase-tier-badge phase-${app.aiAnalysis.recommendedTier || 'normal'}">${escapeHtml(app.aiAnalysis.recommendedTierLabel || app.aiAnalysis.recommendedTier || 'Normal')}</span>
               ${(tier !== app.aiAnalysis.recommendedTier) ? `
-                <button type="button" class="secondary-btn light-btn" onclick="applyAiRecommendedTier('${app.id}', '${app.aiAnalysis.recommendedTier}')" style="padding:2px 7px; font-size:10px; border-color:#6366f1; color:#6366f1; font-weight:700;">Apply Tier ✓</button>
+                <button type="button" class="secondary-btn light-btn" onclick="applyAiRecommendedTier('${app.id}', '${app.aiAnalysis.recommendedTier}')" style="padding:2px 7px; font-size:10px; border-color:#8b5cf6; color:#c4b5fd; font-weight:700;">Apply Tier ✓</button>
               ` : ''}
             </div>
           </div>
-          <div style="font-size:11.5px; color:#374151; margin-top:6px; line-height:1.45;"><strong>Executive Summary:</strong> ${escapeHtml(app.aiAnalysis.executiveSummary || '')}</div>
+          <div style="font-size:11.5px; color:#e4e4e7; margin-top:6px; line-height:1.45;"><strong style="color:#ffffff;">Executive Summary:</strong> ${escapeHtml(app.aiAnalysis.executiveSummary || '')}</div>
           ${app.aiAnalysis.strengths && app.aiAnalysis.strengths.length ? `
-            <div style="font-size:11px; color:#4b5563; margin-top:4px; display:flex; flex-wrap:wrap; gap:8px;">
-              ${app.aiAnalysis.strengths.map(s => `<span style="background:rgba(99,102,241,0.08); padding:2px 8px; border-radius:6px;">✓ ${escapeHtml(s)}</span>`).join('')}
+            <div style="font-size:11px; color:#d4d4d8; margin-top:4px; display:flex; flex-wrap:wrap; gap:8px;">
+              ${app.aiAnalysis.strengths.map(s => `<span style="background:rgba(99,102,241,0.2); padding:2px 8px; border-radius:6px; color:#c4b5fd;">✓ ${escapeHtml(s)}</span>`).join('')}
             </div>
           ` : ''}
-          <div style="font-size:11.5px; color:#374151; margin-top:4px;"><strong>Best Client Fit:</strong> ${escapeHtml(app.aiAnalysis.bestFit || '')}</div>
-          <div style="font-size:11.5px; color:#6b7280; margin-top:4px; font-style:italic;">💡 <strong>Coaching Advice for Admin:</strong> ${escapeHtml(app.aiAnalysis.coachingAdvice || '')}</div>
+          <div style="font-size:11.5px; color:#e4e4e7; margin-top:4px;"><strong style="color:#ffffff;">Best Client Fit:</strong> ${escapeHtml(app.aiAnalysis.bestFit || '')}</div>
+          <div style="font-size:11.5px; color:#a1a1aa; margin-top:4px; font-style:italic;">💡 <strong style="color:#ffffff;">Coaching Advice for Admin:</strong> ${escapeHtml(app.aiAnalysis.coachingAdvice || '')}</div>
         </div>
       ` : ''}
 
       <!-- Admin Feedback for applicant status view (Visible to editor in status tracker) -->
-      <div style="background:rgba(217,78,40,0.05); border:1px solid rgba(217,78,40,0.2); padding:10px 12px; border-radius:8px; margin-top:10px;">
+      <div style="background:rgba(217,78,40,0.08); border:1px solid rgba(217,78,40,0.25); padding:10px 12px; border-radius:8px; margin-top:10px;">
         <label style="font-size:11px; font-weight:700; color:var(--accent-orange); display:block; margin-bottom:4px;">PUBLIC STATUS FEEDBACK (Visible to Editor):</label>
         <div style="display:flex; gap:8px;">
-          <input type="text" id="admin-feedback-${app.id}" placeholder="e.g. Sent project brief via email. Submit rough cut by Friday" value="${escapeHtml(app.adminFeedback || '')}" style="flex:1; padding:6px 10px; font-size:12px; border-radius:6px; border:1px solid var(--border-subtle); background:#fff;">
+          <input type="text" id="admin-feedback-${app.id}" placeholder="e.g. Sent project brief via email. Submit rough cut by Friday" value="${escapeHtml(app.adminFeedback || '')}" style="flex:1; padding:6px 10px; font-size:12px; border-radius:6px; border:1px solid rgba(255,255,255,0.15); background:#1c1c22; color:#ffffff;">
           <button class="primary-btn" style="padding:6px 12px; font-size:11px; white-space:nowrap;" onclick="saveApplicantFeedback('${app.id}')">Save</button>
         </div>
       </div>
 
       <div class="applicant-actions-bar" style="margin-top:12px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:8px;">
         <div class="applicant-action-left" style="display:flex; flex-wrap:wrap; gap:6px;">
-          <!-- AI Profile Analysis Button -->
           <button class="primary-btn" id="btn-ai-analyze-${app.id}" onclick="triggerGeminiEditorAnalysis('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, #8b5cf6, #6366f1); color:#fff; border:none; box-shadow:0 2px 8px rgba(139,92,246,0.3);" title="Analyze editor profile and notes with Google Gemini AI">
             <span>✨ AI Analysis</span>
           </button>
-          <!-- Direct Gmail Button -->
           <button class="primary-btn" onclick="openDirectGmailModal('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, #ea4335, #c5221f); color:#fff; border:none; box-shadow:0 2px 8px rgba(234,67,53,0.3);" title="Email editor directly via your Gmail & AI Assistant">
             <span>📧 Email via Gmail</span>
           </button>
-          <a href="${app.portfolio}" target="_blank" rel="noopener" class="portfolio-link-btn" title="Inspect Editor Work">
+          <a href="${app.portfolio}" target="_blank" rel="noopener" class="portfolio-link-btn" title="Inspect Editor Work" style="color:#ffffff; border-color:rgba(255,255,255,0.2);">
             <span>View Portfolio ↗</span>
           </a>
           <button class="primary-btn" onclick="openChatWithEditor('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, #3b82f6, #2563eb); color:#fff;" title="Chat directly in Portal">💬 Chat</button>
-          <button class="secondary-btn light-btn" onclick="openPracticeAssignmentModal('${app.id}')" style="padding:6px 12px; font-size:11px;" title="Assign practice brief">🎯 Practice Task</button>
+          <button class="secondary-btn light-btn" onclick="openPracticeAssignmentModal('${app.id}')" style="padding:6px 12px; font-size:11px; background:rgba(255,255,255,0.06); color:#fff; border-color:rgba(255,255,255,0.18);" title="Assign practice brief">🎯 Practice Task</button>
           <button class="primary-btn" onclick="openClientProjectModal('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, var(--accent-orange), #ea580c); color:#fff;" title="Assign commercial client project">🎬 Client Project</button>
-          <button class="secondary-btn light-btn" onclick="openFeaturedEditorModal('${app.id}')" style="padding:6px 12px; font-size:11px; color:#d94e28; border-color:rgba(217,78,40,0.3);" title="Feature in Special Spotlight">⭐ Feature</button>
+          <button class="secondary-btn light-btn" onclick="openFeaturedEditorModal('${app.id}')" style="padding:6px 12px; font-size:11px; color:#d94e28; border-color:rgba(217,78,40,0.3); background:rgba(255,255,255,0.06);" title="Feature in Special Spotlight">⭐ Feature</button>
         </div>
 
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+          <!-- Role Selector: Editor vs Manager -->
+          <select class="role-select" onchange="updateApplicantRole('${app.id}', this.value)" title="Assign Role (Manager can access & manage Admin Studio)" style="background:#1c1c22; color:#ffffff; border:1px solid rgba(255,255,255,0.18); border-radius:8px; padding:6px 10px; font-size:11.5px; font-weight:700; cursor:pointer;">
+            <option value="editor" ${!isManager ? 'selected' : ''}>👤 Editor</option>
+            <option value="manager" ${isManager ? 'selected' : ''}>👑 Manager (Admin Access)</option>
+          </select>
+
           <!-- Phase / Tier Selector (Admin Exclusive) -->
-          <select class="tier-select" onchange="updateApplicantTier('${app.id}', this.value)" title="Admin Phase Tier (Confidential)">
+          <select class="tier-select" onchange="updateApplicantTier('${app.id}', this.value)" title="Admin Phase Tier (Confidential)" style="background:#1c1c22; color:#ffffff; border:1px solid rgba(255,255,255,0.18); border-radius:8px; padding:6px 10px; font-size:11.5px; font-weight:700; cursor:pointer;">
             <option value="special" ${tier === 'special' ? 'selected' : ''}>⭐ Special Editor</option>
             <option value="normal" ${tier === 'normal' ? 'selected' : ''}>💼 Normal Editor</option>
             <option value="basic" ${tier === 'basic' ? 'selected' : ''}>🔰 Basic Editor</option>
           </select>
-          <select class="status-select" onchange="updateApplicantStatus('${app.id}', this.value)">
+
+          <!-- Status Selector -->
+          <select class="status-select" onchange="updateApplicantStatus('${app.id}', this.value)" style="background:#1c1c22; color:#ffffff; border:1px solid rgba(255,255,255,0.18); border-radius:8px; padding:6px 10px; font-size:11.5px; font-weight:700; cursor:pointer;">
             <option value="pending" ${app.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
             <option value="trial" ${app.status === 'trial' ? 'selected' : ''}>🎯 Trial</option>
             <option value="selected" ${app.status === 'selected' ? 'selected' : ''}>✅ Selected</option>

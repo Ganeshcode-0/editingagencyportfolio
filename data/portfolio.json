@@ -98,37 +98,37 @@
     "tools": [
       {
         "id": "tool_davinci",
-        "icon": "🎨",
         "name": "DaVinci Resolve",
         "role": "Color & Finish",
+        "imageUrl": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%23121316'/%3E%3Ccircle cx='24' cy='16' r='6' fill='%23ef4444'/%3E%3Ccircle cx='16' cy='28' r='6' fill='%233b82f6'/%3E%3Ccircle cx='32' cy='28' r='6' fill='%23eab308'/%3E%3Ccircle cx='24' cy='24' r='4' fill='%23ffffff'/%3E%3C/svg%3E",
         "color": "#f59e0b"
       },
       {
         "id": "tool_premiere",
-        "icon": "🎬",
         "name": "Premiere Pro",
         "role": "Timeline & Narrative",
+        "imageUrl": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%2300005B'/%3E%3Ctext x='50%25' y='58%25' text-anchor='middle' dominant-baseline='middle' font-family='Arial,sans-serif' font-weight='900' font-size='22' fill='%23EA77FF'%3EPr%3C/text%3E%3C/svg%3E",
         "color": "#a855f7"
       },
       {
         "id": "tool_ae",
-        "icon": "⚡",
         "name": "After Effects",
         "role": "VFX & Motion Graphics",
+        "imageUrl": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%2300005B'/%3E%3Ctext x='50%25' y='58%25' text-anchor='middle' dominant-baseline='middle' font-family='Arial,sans-serif' font-weight='900' font-size='22' fill='%239999FF'%3EAe%3C/text%3E%3C/svg%3E",
         "color": "#38bdf8"
       },
       {
         "id": "tool_capcut",
-        "icon": "✂️",
         "name": "CapCut Pro",
         "role": "Fast Social Retention",
+        "imageUrl": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%23000000'/%3E%3Cpath d='M13 18 L24 24 L13 30 Z M35 18 L24 24 L35 30 Z' fill='%2300f2fe'/%3E%3Cline x1='24' y1='14' x2='24' y2='34' stroke='%23ffffff' stroke-width='3' stroke-linecap='round'/%3E%3C/svg%3E",
         "color": "#06b6d4"
       },
       {
         "id": "tool_blender",
-        "icon": "🧊",
         "name": "Blender 3D",
         "role": "3D Modeling & Animation",
+        "imageUrl": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='10' fill='%2318181c'/%3E%3Ccircle cx='24' cy='26' r='10' fill='%23ea7600'/%3E%3Ccircle cx='24' cy='26' r='5' fill='%232269a3'/%3E%3Ccircle cx='24' cy='26' r='2' fill='%23ffffff'/%3E%3Cpath d='M24 12 L24 16 M14 18 L18 20 M34 18 L30 20' stroke='%23ea7600' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E",
         "color": "#f97316"
       }
     ],

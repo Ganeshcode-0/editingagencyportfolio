@@ -391,35 +391,76 @@ body {
 
 .tools-row {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  align-items: center;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 6px 2px 10px;
   margin-bottom: 12px;
+  white-space: nowrap;
+  user-select: none;
+  cursor: grab;
+  will-change: scroll-position;
+  transform: translateZ(0);
+}
+
+.tools-row::-webkit-scrollbar {
+  display: none;
+  width: 0;
+  height: 0;
+}
+
+.tools-row:active {
+  cursor: grabbing;
 }
 
 .tool-badge {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: 14px;
-  padding: 10px 14px;
-  display: flex;
-  flex-direction: column;
-  min-width: 120px;
-  transition: var(--transition);
+  background: rgba(255, 255, 255, 0.88);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid rgba(18, 18, 20, 0.09);
+  border-radius: 9999px;
+  padding: 4px 10px 4px 6px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(18, 18, 20, 0.04);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+  will-change: transform;
 }
 
 .tool-badge:hover {
-  border-color: var(--border-strong);
-  transform: translateY(-2px);
+  border-color: rgba(18, 18, 20, 0.25);
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 4px 14px rgba(18, 18, 20, 0.08);
+}
+
+.tool-photo-img {
+  width: 20px;
+  height: 20px;
+  border-radius: 5px;
+  object-fit: contain;
+  flex-shrink: 0;
+  display: block;
 }
 
 .tool-badge strong {
-  font-size: 13px;
-  color: var(--text-primary);
+  font-size: 12px;
+  font-weight: 700;
+  color: #121214;
+  white-space: nowrap;
+  letter-spacing: -0.1px;
 }
 
 .tool-badge small {
-  font-size: 11px;
-  color: var(--text-muted);
+  font-size: 10.5px;
+  color: #5a5a62;
+  white-space: nowrap;
 }
 
 .tool-badge.davinci .tool-dot { background: #ef4444; }
@@ -3767,4 +3808,95 @@ body {
   background: #18181f;
   flex-shrink: 0;
   display: block;
+}
+
+/* ==========================================================================
+   ORIGINAL DARK ROSTER & FEATURED EDITOR STYLING
+   ========================================================================== */
+.applicant-card {
+  background: #18181c !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  border-radius: 16px;
+  padding: 16px 20px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3) !important;
+  color: #ffffff !important;
+  transition: var(--transition);
+}
+
+.applicant-card:hover {
+  border-color: rgba(255, 255, 255, 0.22) !important;
+  box-shadow: 0 14px 40px rgba(0, 0, 0, 0.45) !important;
+}
+
+.applicant-card .applicant-name {
+  color: #ffffff !important;
+}
+
+.applicant-card .applicant-detail-item strong {
+  color: #ffffff !important;
+}
+
+.applicant-card .applicant-detail-item span {
+  color: #a1a1aa !important;
+}
+
+.applicant-card .admin-private-desc-box {
+  background: #121214 !important;
+  border: 1px solid rgba(255, 255, 255, 0.1) !important;
+  color: #ffffff !important;
+}
+
+.applicant-card .admin-private-desc-box label {
+  color: #ffffff !important;
+}
+
+.applicant-card .admin-private-desc-box textarea {
+  background: #1c1c22 !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  color: #ffffff !important;
+}
+
+.applicant-card select.tier-select,
+.applicant-card select.role-select,
+.applicant-card select.status-select {
+  background: #1c1c22 !important;
+  color: #ffffff !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+}
+
+.featured-editor-card {
+  background: #18181c !important;
+  border: 1px solid rgba(255, 255, 255, 0.09) !important;
+  color: #ffffff !important;
+  border-radius: 20px;
+  padding: 22px;
+  box-shadow: 0 14px 35px rgba(0, 0, 0, 0.3) !important;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+.featured-editor-card:hover {
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2) !important;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.45) !important;
+}
+
+.manager-badge {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: #ffffff;
+  padding: 2px 7px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(245, 158, 11, 0.35);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
