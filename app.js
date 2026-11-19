@@ -165,7 +165,7 @@ const DEFAULT_PROFILE = {
   tagline: "High-retention video editing, cinematic color grading, and dynamic motion graphics by GanaCuts Visuals. Crafted with DaVinci Resolve, Premiere Pro & After Effects.",
   photo: "assets/logo.jpg",
   waUrl: "https://wa.me/917075081947?text=Hi%20GanaCuts%20Visuals,%20I%20saw%20your%20portfolio%20on%20GanaCuts%20Visuals%20and%20would%20like%20to%20hire%20you%20for%20a%20video%20editing%20project.",
-  instaUrl: "https://www.instagram.com/gana_cuts_visuals?dlrf=aXJlY3lsazhraHl4",
+  instaUrl: "https://www.instagram.com/desimadhurivibes?fqnt=MWd1d3Q5bXhzOHZ1dw==",
   agencyFolders: [],
   tools: DEFAULT_TOOLS,
   featuredEditors: []
@@ -1368,11 +1368,10 @@ function renderTools() {
 
   toolsRow.innerHTML = tools.map(t => {
     const toolImg = getToolImage(t);
+    const tooltipText = t.name + (t.role ? ' — ' + t.role : '');
     return `
-      <div class="tool-badge" title="${escapeHtml(t.name)}${t.role ? ' — ' + escapeHtml(t.role) : ''}" style="border-color:${t.color ? t.color + '33' : 'rgba(18,18,20,0.08)'};">
+      <div class="tool-badge tool-badge-photo-only" title="${escapeHtml(tooltipText)}" style="border-color:${t.color ? t.color + '44' : 'rgba(18,18,20,0.12)'};">
         <img src="${toolImg}" alt="${escapeHtml(t.name)}" class="tool-photo-img" loading="eager" onerror="this.src=window.TOOL_LOGOS.default">
-        <strong>${escapeHtml(t.name)}</strong>
-        ${t.role ? `<small>• ${escapeHtml(t.role)}</small>` : ''}
       </div>
     `;
   }).join('');
@@ -1872,7 +1871,7 @@ window.openCinemaModal = function(id) {
   if (titleEl) titleEl.textContent = video.title;
   if (categoryEl) categoryEl.textContent = `${getCategoryName(video.categoryId)} • ${video.duration || '0:45'}`;
   if (waCta) waCta.href = `https://wa.me/917075081947?text=Hi%20Ganesh,%20I%20like%20this%20edit:%20"${encodeURIComponent(video.title)}".%20I%20would%20like%20to%20hire%20you%20for%20a%20video%20editing%20project.`;
-  if (instaCta) instaCta.href = profile.instaUrl || "https://www.instagram.com/gana_cuts_visuals?dlrf=aXJlY3lsazhraHl4";
+  if (instaCta) instaCta.href = profile.instaUrl || "https://www.instagram.com/desimadhurivibes?fqnt=MWd1d3Q5bXhzOHZ1dw==";
 
   const ytId = extractYouTubeId(video.videoUrl);
   if (ytId) {
@@ -1977,7 +1976,7 @@ function updateAdminUI() {
   const profWaInput = document.getElementById("profile-wa-url");
   if (profWaInput) profWaInput.value = profile.waUrl || "";
   const profInstaInput = document.getElementById("profile-insta-url");
-  if (profInstaInput) profInstaInput.value = profile.instaUrl || "https://www.instagram.com/gana_cuts_visuals?dlrf=aXJlY3lsazhraHl4";
+  if (profInstaInput) profInstaInput.value = profile.instaUrl || "https://www.instagram.com/desimadhurivibes?fqnt=MWd1d3Q5bXhzOHZ1dw==";
 
   renderCategoriesManager();
   renderVideosManager();

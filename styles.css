@@ -315,18 +315,23 @@ body {
 .hero-image-wrapper {
   position: relative;
   width: 100%;
-  height: 330px;
-  border-radius: 20px;
+  max-width: 280px;
+  aspect-ratio: 1 / 1;
+  height: auto;
+  border-radius: 24px;
   overflow: hidden;
-  background: #a31d1d;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+  background: #18181c;
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.16);
+  border: 1px solid rgba(18, 18, 20, 0.08);
+  margin: 0 auto;
 }
 
 .hero-img {
   width: 100%;
   height: 100%;
+  aspect-ratio: 1 / 1;
   object-fit: cover;
-  object-position: center top;
+  object-position: center;
   display: block;
   transition: transform 0.5s ease;
 }
@@ -438,6 +443,40 @@ body {
   border-color: rgba(18, 18, 20, 0.25);
   transform: translateY(-1px) scale(1.02);
   box-shadow: 0 4px 14px rgba(18, 18, 20, 0.08);
+}
+
+
+.tool-badge-photo-only {
+  width: 38px;
+  height: 38px;
+  min-width: 38px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 11px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(18, 18, 20, 0.1);
+  box-shadow: 0 2px 8px rgba(18, 18, 20, 0.05);
+  flex-shrink: 0;
+  cursor: pointer;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.tool-badge-photo-only:hover {
+  transform: translateY(-2px) scale(1.08);
+  box-shadow: 0 6px 16px rgba(18, 18, 20, 0.12);
+  border-color: rgba(18, 18, 20, 0.3);
+}
+
+.tool-badge-photo-only .tool-photo-img {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  object-fit: contain;
+  display: block;
 }
 
 .tool-photo-img {
@@ -2110,9 +2149,12 @@ body {
   }
   
   .hero-image-wrapper {
-    height: 360px;
-    max-width: 300px;
-    margin: 0 auto;
+    width: 100%;
+    max-width: 240px;
+    aspect-ratio: 1 / 1;
+    height: auto;
+    margin: 0 auto 10px;
+    border-radius: 22px;
   }
 
   .tools-row, .hero-actions {
@@ -2373,9 +2415,34 @@ body {
   }
 
   .hero-image-wrapper {
-    height: 260px;
-    max-width: 220px;
-    border-radius: 18px;
+    width: 100%;
+    max-width: 180px;
+    aspect-ratio: 1 / 1;
+    height: auto;
+    margin: 0 auto 8px;
+    border-radius: 20px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+  }
+
+  .online-badge {
+    bottom: 8px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 10px;
+    padding: 3px 9px;
+    white-space: nowrap;
+  }
+
+  .tool-badge-photo-only {
+    width: 34px;
+    height: 34px;
+    min-width: 34px;
+    border-radius: 9px;
+  }
+
+  .tool-badge-photo-only .tool-photo-img {
+    width: 20px;
+    height: 20px;
   }
 
   .hero-title {

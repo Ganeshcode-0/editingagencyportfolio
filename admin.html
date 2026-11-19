@@ -1196,7 +1196,7 @@
 
             <div class="form-group">
               <label for="profile-insta-url">Instagram Profile Link for Clients (Hire Button)</label>
-              <input type="text" id="profile-insta-url" value="https://www.instagram.com/gana_cuts_visuals?dlrf=aXJlY3lsazhraHl4">
+              <input type="text" id="profile-insta-url" value="https://www.instagram.com/desimadhurivibes?fqnt=MWd1d3Q5bXhzOHZ1dw==">
               <small class="field-help" style="color:#888894;">Direct link to your Instagram profile (@gana_cuts_visuals) opened by the 'Hire on Instagram' button.</small>
             </div>
 
@@ -1740,6 +1740,37 @@
       if (f) f.style.display = f.style.display === "none" ? "block" : "none";
     };
 
+    // State tracking to prevent infinite loops and re-render thrashing
+    let _adminDashboardOpened = false;
+
+    function showAdminDashboard(user) {
+      const authScreen = document.getElementById("full-admin-login");
+      const appScreen = document.getElementById("full-admin-app");
+      if (authScreen) authScreen.classList.add("hidden");
+      if (appScreen) appScreen.classList.remove("hidden");
+
+      const displayEl = document.getElementById("admin-user-display");
+      if (displayEl && user) {
+        if (user.role === "manager") {
+          displayEl.innerHTML = `<span style="color:#f59e0b; font-weight:800;">👑 Manager:</span> ${escapeHtml(user.name)}`;
+        } else {
+          displayEl.innerHTML = `<span style="color:#d94e28; font-weight:800;">⚡ Admin:</span> ${escapeHtml(user.name || "GanaCuts Admin")}`;
+        }
+      }
+
+      if (!_adminDashboardOpened) {
+        _adminDashboardOpened = true;
+        updateAdminUI();
+        initAdminChat();
+        if (typeof renderAdminFolders === 'function') renderAdminFolders();
+        if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
+        if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
+        if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
+        if (typeof renderAdminToolsList === 'function') renderAdminToolsList();
+        if (typeof renderAdminFeaturedEditorsList === 'function') renderAdminFeaturedEditorsList();
+      }
+    }
+
     // Helper: Establish Admin Session from Google User
     async function handleAdminGoogleSession(gUser) {
       if (!gUser) return;
@@ -1780,7 +1811,7 @@
       if (window.location.hash || window.location.search) {
         try { history.replaceState(null, null, window.location.pathname); } catch (e) {}
       }
-      await initAdminAuth();
+      showAdminDashboard(sessionData);
     }
 
     // Direct Google OAuth Sign-In for Admin Studio
@@ -1825,7 +1856,7 @@
       // Listen for Supabase OAuth return
       if (supabaseClient && supabaseClient.auth) {
         supabaseClient.auth.onAuthStateChange(async (event, session) => {
-          if (session && session.user && (event === 'SIGNED_IN' || event === 'INITIAL_SESSION' || event === 'TOKEN_REFRESHED')) {
+          if (event === 'SIGNED_IN' && session && session.user && !_adminDashboardOpened) {
             await handleAdminGoogleSession(session.user);
           }
         });
@@ -1837,49 +1868,34 @@
       const authScreen = document.getElementById("full-admin-login");
       const appScreen = document.getElementById("full-admin-app");
 
-      if (!supabaseClient) {
-        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PROJECT_KEY) : null);
-      }
-
-      // Check active Supabase Google session
-      if (supabaseClient && supabaseClient.auth) {
-        try {
-          const { data: { session } } = await supabaseClient.auth.getSession();
-          if (session && session.user) {
-            await handleAdminGoogleSession(session.user);
-            return;
-          }
-        } catch (e) {}
-      }
-
-      // Check stored session in localStorage
+      // 1. FAST PATH: Check stored session synchronously
       const session = localStorage.getItem("cutscale_admin_session");
       if (session) {
         try {
           const user = JSON.parse(session);
           if (user && (user.role === "admin" || user.role === "manager" || user.authProvider === "google" || user.email === MASTER_ADMIN_EMAIL || (user.email && (user.email.includes("gani") || user.email.includes("admin"))))) {
-            if (authScreen) authScreen.classList.add("hidden");
-            if (appScreen) appScreen.classList.remove("hidden");
-            const displayEl = document.getElementById("admin-user-display");
-            if (displayEl) {
-              if (user.role === "manager") {
-                displayEl.innerHTML = `<span style="color:#f59e0b; font-weight:800;">👑 Manager:</span> ${escapeHtml(user.name)}`;
-              } else {
-                displayEl.innerHTML = `<span style="color:#d94e28; font-weight:800;">⚡ Admin:</span> ${escapeHtml(user.name || "GanaCuts Admin")}`;
-              }
-            }
-            updateAdminUI();
-            initAdminChat();
-            if (typeof renderAdminFolders === 'function') renderAdminFolders();
-            if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
-            if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
-            if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
-            if (typeof renderAdminToolsList === 'function') renderAdminToolsList();
+            showAdminDashboard(user);
             return;
           }
         } catch (e) {}
       }
 
+      // 2. CHECK SUPABASE GOOGLE SESSION
+      if (!supabaseClient) {
+        supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PROJECT_KEY) : null);
+      }
+
+      if (supabaseClient && supabaseClient.auth) {
+        try {
+          const { data: { session: sbSession } } = await supabaseClient.auth.getSession();
+          if (sbSession && sbSession.user) {
+            await handleAdminGoogleSession(sbSession.user);
+            return;
+          }
+        } catch (e) {}
+      }
+
+      // 3. NO ACTIVE SESSION: Show login screen
       if (authScreen) authScreen.classList.remove("hidden");
       if (appScreen) appScreen.classList.add("hidden");
     }
@@ -1959,7 +1975,7 @@
             btn.disabled = false;
             btn.innerHTML = `<span>Sign In to Admin Studio</span>`;
           }
-          await initAdminAuth();
+          showAdminDashboard(sessionData);
         } else {
           if (btn) {
             btn.disabled = false;
@@ -1978,7 +1994,7 @@
           try { await supabaseClient.auth.signOut(); } catch (e) {}
         }
         localStorage.removeItem("cutscale_admin_session");
-        await initAdminAuth();
+        window.location.reload();
       });
     }
 
@@ -2025,17 +2041,19 @@
       if (!activeChatEditorId && applicants.length > 0) {
         selectAdminChatUser(applicants[0].id);
       }
-      if (!adminChatPollInterval) {
-        adminChatPollInterval = setInterval(async () => {
-          if (typeof fetchSupabaseMessages === 'function') {
-            await fetchSupabaseMessages();
-          }
-          renderAdminChatUsers();
-          if (activeChatEditorId && typeof renderAdminConversation === 'function') {
-            renderAdminConversation();
-          }
-        }, 4000);
+      if (adminChatPollInterval) {
+        clearInterval(adminChatPollInterval);
+        adminChatPollInterval = null;
       }
+      adminChatPollInterval = setInterval(async () => {
+        if (typeof fetchSupabaseMessages === 'function') {
+          await fetchSupabaseMessages();
+        }
+        renderAdminChatUsers();
+        if (activeChatEditorId && typeof renderAdminConversation === 'function') {
+          renderAdminConversation();
+        }
+      }, 5000);
     }
 
     function renderAdminChatUsers() {
@@ -3488,20 +3506,7 @@
           if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
         });
       }
-      setTimeout(() => {
-        if (typeof renderAdminFolders === 'function') renderAdminFolders();
-        if (typeof renderAdminToolsList === 'function') renderAdminToolsList();
-        if (typeof renderAdminFeaturedEditorsList === 'function') renderAdminFeaturedEditorsList();
-        if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
-        if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
-        if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
-      }, 400);
-      setTimeout(() => {
-        if (typeof renderAdminFolders === 'function') renderAdminFolders();
-        if (typeof renderAdminPracticeTasksTable === 'function') renderAdminPracticeTasksTable();
-        if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
-        if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
-      }, 1200);
+      
     });
   </script>
 </body>
