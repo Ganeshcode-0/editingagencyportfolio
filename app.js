@@ -2252,18 +2252,25 @@ window.callGeminiDirectClient = async function(prompt, isJson = true) {
 // falls back directly to client-side Google API call on GitHub Pages or static host
 window.executeUniversalGemini = async function(action, payload = {}) {
   // Try server endpoint only if not on github.io
-  const isGitHubPages = window.location.hostname.includes("github.io");
+  const isGitHubPages = (typeof window !== "undefined" && window.location && window.location.hostname && window.location.hostname.includes("github.io"));
   if (!isGitHubPages) {
     try {
+      const clientKey = window.getIntegratedGeminiKey ? window.getIntegratedGeminiKey() : '';
+      const headers = { "Content-Type": "application/json" };
+      if (clientKey) headers["Authorization"] = "Bearer " + clientKey;
+
       const res = await fetch("/api/ai", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers,
         body: JSON.stringify({ action, ...payload })
       });
       const contentType = res.headers.get("content-type") || "";
       if (res.ok && contentType.includes("application/json")) {
         const data = await res.json();
         if (data && data.success) return data;
+        if (data && data.error && !clientKey) {
+          throw new Error(data.error);
+        }
       }
     } catch (e) {
       console.warn("Backend /api/ai unavailable, falling back to direct client Gemini...", e);
@@ -2372,6 +2379,37 @@ Format the output as ONLY valid JSON:
       editorId: editor.id,
       recipientEmail: editor.email,
       email: emailResult
+    };
+  }
+
+  if (action === "copilot_chat") {
+    const userQuery = payload.message || payload.prompt || "Hello Copilot";
+    const agencyContext = payload.agencyContext || {};
+    const prompt = `You are GanaCuts Agency Copilot, an intelligent AI Executive Partner for the Creative Director and operations managers at GanaCuts Visuals.
+
+AGENCY OPERATING CONTEXT:
+- Agency: GanaCuts Visuals (High-retention video editing agency)
+- Specializations: Short-form Reels/Shorts, YouTube Long-form, 3D/Kinetic Motion Graphics, Commercial Ads
+- Editor Tiers: Special, Normal, Basic
+- Active Editors on Roster: ${agencyContext.totalEditors || '30+'}
+- Tier Breakdown: Special: ${agencyContext.specialCount || 0}, Normal: ${agencyContext.normalCount || 0}, Basic: ${agencyContext.basicCount || 0}
+- Summary of Recent Members / Activities: ${agencyContext.rosterSummary || 'Full roster actively managed in Supabase database.'}
+- Recent Client Inquiries / Leads: ${agencyContext.inquiriesSummary || 'Client inquiries active.'}
+
+USER QUERY:
+${userQuery}
+
+INSTRUCTIONS:
+- Speak as a sharp, professional, proactive creative agency director and chief of staff.
+- Be concise, direct, and actionable. Give specific advice, workflow tips, editor assignment recommendations, or drafted messages whenever requested.
+- Format with clean markdown (bullet points, bold text).`;
+
+    const reply = await window.callGeminiDirectClient(prompt, false);
+    return {
+      success: true,
+      action: "copilot_chat",
+      reply: reply,
+      timestamp: Date.now()
     };
   }
 
@@ -3011,6 +3049,11 @@ function escapeHtml(str) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+const escapeHTML = escapeHtml;
+if (typeof window !== "undefined") {
+  window.escapeHtml = escapeHtml;
+  window.escapeHTML = escapeHtml;
 }
 
 // Update Applicant Status
@@ -4889,7 +4932,7 @@ Answer:`;
 
 // Initialize Copilot on page load (Strict Admin Studio only)
 if (typeof document !== 'undefined') {
-  const isAdmin = window.location.pathname.includes("admin") || Boolean(document.getElementById("pane-overview"));
+  const isAdmin = (typeof window !== 'undefined' && window.location && window.location.pathname && window.location.pathname.includes("admin")) || Boolean(document.getElementById("pane-overview"));
   if (isAdmin) {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => { setTimeout(window.initAiCopilot, 800); });
@@ -5153,7 +5196,7 @@ window.renderInquiriesManager = function() {
             '<span style="font-size:12px; color:#888894;">' + dateStr + '</span>' +
           '</div>' +
           '<h3 style="font-size:17px; font-weight:800; color:#ffffff; margin:0;">' +
-            escapeHTML(inq.client_name || 'Client') + (inq.brand_name ? ' <span style="color:#a0a0ab; font-size:14px; font-weight:500;">(' + escapeHTML(inq.brand_name) + ')</span>' : '') +
+            escapeHtml(inq.client_name || 'Client') + (inq.brand_name ? ' <span style="color:#a0a0ab; font-size:14px; font-weight:500;">(' + escapeHtml(inq.brand_name) + ')</span>' : '') +
           '</h3>' +
         '</div>' +
         '<div style="display:flex; align-items:center; gap:8px;">' +
@@ -5167,17 +5210,17 @@ window.renderInquiriesManager = function() {
       '</div>' +
 
       '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; background:#141418; border-radius:10px; padding:12px; font-size:12.5px;">' +
-        '<div><strong style="color:#a0a0ab;">Project:</strong> <span style="color:#ffffff;">' + escapeHTML(inq.project_type || 'Short-Form') + '</span></div>' +
-        '<div><strong style="color:#a0a0ab;">Volume:</strong> <span style="color:#ffffff;">' + escapeHTML(inq.video_count || 'Standard') + '</span></div>' +
-        '<div><strong style="color:#a0a0ab;">Budget:</strong> <span style="color:#34d399; font-weight:700;">' + escapeHTML(inq.budget || 'Custom') + '</span></div>' +
-        '<div><strong style="color:#a0a0ab;">Phone/WA:</strong> <span style="color:#ffffff;">' + escapeHTML(inq.contact || 'N/A') + '</span></div>' +
-        '<div><strong style="color:#a0a0ab;">Email:</strong> <span style="color:#ffffff;">' + escapeHTML(inq.email || 'N/A') + '</span></div>' +
-        (inq.footage_link ? ('<div><strong style="color:#a0a0ab;">Footage:</strong> <a href="' + escapeHTML(inq.footage_link) + '" target="_blank" rel="noopener" style="color:#60a5fa; text-decoration:underline;">Open Link ➔</a></div>') : '') +
+        '<div><strong style="color:#a0a0ab;">Project:</strong> <span style="color:#ffffff;">' + escapeHtml(inq.project_type || 'Short-Form') + '</span></div>' +
+        '<div><strong style="color:#a0a0ab;">Volume:</strong> <span style="color:#ffffff;">' + escapeHtml(inq.video_count || 'Standard') + '</span></div>' +
+        '<div><strong style="color:#a0a0ab;">Budget:</strong> <span style="color:#34d399; font-weight:700;">' + escapeHtml(inq.budget || 'Custom') + '</span></div>' +
+        '<div><strong style="color:#a0a0ab;">Phone/WA:</strong> <span style="color:#ffffff;">' + escapeHtml(inq.contact || 'N/A') + '</span></div>' +
+        '<div><strong style="color:#a0a0ab;">Email:</strong> <span style="color:#ffffff;">' + escapeHtml(inq.email || 'N/A') + '</span></div>' +
+        (inq.footage_link ? ('<div><strong style="color:#a0a0ab;">Footage:</strong> <a href="' + escapeHtml(inq.footage_link) + '" target="_blank" rel="noopener" style="color:#60a5fa; text-decoration:underline;">Open Link ➔</a></div>') : '') +
       '</div>' +
 
       (inq.notes ? ('<div style="background:#18181c; border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px 14px; font-size:13px; color:#d1d1d8; line-height:1.5;">' +
         '<strong style="color:#f97316; font-size:11px; text-transform:uppercase; display:block; margin-bottom:3px;">Client Vision / Notes:</strong>' +
-        escapeHTML(inq.notes) +
+        escapeHtml(inq.notes) +
       '</div>') : '') +
 
       '<div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:4px;">' +
@@ -5230,9 +5273,9 @@ window.draftAiProposalForInquiry = async function(inquiryId) {
     try {
       const res = await window.executeUniversalGemini('copilot_chat', { prompt, message: prompt });
       const reply = res?.reply || res?.result || "Proposal draft complete.";
-      aiBubble.innerHTML = '<strong style="color:#d94e28;">✨ Generated Client Proposal:</strong><br><br>' + escapeHTML(reply).replace(/\n/g, '<br>');
+      aiBubble.innerHTML = '<strong style="color:#d94e28;">✨ Generated Client Proposal:</strong><br><br>' + escapeHtml(reply).replace(/\n/g, '<br>');
     } catch (e) {
-      aiBubble.innerHTML = '<span style="color:#ef4444;">Failed to generate proposal: ' + escapeHTML(e.message) + '</span>';
+      aiBubble.innerHTML = '<span style="color:#ef4444;">Failed to generate proposal: ' + escapeHtml(e.message) + '</span>';
     }
     container.scrollTop = container.scrollHeight;
   }
@@ -5294,9 +5337,9 @@ window.sendCopilotMessage = async function(message) {
     });
 
     const reply = res?.reply || res?.result || "I apologize, I didn't receive a response.";
-    aiBubble.innerHTML = escapeHTML(reply).replace(/\n/g, '<br>');
+    aiBubble.innerHTML = escapeHtml(reply).replace(/\n/g, '<br>');
   } catch (err) {
-    aiBubble.innerHTML = '<span style="color:#ef4444;">Error calling Gemini AI: ' + escapeHTML(err.message) + '</span>';
+    aiBubble.innerHTML = '<span style="color:#ef4444;">Error calling Gemini AI: ' + escapeHtml(err.message) + '</span>';
   }
   container.scrollTop = container.scrollHeight;
 };

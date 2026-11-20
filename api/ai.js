@@ -21,20 +21,63 @@ function isRateLimited(ip) {
   return record.count > maxRequests;
 }
 
+function isUsableKey(k) {
+  if (!k || typeof k !== 'string') return false;
+  const s = k.trim();
+  if (s.length < 15) return false;
+  if (/^(your_actual_key|placeholder|your_key|none|null|undefined|test_key)/i.test(s)) return false;
+  return true;
+}
+
 // Helper to safely get Gemini API Key without leaking to frontend
-function getGeminiApiKey() {
-  // Check Vercel server environment variables first
-  if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 10) {
-    return process.env.GEMINI_API_KEY.trim();
+function getGeminiApiKey(req, body) {
+  // 1. Check Vercel / Node server environment variables
+  const envCandidates = [
+    process.env.GEMINI_API_KEY,
+    process.env.GEMINI_KEY,
+    process.env.GOOGLE_GEMINI_API_KEY,
+    process.env.GOOGLE_API_KEY
+  ];
+  for (const c of envCandidates) {
+    if (isUsableKey(c)) {
+      return c.trim();
+    }
   }
 
-  // Check local .env for local Node development
+  // 2. Check any environment variable containing GEMINI
+  if (process.env) {
+    for (const [k, v] of Object.entries(process.env)) {
+      if (k.toUpperCase().includes('GEMINI') && isUsableKey(v)) {
+        return v.trim();
+      }
+    }
+  }
+
+  // 3. Check Authorization header (Bearer <key>) or x-gemini-key from authenticated admin request
+  if (req) {
+    const authHeader = req.headers?.['authorization'] || req.headers?.['Authorization'] || '';
+    if (authHeader.startsWith('Bearer ')) {
+      const token = authHeader.slice(7).trim();
+      if (isUsableKey(token)) return token;
+    }
+    const xKey = req.headers?.['x-gemini-key'] || req.headers?.['X-Gemini-Key'];
+    if (isUsableKey(xKey)) {
+      return xKey.trim();
+    }
+  }
+
+  // 4. Check body if supplied
+  if (isUsableKey(body?.apiKey)) {
+    return body.apiKey.trim();
+  }
+
+  // 5. Check local .env for local Node development
   try {
     const envPath = path.join(__dirname, '..', '.env');
     if (fs.existsSync(envPath)) {
       const content = fs.readFileSync(envPath, 'utf8');
       const m = content.match(/GEMINI_API_KEY=([^\r\n]+)/);
-      if (m && m[1].trim().length > 10) return m[1].trim();
+      if (m && isUsableKey(m[1])) return m[1].trim();
     }
   } catch (e) {}
 
@@ -42,11 +85,11 @@ function getGeminiApiKey() {
 }
 
 // Call Google Gemini API
-function callGemini(prompt, isJson = true) {
+function callGemini(prompt, isJson = true, customKey = null) {
   return new Promise((resolve, reject) => {
-    const apiKey = getGeminiApiKey();
+    const apiKey = customKey || getGeminiApiKey();
     if (!apiKey) {
-      return reject(new Error('GEMINI_API_KEY is not configured in server environment (.env).'));
+      return reject(new Error('GEMINI_API_KEY is not configured in server environment.'));
     }
 
     const payload = JSON.stringify({
@@ -57,7 +100,10 @@ function callGemini(prompt, isJson = true) {
       }
     });
 
-    const candidateModels = ['gemini-3.5-flash-lite', 'gemini-3.5-flash'];
+    const candidateModels = [
+      'gemini-3.5-flash-lite',
+      'gemini-3-flash-preview'
+    ];
 
     function tryModel(index) {
       if (index >= candidateModels.length) {
@@ -73,7 +119,7 @@ function callGemini(prompt, isJson = true) {
           'Content-Type': 'application/json',
           'Content-Length': Buffer.byteLength(payload)
         },
-        timeout: 25000
+        timeout: 15000
       }, res => {
         let body = '';
         res.on('data', chunk => body += chunk);
@@ -161,10 +207,9 @@ module.exports = async function handler(req, res) {
     }));
   }
 
-  const apiKey = getGeminiApiKey();
-
   // GET /api/ai (Status check)
   if (req.method === 'GET') {
+    const apiKey = getGeminiApiKey(req);
     res.setHeader('Content-Type', 'application/json');
     res.statusCode = 200;
     return res.end(JSON.stringify({
@@ -198,6 +243,7 @@ module.exports = async function handler(req, res) {
     try {
       const body = await getJsonBody();
       const action = body.action || 'analyze_editor';
+      const apiKey = getGeminiApiKey(req, body);
 
       if (!apiKey) {
         res.statusCode = 500;
@@ -209,7 +255,7 @@ module.exports = async function handler(req, res) {
 
       // ACTION 0: Test Connection
       if (action === 'test_connection') {
-        const testRes = await callGemini('Respond with short JSON: {"status":"connected","engine":"active","message":"AI Engine is active and responding."}', true);
+        const testRes = await callGemini('Respond with short JSON: {"status":"connected","engine":"active","message":"AI Engine is active and responding."}', true, apiKey);
         res.statusCode = 200;
         return res.end(JSON.stringify({
           success: true,
@@ -261,7 +307,7 @@ Return ONLY a valid JSON object matching this schema:
   "executiveSummary": "string"
 }`;
 
-        const analysis = await callGemini(prompt, true);
+        const analysis = await callGemini(prompt, true, apiKey);
         res.statusCode = 200;
         return res.end(JSON.stringify({
           success: true,
@@ -307,7 +353,7 @@ Format the output as ONLY valid JSON:
   "body": "Complete email body with appropriate line breaks and signature"
 }`;
 
-        const emailResult = await callGemini(prompt, true);
+        const emailResult = await callGemini(prompt, true, apiKey);
         res.statusCode = 200;
         return res.end(JSON.stringify({
           success: true,
@@ -345,7 +391,7 @@ INSTRUCTIONS:
 - Be concise, direct, and actionable. Give specific advice, workflow tips, editor assignment recommendations, or drafted messages whenever requested.
 - Format with clean markdown (bullet points, bold text).`;
 
-        const reply = await callGemini(prompt, false);
+        const reply = await callGemini(prompt, false, apiKey);
         res.statusCode = 200;
         return res.end(JSON.stringify({
           success: true,
