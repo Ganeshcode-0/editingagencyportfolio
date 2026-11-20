@@ -2203,81 +2203,58 @@ window.setCustomGeminiKey = function(key) {
 window.callGeminiDirectClient = async function(prompt, isJson = true) {
   const apiKey = window.getIntegratedGeminiKey();
   if (!apiKey) {
-    throw new Error("No Gemini API Key found. Please configure key in settings.");
+    throw new Error("No Gemini API Key found. Please configure key in Settings (⚙️).");
   }
 
-  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
-  const response = await fetch(endpoint, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        responseMimeType: isJson ? "application/json" : "text/plain",
-        temperature: isJson ? 0.2 : 0.4
+  const candidateModels = ["gemini-3.5-flash-lite", "gemini-3-flash-preview"];
+  let lastErr = null;
+
+  for (const model of candidateModels) {
+    try {
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            responseMimeType: isJson ? "application/json" : "text/plain",
+            temperature: isJson ? 0.2 : 0.4
+          }
+        })
+      });
+
+      if (!response.ok) {
+        const errText = await response.text();
+        let msg = `HTTP ${response.status}`;
+        try {
+          const errJson = JSON.parse(errText);
+          if (errJson?.error?.message) msg += `: ${errJson.error.message}`;
+        } catch (_) {
+          msg += `: ${errText.slice(0, 120)}`;
+        }
+        lastErr = new Error(msg);
+        continue;
       }
-    })
-  });
 
-  if (!response.ok) {
-    const errText = await response.text();
-    let msg = `Gemini API Error (HTTP ${response.status})`;
-    try {
-      const errJson = JSON.parse(errText);
-      if (errJson?.error?.message) msg += `: ${errJson.error.message}`;
-    } catch (_) {
-      msg += `: ${errText.slice(0, 150)}`;
-    }
-    throw new Error(msg);
-  }
+      const data = await response.json();
+      let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+      if (!rawText) throw new Error("Gemini returned empty response.");
 
-  const data = await response.json();
-  let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-  if (!rawText) throw new Error("Gemini returned empty response.");
-
-  if (isJson) {
-    rawText = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-    try {
-      return JSON.parse(rawText);
-    } catch (parseErr) {
-      console.warn("Raw Gemini text failed JSON parse:", rawText);
-      throw new Error("Invalid JSON returned from Gemini: " + parseErr.message);
+      if (isJson) {
+        rawText = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+        return JSON.parse(rawText);
+      }
+      return rawText.trim();
+    } catch (e) {
+      lastErr = e;
     }
   }
 
-  return rawText.trim();
+  throw lastErr || new Error("Failed to connect to Gemini AI.");
 };
 
-// Universal dispatcher: Attempts server /api/ai first if running on custom server,
-// falls back directly to client-side Google API call on GitHub Pages or static host
-window.executeUniversalGemini = async function(action, payload = {}) {
-  // Try server endpoint only if not on github.io
-  const isGitHubPages = (typeof window !== "undefined" && window.location && window.location.hostname && window.location.hostname.includes("github.io"));
-  if (!isGitHubPages) {
-    try {
-      const clientKey = window.getIntegratedGeminiKey ? window.getIntegratedGeminiKey() : '';
-      const headers = { "Content-Type": "application/json" };
-      if (clientKey) headers["Authorization"] = "Bearer " + clientKey;
-
-      const res = await fetch("/api/ai", {
-        method: "POST",
-        headers,
-        body: JSON.stringify({ action, ...payload })
-      });
-      const contentType = res.headers.get("content-type") || "";
-      if (res.ok && contentType.includes("application/json")) {
-        const data = await res.json();
-        if (data && data.success) return data;
-        if (data && data.error && !clientKey) {
-          throw new Error(data.error);
-        }
-      }
-    } catch (e) {
-      console.warn("Backend /api/ai unavailable, falling back to direct client Gemini...", e);
-    }
-  }
-
-  // Fallback directly to client-side Google Generative Language API
+window.executeDirectGeminiAction = async function(action, payload = {}) {
   if (action === "test_connection") {
     const start = Date.now();
     const testRes = await window.callGeminiDirectClient('Respond with JSON: {"status":"connected","engine":"active","message":"AI Engine is active and responding."}', true);
@@ -2414,6 +2391,50 @@ INSTRUCTIONS:
   }
 
   throw new Error("Unknown action: " + action);
+};
+
+// Universal dispatcher: Prioritizes direct client call if key is saved in Admin Settings,
+// otherwise uses Vercel server /api/ai
+window.executeUniversalGemini = async function(action, payload = {}) {
+  const clientKey = window.getIntegratedGeminiKey ? window.getIntegratedGeminiKey() : '';
+
+  // 1. Direct fast client if key is configured in Admin Settings (no 10s serverless timeout!)
+  if (clientKey) {
+    try {
+      return await window.executeDirectGeminiAction(action, payload);
+    } catch (err) {
+      console.warn("Direct Gemini call error, falling back to server...", err);
+    }
+  }
+
+  // 2. Server-side /api/ai
+  const isGitHubPages = (typeof window !== "undefined" && window.location && window.location.hostname && window.location.hostname.includes("github.io"));
+  if (!isGitHubPages) {
+    try {
+      const headers = { "Content-Type": "application/json" };
+      if (clientKey) headers["Authorization"] = "Bearer " + clientKey;
+
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({ action, ...payload })
+      });
+      const contentType = res.headers.get("content-type") || "";
+      if (res.ok && contentType.includes("application/json")) {
+        const data = await res.json();
+        if (data && data.success) return data;
+        if (data && data.error && !clientKey) {
+          throw new Error(data.error);
+        }
+      }
+    } catch (e) {
+      console.warn("Backend /api/ai error, falling back...", e);
+      if (!clientKey) throw e;
+    }
+  }
+
+  // 3. Fallback to direct client
+  return await window.executeDirectGeminiAction(action, payload);
 };
 
 // Gemini Settings Modal Handlers

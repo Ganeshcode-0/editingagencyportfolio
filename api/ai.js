@@ -117,9 +117,11 @@ function callGemini(prompt, isJson = true, customKey = null) {
       'gemini-3-flash-preview'
     ];
 
+    let lastError = null;
+
     function tryModel(index) {
       if (index >= candidateModels.length) {
-        return reject(new Error('All Gemini AI models currently busy or unreachable.'));
+        return reject(lastError || new Error('All Gemini AI models currently busy or unreachable.'));
       }
       const model = candidateModels[index];
 
@@ -131,7 +133,7 @@ function callGemini(prompt, isJson = true, customKey = null) {
           'Content-Type': 'application/json',
           'Content-Length': Buffer.byteLength(payload)
         },
-        timeout: 15000
+        timeout: 9000
       }, res => {
         let body = '';
         res.on('data', chunk => body += chunk);
@@ -150,7 +152,7 @@ function callGemini(prompt, isJson = true, customKey = null) {
               return reject(new Error('Failed to parse Gemini response: ' + err.message));
             }
           } else if (res.statusCode === 404 || res.statusCode === 503 || res.statusCode === 429) {
-            console.warn(`[Gemini] ${model} returned ${res.statusCode}, trying fallback...`);
+            lastError = new Error(`${model} returned HTTP ${res.statusCode}: ${body.slice(0, 150)}`);
             return tryModel(index + 1);
           } else {
             return reject(new Error(`Gemini API error (HTTP ${res.statusCode}): ${body.slice(0, 200)}`));
@@ -160,10 +162,12 @@ function callGemini(prompt, isJson = true, customKey = null) {
 
       req.on('timeout', () => {
         req.destroy();
+        lastError = new Error(`${model} timed out after 9s`);
         tryModel(index + 1);
       });
 
       req.on('error', err => {
+        lastError = err;
         tryModel(index + 1);
       });
 
