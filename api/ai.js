@@ -2,6 +2,25 @@ const https = require('https');
 const fs = require('fs');
 const path = require('path');
 
+// Safe Rate Limiter (max 30 requests per minute per IP)
+const rateLimitMap = new Map();
+function isRateLimited(ip) {
+  if (!ip) return false;
+  const now = Date.now();
+  const windowMs = 60 * 1000;
+  const maxRequests = 30;
+  const record = rateLimitMap.get(ip) || { count: 0, resetTime: now + windowMs };
+  if (now > record.resetTime) {
+    record.count = 1;
+    record.resetTime = now + windowMs;
+    rateLimitMap.set(ip, record);
+    return false;
+  }
+  record.count++;
+  rateLimitMap.set(ip, record);
+  return record.count > maxRequests;
+}
+
 // Helper to safely get Gemini API Key without leaking to frontend
 function getGeminiApiKey() {
   // Check local .env first for full key
@@ -99,14 +118,46 @@ function callGemini(prompt, isJson = true) {
 
 // Serverless Handler for Vercel and Node HTTP Server
 module.exports = async function handler(req, res) {
-  // CORS Headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
+  // CORS Security: Validate request origin
+  const origin = req.headers.origin || '';
+  const allowedOrigins = [
+    'https://ganacutsvisualsportfolio.vercel.app',
+    'https://ganeshcode-0.github.io',
+    'http://localhost:3000',
+    'http://127.0.0.1:3000',
+    'http://localhost:5500',
+    'http://127.0.0.1:5500'
+  ];
+
+  if (!origin) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+  } else if (
+    allowedOrigins.includes(origin) ||
+    origin.endsWith('.vercel.app') ||
+    origin.endsWith('.github.io')
+  ) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+  } else {
+    res.setHeader('Access-Control-Allow-Origin', 'https://ganacutsvisualsportfolio.vercel.app');
+  }
+
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') {
     res.statusCode = 204;
     return res.end();
+  }
+
+  // Rate Limiting Check
+  const clientIp = (req.headers['x-forwarded-for'] || req.socket?.remoteAddress || '127.0.0.1').split(',')[0].trim();
+  if (isRateLimited(clientIp)) {
+    res.setHeader('Content-Type', 'application/json');
+    res.statusCode = 429;
+    return res.end(JSON.stringify({
+      success: false,
+      error: 'Rate limit exceeded (30 requests/min). Please try again shortly.'
+    }));
   }
 
   const apiKey = getGeminiApiKey();
@@ -120,7 +171,7 @@ module.exports = async function handler(req, res) {
       configured: Boolean(apiKey),
       provider: 'Google Gemini AI',
       model: 'gemini-3.5-flash-lite',
-      activeCapabilities: ['profile_analysis', 'email_automation', 'tier_recommendation']
+      activeCapabilities: ['profile_analysis', 'email_automation', 'tier_recommendation', 'copilot_chat']
     }));
   }
 
@@ -264,6 +315,43 @@ Format the output as ONLY valid JSON:
           editorId: editor.id,
           recipientEmail: editor.email,
           email: emailResult
+        }));
+      }
+
+      // ACTION 3: Agency Copilot Chat (ChatGPT-like assistant for Admin & Managers)
+      if (action === 'copilot_chat') {
+        const userQuery = body.message || body.prompt || 'Hello Copilot';
+        const agencyContext = body.agencyContext || {};
+
+        const prompt = `You are GanaCuts Agency Copilot, an intelligent AI Executive Partner for Ganesh Mogili (Founder & Creative Director) and operations managers at GanaCuts Visuals.
+
+AGENCY OPERATING CONTEXT:
+- Agency: GanaCuts Visuals (High-retention video editing agency)
+- Specializations: Short-form Reels/Shorts, YouTube Long-form, 3D/Kinetic Motion Graphics, Commercial Ads
+- Editor Tiers:
+  * ⭐ Special Editors: Elite, assigned to high-paying client commercials and retention-critical projects.
+  * 💼 Normal Editors: Reliable workhorses handling routine client deliverables and channel pacing.
+  * 🔰 Basic Editors: Juniors undergoing trial edits or skill upgrade tasks.
+- Active Editors on Roster: ${agencyContext.totalEditors || '30+'}
+- Tier Breakdown: Special: ${agencyContext.specialCount || 0}, Normal: ${agencyContext.normalCount || 0}, Basic: ${agencyContext.basicCount || 0}
+- Summary of Recent Members / Activities: ${agencyContext.rosterSummary || 'Full roster actively managed in Supabase database.'}
+- Recent Client Inquiries / Leads: ${agencyContext.inquiriesSummary || 'Client inquiries captured directly in Supabase client_inquiries table.'}
+
+USER QUERY:
+${userQuery}
+
+INSTRUCTIONS:
+- Speak as a sharp, professional, proactive creative agency director and chief of staff.
+- Be concise, direct, and actionable. Give specific advice, workflow tips, editor assignment recommendations, or drafted messages whenever requested.
+- Format with clean markdown (bullet points, bold text).`;
+
+        const reply = await callGemini(prompt, false);
+        res.statusCode = 200;
+        return res.end(JSON.stringify({
+          success: true,
+          action: 'copilot_chat',
+          reply,
+          timestamp: Date.now()
         }));
       }
 

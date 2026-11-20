@@ -111,650 +111,8 @@ const DEFAULT_VIDEOS = [
 ];
 
 // Real Applicants (Loaded dynamically from Supabase database)
-const DEFAULT_APPLICANTS = [
-  {
-    "id": "app_1793026214710",
-    "name": "Karthik Edits",
-    "email": "karthikedits21@gmail.com",
-    "phone": "Google Account",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "Registered via Google Auth",
-    "specialization": "Motion Graphics / Retention Cuts",
-    "rate": "₹800 / reel",
-    "password": "1234",
-    "status": "trial",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1",
-    "name": "Suresh Reddy",
-    "email": "suresh.reddy.cuts@gmail.com",
-    "phone": "919876543210",
-    "city": "Hyderabad",
-    "tools": "Premiere Pro, After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Suresh+Reddy",
-    "specialization": "Cinematic Color & Montage",
-    "rate": "₹1,000 / video",
-    "password": "1234",
-    "status": "selected",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "special",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794025203127",
-    "name": "AKHILKUMAR NIMMALA",
-    "email": "akhilgarena54@gmail.com",
-    "phone": "",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=AKHILKUMAR%20NIMMALA",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1793025602699",
-    "name": "Techpad gaming FF",
-    "email": "techpadgamingff@gmail.com",
-    "phone": "Google Account",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "Registered via Google Auth",
-    "specialization": "Motion Graphics / Video Editing",
-    "rate": "₹800 / reel",
-    "password": "1234",
-    "status": "trial",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794028842483",
-    "name": "Eswar Varma",
-    "email": "eswarvarman@gmail.com",
-    "phone": "",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Eswar%20Varma",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794067105748",
-    "name": "Yaswanth Mothukuri",
-    "email": "yaswanthmothukuri82@gmail.com",
-    "phone": "",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Yaswanth%20Mothukuri",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1793439716363",
-    "name": "Uday Kumar",
-    "email": "uday2442007@gmail.com",
-    "phone": "6300734430",
-    "city": "Remote",
-    "tools": "Premiere Pro, After Effects, CapCut",
-    "portfolio": "https://comfy-kleicha-356324.netlify.app",
-    "specialization": "Talking Head & Retention",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "selected",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794067270206",
-    "name": "R vijay Reddy",
-    "email": "reddyvijayreddy8495@gmail.com",
-    "phone": "",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=R%20vijay%20Reddy",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1793410401066",
-    "name": "ganesh",
-    "email": "mogiliganesh49@gmail.com",
-    "phone": "7075081947",
-    "city": "Hyderabad",
-    "tools": "Premiere Pro, DaVinci Resolve, After Effects, CapCut",
-    "portfolio": "https://ganacutsvisualsportfolio.vercel.app",
-    "specialization": "Motion Graphics & Cinematic",
-    "rate": "Standard",
-    "password": "7075",
-    "status": "selected",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "manager",
-    "editorTier": "special",
-    "adminDescription": "",
-    "isManager": true
-  },
-  {
-    "id": "app_1793513323788",
-    "name": "Naresh N",
-    "email": "nn8773462@gmail.com",
-    "phone": "8519828987",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro",
-    "portfolio": "https://drive.google.com/drive/search?q=Naresh%20N",
-    "specialization": "Talking Head & Podcasts",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "selected",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1793726857523",
-    "name": "Madhuri Sunil",
-    "email": "madhusr712@gmail.com",
-    "phone": "",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Madhuri%20Sunil",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1793026470412",
-    "name": "Vinay Miryala",
-    "email": "vinaymiryala18@gmail.com",
-    "phone": "7013930943",
-    "city": "Suryepet/remote",
-    "tools": "Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/file/d/1kLzg3mC1iesS0KZ-gVnI-un3wAwrS81A/view?usp=drivesdk",
-    "specialization": "Talking Head",
-    "rate": "₹750 / cut",
-    "password": "9912",
-    "status": "selected",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "special",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1793042765210",
-    "name": "Karthik",
-    "email": "karthikeega2@gmail.com",
-    "phone": "9154701718",
-    "city": "Hyderabad",
-    "tools": "Premiere Pro / After Effects",
-    "portfolio": "https://karthikedits.my.canva.site/",
-    "specialization": "Talking Head & Reels",
-    "rate": "₹1,500 / reel",
-    "password": "9989",
-    "status": "selected",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "special",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_test_1793979730261",
-    "name": "Rohit Sharma (Test Editor)",
-    "email": "rohit.test@gmail.com",
-    "phone": "9876543210",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Rohit%20Sharma%20(Test%20Editor)",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794069313596",
-    "name": "Yaswanth Manepalli",
-    "email": "manepallivyaswanthoff@gmail.com",
-    "phone": "",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Yaswanth%20Manepalli",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794380946296",
-    "name": "Karan",
-    "email": "karangupta7781@gmail.com",
-    "phone": "",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Karan",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794303967638",
-    "name": "Ayush Kumar",
-    "email": "kayush7629@gmail.com",
-    "phone": "7667909117",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Ayush%20Kumar",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794380955082",
-    "name": "Tirtho Manna",
-    "email": "tirthomanna@gmail.com",
-    "phone": "9903030447",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Tirtho%20Manna",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794393666111",
-    "name": "ganesh kumar",
-    "email": "bulbuleganesh5@gmail.com",
-    "phone": "",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=ganesh%20kumar",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794381661868",
-    "name": "Harsx",
-    "email": "harsxmedia@gmail.com",
-    "phone": "8055317653",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Harsx",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794380652134",
-    "name": "Salman Sheikh",
-    "email": "connectwithsalmansheikh@gmail.com",
-    "phone": "7428690305",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Salman%20Sheikh",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794380837834",
-    "name": "ABHISHEK",
-    "email": "abhishekmodugu24@gmail.com",
-    "phone": "",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=ABHISHEK",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794383073222",
-    "name": "Hinglishh",
-    "email": "graphicsbyhinglishh@gmail.com",
-    "phone": "",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Hinglishh",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794393635623",
-    "name": "Shohan Chinnu",
-    "email": "shohanchinnu47@gmail.com",
-    "phone": "9019024773",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Shohan%20Chinnu",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794394358753",
-    "name": "Sagar Gadhvi",
-    "email": "gadhvis126@gmail.com",
-    "phone": "070433 68173",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Sagar%20Gadhvi",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794381346055",
-    "name": "Neeeraj Sonii",
-    "email": "neeerajsonii@gmail.com",
-    "phone": "",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Neeeraj%20Sonii",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794398925089",
-    "name": "Shoaib",
-    "email": "aelibwork@gmail.com",
-    "phone": "6306128229",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Shoaib",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794398941569",
-    "name": "pavan kumar",
-    "email": "pavankumar6432@gmail.com",
-    "phone": "",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=pavan%20kumar",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794399471594",
-    "name": "Rᴜsʜᴀᴅ Rusha",
-    "email": "srgaming1430@gmail.com",
-    "phone": "",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=R%E1%B4%9Cs%CA%9C%E1%B4%80%E1%B4%85%20Rusha",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794401304895",
-    "name": "Samrat Sarkar",
-    "email": "sarkarsamrat313@gmail.com",
-    "phone": "6364808332",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Samrat%20Sarkar",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794410911774",
-    "name": "Vishal Meena",
-    "email": "vishalmeena61617@gmail.com",
-    "phone": "8826710634",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Vishal%20Meena",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  },
-  {
-    "id": "app_1794413682630",
-    "name": "Ram Manem",
-    "email": "rammanem1@gmail.com",
-    "phone": "",
-    "city": "Remote",
-    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
-    "portfolio": "https://drive.google.com/drive/search?q=Ram%20Manem",
-    "specialization": "Video Editing",
-    "rate": "Standard / Discuss",
-    "password": "1234",
-    "status": "pending",
-    "adminFeedback": "",
-    "appliedAt": "Nov 2026",
-    "assignedProject": null,
-    "submittedDraft": null,
-    "role": "editor",
-    "editorTier": "normal",
-    "adminDescription": ""
-  }
-];
-
+// Applicants are securely loaded from database upon authenticated admin login
+const DEFAULT_APPLICANTS = [];
 
 // Official crisp vector SVG logos for creative editing tools
 const TOOL_LOGOS = {
@@ -1186,7 +544,6 @@ async function syncApplicantToSupabase(app) {
       portfolio: app.portfolio || "",
       specialization: app.specialization || "Video Editing",
       rate: app.rate || "Negotiable",
-      password: app.password || "1234",
       status: app.status || "pending",
       admin_feedback: app.adminFeedback || "",
       applied_at: app.appliedAt || new Date().toISOString()
@@ -1415,8 +772,8 @@ async function persistPortfolioToServer() {
       profile, 
       agencyFolders: rawFolders,
       practiceAssignments: practiceAssignments || [],
-      clientProjects: clientProjects || [],
-      applicants: applicants || []
+      clientProjects: clientProjects || []
+      // Note: Private applicants are NEVER saved to public portfolio JSON
     };
     await fetch('/api/portfolio', {
       method: 'POST',
@@ -2824,17 +2181,14 @@ window.applyAiRecommendedTier = async function(id, recommendedTier) {
 // and on static hosts (GitHub Pages) via Google CORS REST API
 // ==========================================
 
-const _DEFAULT_GEMINI_B64 = "QVEuQWI4Uk42THJnci1sTVJUbFNDUjFuZWpSY0RIdVA5eDV3OEFJLVNGY3dESXYxUVZHNnc=";
+// Gemini AI configuration: server-side uses process.env.GEMINI_API_KEY.
+// On static hosts (GitHub Pages), custom keys persist strictly in admin's private localStorage.
 const GEMINI_MODEL = "gemini-3.5-flash-lite";
 
 window.getIntegratedGeminiKey = function() {
   const custom = localStorage.getItem("cutscale_gemini_api_key");
   if (custom && custom.trim().length > 20) return custom.trim();
-  try {
-    return atob(_DEFAULT_GEMINI_B64);
-  } catch (e) {
-    return "";
-  }
+  return "";
 };
 
 window.setCustomGeminiKey = function(key) {
@@ -4767,6 +4121,13 @@ window.switchAdminTab = function(tabName) {
   if ((tabName === "applicants" || tabName === "submissions" || tabName === "overview") && typeof renderAdminSubmissionsQueue === "function") {
     renderAdminSubmissionsQueue();
   }
+  if (tabName === "inquiries" && typeof renderInquiriesManager === "function") {
+    renderInquiriesManager();
+  }
+  if (tabName === "copilot") {
+    const copilotMsgContainer = document.getElementById("copilot-messages-container");
+    if (copilotMsgContainer) copilotMsgContainer.scrollTop = copilotMsgContainer.scrollHeight;
+  }
 };
 
 // ==========================================================================
@@ -5531,4 +4892,422 @@ if (typeof document !== 'undefined') {
   } else {
     setTimeout(window.initAiCopilot, 800);
   }
+}
+
+
+// ==========================================
+// CLIENT INQUIRIES & LEAD CONVERSION SYSTEM
+// ==========================================
+window.submitClientQuoteInquiry = async function(inquiryData) {
+  if (!inquiryData) return { success: false, error: 'No inquiry data provided' };
+
+  const inquiry = {
+    id: "inq_" + Date.now(),
+    client_name: inquiryData.name || "Client",
+    brand_name: inquiryData.brand || "",
+    contact: inquiryData.contact || inquiryData.phone || "",
+    email: inquiryData.email || "",
+    project_type: inquiryData.projectType || "Short-Form Reels",
+    video_count: inquiryData.videoCount || "1-3 Videos",
+    budget: inquiryData.budget || "Discuss with Agency",
+    footage_link: inquiryData.footageLink || "",
+    notes: inquiryData.notes || "",
+    status: "new",
+    created_at: new Date().toISOString()
+  };
+
+  // Cache inquiry locally in admin storage
+  try {
+    const raw = localStorage.getItem("cutscale_client_inquiries_v1");
+    const arr = raw ? JSON.parse(raw) : [];
+    arr.unshift(inquiry);
+    localStorage.setItem("cutscale_client_inquiries_v1", JSON.stringify(arr));
+    if (typeof window !== "undefined") window.clientInquiries = arr;
+  } catch (e) {}
+
+  // Save to Supabase cloud table
+  if (globalSupabase) {
+    try {
+      const { error } = await globalSupabase.from('client_inquiries').insert([inquiry]);
+      if (error) console.warn("Supabase inquiry insert notice:", error);
+    } catch (e) {
+      console.warn("Supabase inquiry insert error:", e);
+    }
+  }
+
+  return { success: true, inquiry };
+};
+
+// ==========================================
+// CLIENT INQUIRY MODAL & COPILOT ENGINE
+// ==========================================
+
+window.openClientQuoteModal = function(prefillType) {
+  const modal = document.getElementById("client-quote-modal");
+  if (!modal) return;
+  modal.classList.add("active");
+  document.body.style.overflow = "hidden";
+  if (prefillType) {
+    const sel = document.getElementById("quote-project-type");
+    if (sel) {
+      for (let i = 0; i < sel.options.length; i++) {
+        if (sel.options[i].value.toLowerCase().includes(prefillType.toLowerCase())) {
+          sel.selectedIndex = i;
+          break;
+        }
+      }
+    }
+  }
+  const formBox = document.getElementById("quote-form-content");
+  const succBox = document.getElementById("quote-success-content");
+  if (formBox) formBox.style.display = "block";
+  if (succBox) succBox.style.display = "none";
+};
+
+window.closeClientQuoteModal = function() {
+  const modal = document.getElementById("client-quote-modal");
+  if (modal) {
+    modal.classList.remove("active");
+    document.body.style.overflow = "";
+  }
+};
+
+window.handleClientQuoteSubmit = async function(event) {
+  if (event) event.preventDefault();
+  const submitBtn = document.getElementById("quote-submit-btn");
+  if (submitBtn) {
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = '<span>Sending Brief...</span>';
+  }
+
+  const name = document.getElementById("quote-client-name")?.value.trim() || "";
+  const brand = document.getElementById("quote-brand-name")?.value.trim() || "";
+  const email = document.getElementById("quote-client-email")?.value.trim() || "";
+  const contact = document.getElementById("quote-client-contact")?.value.trim() || "";
+  const projectType = document.getElementById("quote-project-type")?.value || "Short-Form Reels";
+  const videoCount = document.getElementById("quote-video-count")?.value || "4-8 Videos / Month";
+  const budget = document.getElementById("quote-budget")?.value || "Discuss with Agency";
+  const footageLink = document.getElementById("quote-footage-link")?.value.trim() || "";
+  const notes = document.getElementById("quote-notes")?.value.trim() || "";
+
+  const inquiryData = {
+    name, brand, email, contact, projectType, videoCount, budget, footageLink, notes
+  };
+
+  await window.submitClientQuoteInquiry(inquiryData);
+
+  if (submitBtn) {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = '<span>Submit Project Brief ➔</span>';
+  }
+
+  const formBox = document.getElementById("quote-form-content");
+  const succBox = document.getElementById("quote-success-content");
+  const succName = document.getElementById("quote-success-name");
+  const succWa = document.getElementById("quote-success-wa-link");
+
+  if (succName) succName.textContent = name;
+  if (succWa) {
+    const waText = encodeURIComponent("Hi Ganesh! I just submitted a project inquiry for " + projectType + " on GanaCuts Visuals. My name is " + name + (brand ? " (Brand: " + brand + ")" : ""));
+    succWa.href = "https://wa.me/917075081947?text=" + waText;
+  }
+
+  if (formBox) formBox.style.display = "none";
+  if (succBox) succBox.style.display = "block";
+};
+
+// ==========================================
+// ADMIN INQUIRIES & CLIENT LEADS MANAGER
+// ==========================================
+window.clientInquiries = [];
+window.activeInquiryFilter = 'all';
+
+window.fetchClientInquiries = async function(force = false) {
+  try {
+    const cached = localStorage.getItem("cutscale_client_inquiries_v1");
+    if (cached) {
+      window.clientInquiries = JSON.parse(cached);
+    }
+  } catch (e) {}
+
+  if (globalSupabase) {
+    try {
+      const { data, error } = await globalSupabase
+        .from('client_inquiries')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (!error && Array.isArray(data) && data.length > 0) {
+        window.clientInquiries = data;
+        localStorage.setItem("cutscale_client_inquiries_v1", JSON.stringify(data));
+      }
+    } catch (err) {
+      console.warn("Supabase fetch inquiries error:", err);
+    }
+  }
+
+  window.updateInquiryBadges();
+  if (typeof renderInquiriesManager === "function") {
+    renderInquiriesManager();
+  }
+};
+
+window.updateInquiryBadges = function() {
+  const inqs = window.clientInquiries || [];
+  const total = inqs.length;
+  const newCount = inqs.filter(i => (i.status || 'new') === 'new').length;
+  const contactedCount = inqs.filter(i => i.status === 'contacted').length;
+  const progressCount = inqs.filter(i => i.status === 'in_progress').length;
+  const closedCount = inqs.filter(i => i.status === 'closed').length;
+
+  const badge = document.getElementById("dash-inquiries-badge");
+  if (badge) badge.textContent = newCount > 0 ? (newCount + " New") : total;
+
+  const countAll = document.getElementById("inq-count-all");
+  const countNew = document.getElementById("inq-count-new");
+  const countContacted = document.getElementById("inq-count-contacted");
+  const countProgress = document.getElementById("inq-count-progress");
+  const countClosed = document.getElementById("inq-count-closed");
+
+  if (countAll) countAll.textContent = total;
+  if (countNew) countNew.textContent = newCount;
+  if (countContacted) countContacted.textContent = contactedCount;
+  if (countProgress) countProgress.textContent = progressCount;
+  if (countClosed) countClosed.textContent = closedCount;
+};
+
+window.filterInquiries = function(status, btn) {
+  window.activeInquiryFilter = status;
+  document.querySelectorAll(".inquiry-filter-btn").forEach(b => b.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+  renderInquiriesManager();
+};
+
+window.updateInquiryStatus = async function(inquiryId, newStatus) {
+  const list = window.clientInquiries || [];
+  const inq = list.find(i => i.id === inquiryId);
+  if (!inq) return;
+
+  inq.status = newStatus;
+  localStorage.setItem("cutscale_client_inquiries_v1", JSON.stringify(list));
+
+  if (globalSupabase) {
+    try {
+      await globalSupabase.from('client_inquiries').update({ status: newStatus }).eq('id', inquiryId);
+    } catch (e) {
+      console.warn("Supabase inquiry update notice:", e);
+    }
+  }
+
+  window.updateInquiryBadges();
+  renderInquiriesManager();
+};
+
+window.renderInquiriesManager = function() {
+  const container = document.getElementById("admin-inquiries-list");
+  if (!container) return;
+
+  window.updateInquiryBadges();
+  const filter = window.activeInquiryFilter || 'all';
+  let list = window.clientInquiries || [];
+
+  if (filter !== 'all') {
+    list = list.filter(i => (i.status || 'new') === filter);
+  }
+
+  if (list.length === 0) {
+    container.innerHTML = '<div style="background:#1c1c22; border:1px solid rgba(255,255,255,0.08); border-radius:16px; padding:36px 20px; text-align:center;">' +
+      '<span style="font-size:32px; display:block; margin-bottom:10px;">📥</span>' +
+      '<h4 style="font-size:16px; font-weight:700; color:#fff; margin-bottom:6px;">No ' + (filter === 'all' ? '' : filter) + ' client inquiries found</h4>' +
+      '<p style="font-size:13px; color:#888894; margin:0;">Client project briefs submitted through the website will appear here in real-time.</p>' +
+      '</div>';
+    return;
+  }
+
+  container.innerHTML = list.map(inq => {
+    const rawContact = inq.contact || "";
+    const cleanPhone = rawContact.replace(/\D/g, "");
+    const waLink = cleanPhone ? ("https://wa.me/" + cleanPhone + "?text=" + encodeURIComponent("Hi " + (inq.client_name || "") + ", this is Ganesh Mogili from GanaCuts Visuals regarding your video editing inquiry.")) : '#';
+    const emailLink = inq.email ? ("mailto:" + inq.email + "?subject=" + encodeURIComponent("GanaCuts Visuals - Video Project Proposal for " + (inq.brand_name || inq.client_name || "Your Brand"))) : '#';
+    const dateStr = inq.created_at ? new Date(inq.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent';
+
+    const statusBadgeClass = inq.status === 'contacted' ? 'inquiry-badge-contacted'
+      : inq.status === 'in_progress' ? 'inquiry-badge-progress'
+      : inq.status === 'closed' ? 'inquiry-badge-closed'
+      : 'inquiry-badge-new';
+
+    const statusLabel = inq.status === 'contacted' ? 'Contacted'
+      : inq.status === 'in_progress' ? 'In Progress'
+      : inq.status === 'closed' ? 'Closed'
+      : 'New Inquiry';
+
+    return '<div class="inquiry-card">' +
+      '<div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px;">' +
+        '<div>' +
+          '<div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">' +
+            '<span class="badge-mini ' + statusBadgeClass + '" style="padding:2px 8px; border-radius:6px; font-size:11px; font-weight:800;">' + statusLabel + '</span>' +
+            '<span style="font-size:12px; color:#888894;">' + dateStr + '</span>' +
+          '</div>' +
+          '<h3 style="font-size:17px; font-weight:800; color:#ffffff; margin:0;">' +
+            escapeHTML(inq.client_name || 'Client') + (inq.brand_name ? ' <span style="color:#a0a0ab; font-size:14px; font-weight:500;">(' + escapeHTML(inq.brand_name) + ')</span>' : '') +
+          '</h3>' +
+        '</div>' +
+        '<div style="display:flex; align-items:center; gap:8px;">' +
+          '<select onchange="updateInquiryStatus(\'' + inq.id + '\', this.value)" style="background:#24242c; color:#ffffff; border:1px solid rgba(255,255,255,0.15); border-radius:8px; padding:5px 10px; font-size:12px;">' +
+            '<option value="new" ' + (inq.status === 'new' ? 'selected' : '') + '>New</option>' +
+            '<option value="contacted" ' + (inq.status === 'contacted' ? 'selected' : '') + '>Contacted</option>' +
+            '<option value="in_progress" ' + (inq.status === 'in_progress' ? 'selected' : '') + '>In Progress</option>' +
+            '<option value="closed" ' + (inq.status === 'closed' ? 'selected' : '') + '>Closed</option>' +
+          '</select>' +
+        '</div>' +
+      '</div>' +
+
+      '<div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:10px; background:#141418; border-radius:10px; padding:12px; font-size:12.5px;">' +
+        '<div><strong style="color:#a0a0ab;">Project:</strong> <span style="color:#ffffff;">' + escapeHTML(inq.project_type || 'Short-Form') + '</span></div>' +
+        '<div><strong style="color:#a0a0ab;">Volume:</strong> <span style="color:#ffffff;">' + escapeHTML(inq.video_count || 'Standard') + '</span></div>' +
+        '<div><strong style="color:#a0a0ab;">Budget:</strong> <span style="color:#34d399; font-weight:700;">' + escapeHTML(inq.budget || 'Custom') + '</span></div>' +
+        '<div><strong style="color:#a0a0ab;">Phone/WA:</strong> <span style="color:#ffffff;">' + escapeHTML(inq.contact || 'N/A') + '</span></div>' +
+        '<div><strong style="color:#a0a0ab;">Email:</strong> <span style="color:#ffffff;">' + escapeHTML(inq.email || 'N/A') + '</span></div>' +
+        (inq.footage_link ? ('<div><strong style="color:#a0a0ab;">Footage:</strong> <a href="' + escapeHTML(inq.footage_link) + '" target="_blank" rel="noopener" style="color:#60a5fa; text-decoration:underline;">Open Link ➔</a></div>') : '') +
+      '</div>' +
+
+      (inq.notes ? ('<div style="background:#18181c; border:1px solid rgba(255,255,255,0.06); border-radius:8px; padding:10px 14px; font-size:13px; color:#d1d1d8; line-height:1.5;">' +
+        '<strong style="color:#f97316; font-size:11px; text-transform:uppercase; display:block; margin-bottom:3px;">Client Vision / Notes:</strong>' +
+        escapeHTML(inq.notes) +
+      '</div>') : '') +
+
+      '<div style="display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:4px;">' +
+        (cleanPhone ? ('<a href="' + waLink + '" target="_blank" rel="noopener" class="primary-btn" style="background:#25d366; border:none; padding:6px 14px; font-size:12px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:5px;"><span>💬 WhatsApp Client</span></a>') : '') +
+        (inq.email ? ('<a href="' + emailLink + '" class="secondary-btn light-btn" style="padding:6px 14px; font-size:12px; text-decoration:none; display:inline-flex; align-items:center; gap:5px;"><span>✉️ Email Client</span></a>') : '') +
+        '<button type="button" class="secondary-btn light-btn" onclick="draftAiProposalForInquiry(\'' + inq.id + '\')" style="background:rgba(139,92,246,0.15); border-color:rgba(139,92,246,0.35); color:#c084fc; padding:6px 14px; font-size:12px; font-weight:700; display:inline-flex; align-items:center; gap:5px;">' +
+          '<span>✨ Draft AI Proposal</span>' +
+        '</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+};
+
+window.draftAiProposalForInquiry = async function(inquiryId) {
+  const list = window.clientInquiries || [];
+  const inq = list.find(i => i.id === inquiryId);
+  if (!inq) return;
+
+  const prompt = "You are Ganesh Mogili, Founder & Creative Director of GanaCuts Visuals.\n" +
+    "Write a high-converting, professional, and crisp video editing proposal email directly to this client:\n\n" +
+    "CLIENT INQUIRY:\n" +
+    "- Client Name: " + (inq.client_name || 'Client') + "\n" +
+    "- Brand: " + (inq.brand_name || 'Your Brand') + "\n" +
+    "- Project Type: " + (inq.project_type || 'Video Editing') + "\n" +
+    "- Video Volume: " + (inq.video_count || 'Standard Batch') + "\n" +
+    "- Budget Stated: " + (inq.budget || 'Standard') + "\n" +
+    "- Client Notes: " + (inq.notes || 'Interested in video editing services') + "\n" +
+    "- Footage Link: " + (inq.footage_link || 'Provided') + "\n\n" +
+    "GUIDELINES:\n" +
+    "- Warm, direct, elite agency tone.\n" +
+    "- Explain our 4-step workflow (Footage brief -> 48h rough cut -> sound & color polish -> 4K delivery).\n" +
+    "- Provide a clear, structured pricing & timeline recommendation fitting their stated budget.\n" +
+    "- End with a clean call-to-action inviting them to a WhatsApp or Google Meet kickoff.\n" +
+    "- Sign off as: Ganesh Mogili, Founder & Creative Director | GanaCuts Visuals";
+
+  window.switchAdminTab('copilot');
+  const container = document.getElementById("copilot-messages-container");
+  if (container) {
+    const userBubble = document.createElement("div");
+    userBubble.className = "copilot-bubble-user";
+    userBubble.textContent = "Draft a custom proposal for " + inq.client_name + " (" + (inq.brand_name || inq.project_type) + ")";
+    container.appendChild(userBubble);
+
+    const aiBubble = document.createElement("div");
+    aiBubble.className = "copilot-bubble-ai";
+    aiBubble.innerHTML = '<em>Drafting executive proposal with Gemini AI...</em>';
+    container.appendChild(aiBubble);
+    container.scrollTop = container.scrollHeight;
+
+    try {
+      const res = await window.executeUniversalGemini('copilot_chat', { prompt, message: prompt });
+      const reply = res?.reply || res?.result || "Proposal draft complete.";
+      aiBubble.innerHTML = '<strong style="color:#d94e28;">✨ Generated Client Proposal:</strong><br><br>' + escapeHTML(reply).replace(/\n/g, '<br>');
+    } catch (e) {
+      aiBubble.innerHTML = '<span style="color:#ef4444;">Failed to generate proposal: ' + escapeHTML(e.message) + '</span>';
+    }
+    container.scrollTop = container.scrollHeight;
+  }
+};
+
+// ==========================================
+// AGENCY COPILOT CHAT ENGINE
+// ==========================================
+window.handleCopilotSubmit = async function(event) {
+  if (event) event.preventDefault();
+  const input = document.getElementById("copilot-input");
+  if (!input) return;
+  const message = input.value.trim();
+  if (!message) return;
+  input.value = "";
+  await window.sendCopilotMessage(message);
+};
+
+window.quickSendCopilot = async function(text) {
+  await window.sendCopilotMessage(text);
+};
+
+window.sendCopilotMessage = async function(message) {
+  const container = document.getElementById("copilot-messages-container");
+  if (!container) return;
+
+  const userBubble = document.createElement("div");
+  userBubble.className = "copilot-bubble-user";
+  userBubble.textContent = message;
+  container.appendChild(userBubble);
+  container.scrollTop = container.scrollHeight;
+
+  const aiBubble = document.createElement("div");
+  aiBubble.className = "copilot-bubble-ai";
+  aiBubble.innerHTML = '<em>Thinking with Gemini AI...</em>';
+  container.appendChild(aiBubble);
+  container.scrollTop = container.scrollHeight;
+
+  const apps = window.applicantsData || [];
+  const activeApps = apps.filter(a => !a.deleted);
+  const specialCount = activeApps.filter(a => a.editorTier === 'special' || a.tier === 'special').length;
+  const normalCount = activeApps.filter(a => a.editorTier === 'normal' || a.tier === 'normal').length;
+  const basicCount = activeApps.filter(a => a.editorTier === 'basic' || a.tier === 'basic').length;
+  const inqs = window.clientInquiries || [];
+
+  const rosterSummary = activeApps.slice(0, 15).map(a => a.name + " (" + (a.editorTier || 'normal') + ", tools: " + (a.tools || 'Premiere') + ", rate: " + (a.rate || 'std') + ")").join('; ');
+  const inquiriesSummary = inqs.slice(0, 5).map(i => i.client_name + ": " + i.project_type + " (" + (i.budget || 'budget') + ")").join('; ');
+
+  const agencyContext = {
+    totalEditors: activeApps.length,
+    specialCount, normalCount, basicCount,
+    rosterSummary, inquiriesSummary
+  };
+
+  try {
+    const res = await window.executeUniversalGemini('copilot_chat', {
+      message,
+      agencyContext
+    });
+
+    const reply = res?.reply || res?.result || "I apologize, I didn't receive a response.";
+    aiBubble.innerHTML = escapeHTML(reply).replace(/\n/g, '<br>');
+  } catch (err) {
+    aiBubble.innerHTML = '<span style="color:#ef4444;">Error calling Gemini AI: ' + escapeHTML(err.message) + '</span>';
+  }
+  container.scrollTop = container.scrollHeight;
+};
+
+window.clearCopilotChat = function() {
+  const container = document.getElementById("copilot-messages-container");
+  if (container) {
+    container.innerHTML = '<div class="copilot-bubble-ai"><strong>👋 Chat Cleared.</strong> How can I help you manage the agency today?</div>';
+  }
+};
+
+// Prime client inquiries on page boot
+if (typeof window !== "undefined") {
+  setTimeout(() => {
+    if (typeof window.fetchClientInquiries === "function") {
+      window.fetchClientInquiries();
+    }
+  }, 1000);
 }

@@ -86,6 +86,8 @@ const server = http.createServer((req, res) => {
     req.on('end', () => {
       try {
         const parsed = JSON.parse(body);
+        // SECURITY: Never write private applicants into public data/portfolio.json
+        if (parsed.applicants) delete parsed.applicants;
         const dir = path.dirname(DATA_FILE);
         if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
 

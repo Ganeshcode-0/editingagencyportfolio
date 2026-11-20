@@ -971,6 +971,68 @@
         <div class="manage-list" id="applicants-manage-list"></div>
       </div>
 
+      <!-- TAB PANE: CLIENT LEADS & QUOTES INQUIRIES -->
+      <div class="admin-tab-pane" id="pane-inquiries">
+        <div class="live-list-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+          <div>
+            <h4 style="font-size:18px; font-weight:800; color:#121214; margin:0 0 4px;">📥 Client Leads & Project Quote Inquiries</h4>
+            <small style="color:#5a5a62; font-size:12.5px;">Direct project requests, budgets, and footage submitted through the portfolio website.</small>
+          </div>
+          <div style="display:flex; gap:10px; align-items:center;">
+            <button type="button" class="secondary-btn light-btn" onclick="fetchClientInquiries(true)" style="padding:7px 14px; font-size:12px; font-weight:700;">
+              🔄 Refresh Leads
+            </button>
+          </div>
+        </div>
+
+        <div class="inquiries-filter-bar">
+          <button type="button" class="inquiry-filter-btn active" onclick="filterInquiries('all', this)">All Leads (<span id="inq-count-all">0</span>)</button>
+          <button type="button" class="inquiry-filter-btn" onclick="filterInquiries('new', this)">New (<span id="inq-count-new">0</span>)</button>
+          <button type="button" class="inquiry-filter-btn" onclick="filterInquiries('contacted', this)">Contacted (<span id="inq-count-contacted">0</span>)</button>
+          <button type="button" class="inquiry-filter-btn" onclick="filterInquiries('in_progress', this)">In Progress (<span id="inq-count-progress">0</span>)</button>
+          <button type="button" class="inquiry-filter-btn" onclick="filterInquiries('closed', this)">Closed (<span id="inq-count-closed">0</span>)</button>
+        </div>
+
+        <div id="admin-inquiries-list" style="display:flex; flex-direction:column; gap:14px;">
+          <!-- Dynamically populated via renderInquiriesManager() -->
+        </div>
+      </div>
+
+      <!-- TAB PANE: AGENCY COPILOT CHATBOT -->
+      <div class="admin-tab-pane" id="pane-copilot">
+        <div class="live-list-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">
+          <div>
+            <h4 style="font-size:18px; font-weight:800; color:#121214; margin:0 0 4px;">🤖 GanaCuts Agency Copilot (AI Chief of Staff)</h4>
+            <small style="color:#5a5a62; font-size:12.5px;">Live awareness of your active editor roster, tier statuses, and client workflows. Ask questions, seek management advice, or draft instructions.</small>
+          </div>
+          <button type="button" class="secondary-btn light-btn" onclick="clearCopilotChat()" style="padding:6px 12px; font-size:12px;">
+            Clear Chat
+          </button>
+        </div>
+
+        <div class="copilot-container">
+          <div class="copilot-messages" id="copilot-messages-container">
+            <div class="copilot-bubble-ai">
+              <strong>👋 Hello Ganesh!</strong> I'm your GanaCuts Agency Copilot. I have live awareness of your active editor roster, applicant phases (⭐ Special, 💼 Normal, 🔰 Basic), client quote inquiries, and project workflows. How can I help you manage the agency today?
+            </div>
+          </div>
+
+          <div class="copilot-quick-prompts">
+            <button type="button" class="copilot-chip" onclick="quickSendCopilot('Give me an executive summary of our active editor roster and tier breakdown.')">📊 Roster Summary</button>
+            <button type="button" class="copilot-chip" onclick="quickSendCopilot('Which editors should I assign for a high-retention commercial video edit?')">⭐ Assign Best Editor</button>
+            <button type="button" class="copilot-chip" onclick="quickSendCopilot('Summarize recent client inquiries and recommend immediate follow-up steps.')">📥 Client Leads Brief</button>
+            <button type="button" class="copilot-chip" onclick="quickSendCopilot('Draft an encouraging WhatsApp update for our editors about new client project batches.')">✍️ Draft Announcement</button>
+          </div>
+
+          <form class="copilot-input-bar" onsubmit="handleCopilotSubmit(event)">
+            <input type="text" id="copilot-input" placeholder="Ask anything about editors, client projects, workflows, or instructions..." autocomplete="off">
+            <button type="submit" id="copilot-send-btn" class="primary-btn" style="background:var(--accent-orange); border:none; padding:10px 20px; font-weight:800; font-size:13px;">
+              <span>Send ➔</span>
+            </button>
+          </form>
+        </div>
+      </div>
+
       <!-- TAB: DEDICATED SUBMISSIONS & REVIEW QUEUE -->
       <div class="admin-tab-pane" id="pane-submissions">
         <div class="live-list-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:18px;">

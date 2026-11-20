@@ -3,3 +3,5 @@ node_modules/
 Thumbs.db
 *.log
 .env
+data/private_applicants_backup.json
+*backup*.json

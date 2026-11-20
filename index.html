@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>GANACUTS VISUALS — Post-Production & Viral Video Editing</title>
   <meta name="description" content="GanaCuts Visuals — Elite High-Retention Video Editing, 3D Motion Graphics, Documentary Videos, AI Editing & Viral Post-Production.">
   <meta name="keywords" content="video editor, motion graphics, high-retention editing, documentary video, ai video editor, youtube shorts editor, reel editor, post production agency, ganacuts visuals">
@@ -44,6 +44,9 @@
       <div class="nav-links" id="dynamic-nav-links"></div>
 
       <div class="nav-actions">
+        <button type="button" class="cta-pill-btn quote-nav-pill" onclick="openClientQuoteModal()" style="background:var(--accent-orange); color:#ffffff; font-weight:800; border:none; padding:7px 15px; border-radius:9999px; cursor:pointer; display:inline-flex; align-items:center; gap:6px; font-size:12px; box-shadow:0 3px 12px rgba(217,78,40,0.35);">
+          <span>⚡ Get Quote</span>
+        </button>
         <!-- Direct Instagram Hire CTA -->
         <a href="https://www.instagram.com/desimadhurivibes?fqnt=MWd1d3Q5bXhzOHZ1dw==" target="_blank" rel="noopener" class="cta-pill-btn insta-cta-pill" id="nav-hire-insta-btn" title="Hire GanaCuts Visuals on Instagram (@desimadhurivibes)">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor">
@@ -87,23 +90,132 @@
           <!-- Dynamic Tool Badges -->
           <div class="tools-row" id="tools-row"></div>
 
-          <div class="hero-actions">
-            <!-- Primary Direct Hire CTA (Instagram) -->
-            <a href="https://www.instagram.com/desimadhurivibes?fqnt=MWd1d3Q5bXhzOHZ1dw==" target="_blank" rel="noopener" class="primary-btn" id="hero-insta-btn" title="Hire GanaCuts Visuals directly on Instagram (@desimadhurivibes)" style="display:inline-flex; align-items:center; gap:8px;">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/>
-              </svg>
-              <span>Instagram</span>
+          <div class="hero-actions" style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:20px;">
+            <button type="button" class="primary-btn pulse-glow" onclick="openClientQuoteModal()" style="display:inline-flex; align-items:center; gap:8px; cursor:pointer; font-weight:800; font-size:14px; padding:12px 24px; box-shadow:0 6px 20px rgba(217,78,40,0.35);">
+              <span>🚀 Get a Project Quote</span>
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+            </button>
+            <a href="#dynamic-categories-container" class="secondary-btn light-btn" style="display:inline-flex; align-items:center; gap:8px; font-weight:700; font-size:14px; padding:12px 20px;">
+              <span>🎬 Explore Work</span>
             </a>
-
-            <!-- WhatsApp Secondary Button -->
-            <a href="https://wa.me/917075081947?text=Hi%20GanaCuts%20Visuals,%20I%20saw%20your%20portfolio%20on%20GanaCuts%20Visuals%20and%20would%20like%20to%20hire%20you%20for%20a%20video%20editing%20project." target="_blank" rel="noopener" class="secondary-btn light-btn hero-wa-secondary" id="hero-wa-btn">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-5.46-4.45-9.91-9.91-9.91zm5.79 14.04c-.24.68-1.4 1.25-1.95 1.33-.51.08-1.18.11-3.39-.79-2.82-1.15-4.64-4.04-4.78-4.23-.14-.19-1.14-1.52-1.14-2.9 0-1.38.72-2.06.98-2.35.25-.28.56-.35.75-.35.19 0 .38.01.55.02.18.01.42-.07.65.48.24.57.81 1.98.88 2.13.07.15.12.33.02.53-.1.2-.15.32-.3.49-.15.17-.32.38-.46.51-.15.15-.31.31-.13.62.18.31.79 1.3 1.7 2.11 1.17 1.04 2.15 1.36 2.46 1.51.31.15.49.13.67-.08.19-.21.79-.92 1-1.24.21-.31.42-.26.71-.15.29.11 1.84.87 2.16 1.02.31.16.52.24.6.37.08.13.08.76-.16 1.44z"/>
-              </svg>
-              <span>WhatsApp</span>
+            <a href="https://www.instagram.com/desimadhurivibes?fqnt=MWd1d3Q5bXhzOHZ1dw==" target="_blank" rel="noopener" class="secondary-btn light-btn" style="padding:12px 16px;" title="Hire on Instagram">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zm0-2.163c-3.259 0-3.667.014-4.947.072-4.358.2-6.78 2.618-6.98 6.98-.059 1.281-.073 1.689-.073 4.948 0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98-1.281-.059-1.69-.073-4.949-.073zm0 5.838c-3.403 0-6.162 2.759-6.162 6.162s2.759 6.163 6.162 6.163 6.162-2.759 6.162-6.163c0-3.403-2.759-6.162-6.162-6.162zm0 10.162c-2.209 0-4-1.79-4-4 0-2.209 1.791-4 4-4s4 1.791 4 4c0 2.21-1.791 4-4 4zm6.406-11.845c-.796 0-1.441.645-1.441 1.44s.645 1.44 1.441 1.44c.795 0 1.439-.645 1.439-1.44s-.644-1.44-1.439-1.44z"/></svg>
+            </a>
+            <a href="https://wa.me/917075081947?text=Hi%20GanaCuts%20Visuals,%20I%20saw%20your%20portfolio%20on%20GanaCuts%20Visuals%20and%20would%20like%20to%20hire%20you%20for%20a%20video%20editing%20project." target="_blank" rel="noopener" class="secondary-btn light-btn" style="padding:12px 16px;" title="Chat on WhatsApp">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-5.46-4.45-9.91-9.91-9.91zm5.79 14.04c-.24.68-1.4 1.25-1.95 1.33-.51.08-1.18.11-3.39-.79-2.82-1.15-4.64-4.04-4.78-4.23-.14-.19-1.14-1.52-1.14-2.9 0-1.38.72-2.06.98-2.35.25-.28.56-.35.75-.35.19 0 .38.01.55.02.18.01.42-.07.65.48.24.57.81 1.98.88 2.13.07.15.12.33.02.53-.1.2-.15.32-.3.49-.15.17-.32.38-.46.51-.15.15-.31.31-.13.62.18.31.79 1.3 1.7 2.11 1.17 1.04 2.15 1.36 2.46 1.51.31.15.49.13.67-.08.19-.21.79-.92 1-1.24.21-.31.42-.26.71-.15.29.11 1.84.87 2.16 1.02.31.16.52.24.6.37.08.13.08.76-.16 1.44z"/></svg>
             </a>
           </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Agency Production Packages -->
+  <section class="services-section" id="services-section">
+    <div class="container">
+      <div style="text-align: center; margin-bottom: 28px;">
+        <span class="sub-badge">AGENCY PRODUCTION PACKAGES</span>
+        <h2 style="font-family: var(--font-display); font-size: 30px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; margin: 4px 0 8px;">High-Impact Video Editing Services</h2>
+        <p style="color: var(--text-secondary); font-size: 14px; max-width: 580px; margin: 0 auto;">Engineered for audience retention, viral reach, and high-converting client deliverables.</p>
+      </div>
+
+      <div class="services-grid">
+        <div class="service-card">
+          <div class="service-card-header">
+            <div class="service-icon-box" style="background: rgba(217, 78, 40, 0.12); color: #d94e28;">🔥</div>
+            <h3 class="service-card-title">Short-Form Reels & Shorts</h3>
+            <p class="service-card-desc">Hook-driven pacing for Instagram Reels, YouTube Shorts & TikTok engineered to maximize view duration.</p>
+            <ul class="service-features-list">
+              <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> 3-Second Retention Hooks & Audio SFX</li>
+              <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Custom Kinetic Subtitles & B-Roll Overlays</li>
+              <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> 24 to 48-Hour Rapid Delivery</li>
+            </ul>
+          </div>
+          <button type="button" class="service-card-btn" onclick="openClientQuoteModal('Short-Form Reels')">
+            <span>Get Reels Quote ➔</span>
+          </button>
+        </div>
+
+        <div class="service-card">
+          <div class="service-card-header">
+            <div class="service-icon-box" style="background: rgba(239, 68, 68, 0.12); color: #ef4444;">🎬</div>
+            <h3 class="service-card-title">YouTube & Long-Form</h3>
+            <p class="service-card-desc">Documentary narrative pacing, talking-head retention cuts, color grading, and custom thumbnails that lift AVD.</p>
+            <ul class="service-features-list">
+              <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Narrative Arc & Storyboard Flow</li>
+              <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> DaVinci Resolve Film Color Grading</li>
+              <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Visual Chapters & Motion Graphics</li>
+            </ul>
+          </div>
+          <button type="button" class="service-card-btn" onclick="openClientQuoteModal('YouTube Long-Form')">
+            <span>Get YouTube Quote ➔</span>
+          </button>
+        </div>
+
+        <div class="service-card">
+          <div class="service-card-header">
+            <div class="service-icon-box" style="background: rgba(139, 92, 246, 0.12); color: #8b5cf6;">✨</div>
+            <h3 class="service-card-title">3D & Motion Graphics</h3>
+            <p class="service-card-desc">After Effects animation, 3D typography, vector product reveals, and visual effects that give your brand luxury authority.</p>
+            <ul class="service-features-list">
+              <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> 3D Titles, HUDs & Kinetic Type</li>
+              <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Product & Brand Logo Animation</li>
+              <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> After Effects Compositing & VFX</li>
+            </ul>
+          </div>
+          <button type="button" class="service-card-btn" onclick="openClientQuoteModal('3D Motion Graphics')">
+            <span>Get Motion Quote ➔</span>
+          </button>
+        </div>
+
+        <div class="service-card">
+          <div class="service-card-header">
+            <div class="service-icon-box" style="background: rgba(16, 185, 129, 0.12); color: #10b981;">📈</div>
+            <h3 class="service-card-title">Commercial & Brand Ads</h3>
+            <p class="service-card-desc">Paid media creatives engineered specifically for Meta, TikTok & YouTube ad campaigns to maximize ROAS.</p>
+            <ul class="service-features-list">
+              <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> High-CTR Visual Hooks & CTA Variants</li>
+              <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Multi-Format Delivery (9:16, 16:9, 1:1)</li>
+              <li><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> High-Volume A/B Creative Batches</li>
+            </ul>
+          </div>
+          <button type="button" class="service-card-btn" onclick="openClientQuoteModal('Commercial Ads')">
+            <span>Get Commercial Quote ➔</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 4-Step Agency Workflow Section -->
+  <section class="workflow-section" id="workflow-section">
+    <div class="container">
+      <div style="text-align: center; margin-bottom: 28px;">
+        <span class="sub-badge">AGENCY PIPELINE</span>
+        <h2 style="font-family: var(--font-display); font-size: 28px; font-weight: 800; color: var(--text-primary); letter-spacing: -0.5px; margin: 4px 0 8px;">How We Deliver Your Videos</h2>
+        <p style="color: var(--text-secondary); font-size: 14px; max-width: 540px; margin: 0 auto;">A dependable four-step post-production pipeline built for fast turnaround.</p>
+      </div>
+
+      <div class="workflow-grid">
+        <div class="workflow-card">
+          <span class="workflow-step-badge">STEP 01</span>
+          <h4 class="workflow-card-title">Brief & Raw Footage</h4>
+          <p class="workflow-card-desc">Upload your footage link (Google Drive, Dropbox) and brand goals. We evaluate your footage and assign your dedicated editor.</p>
+        </div>
+        <div class="workflow-card">
+          <span class="workflow-step-badge">STEP 02</span>
+          <h4 class="workflow-card-title">48h Rough Cut</h4>
+          <p class="workflow-card-desc">We build the core narrative structure, retention hooks, and pacing. You review the first assembly draft.</p>
+        </div>
+        <div class="workflow-card">
+          <span class="workflow-step-badge">STEP 03</span>
+          <h4 class="workflow-card-title">Sound & Motion Polish</h4>
+          <p class="workflow-card-desc">We add bespoke sound design, cinematic DaVinci color grading, kinetic typography, and motion graphics.</p>
+        </div>
+        <div class="workflow-card">
+          <span class="workflow-step-badge">STEP 04</span>
+          <h4 class="workflow-card-title">Final 4K Master</h4>
+          <p class="workflow-card-desc">Smooth revision turnaround followed by full-resolution 4K exports optimized to publish and scale.</p>
         </div>
       </div>
     </div>
@@ -127,32 +239,24 @@
   <!-- ======================================================================
        EDITOR JOIN SECTION (If you are an editor, join here)
        ====================================================================== -->
-  <section class="editor-hiring-banner-section" id="join-team-section">
+  <section class="editor-hiring-banner-section" id="join-team-section" style="padding:36px 0;">
     <div class="container">
-      <div class="editor-hiring-card">
-        <div class="hiring-text">
-          <span class="hiring-badge">CREATIVE TEAM RECRUITMENT</span>
-          <h2>If you are a video editor, join here</h2>
-          <p>Work directly with <strong>GanaCuts Visuals</strong>. We are actively bringing on talented video editors specializing in Documentary Videos, AI Videos, Motion Graphics, and High-Retention Storytelling for paid client projects. Submit your portfolio to join our creative team.</p>
+      <div class="editor-hiring-card" style="padding:26px 30px; background:#18181c; border-radius:20px; border:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:20px;">
+        <div class="hiring-text" style="max-width:620px;">
+          <span class="hiring-badge" style="font-size:11px; padding:3px 8px; border-radius:6px; background:rgba(217,78,40,0.15); color:#f97316; font-weight:800; display:inline-block; margin-bottom:8px;">CREATIVE ROSTER</span>
+          <h3 style="font-family:var(--font-display); font-size:22px; font-weight:800; color:#ffffff; margin:0 0 6px;">Are you an experienced video editor?</h3>
+          <p style="color:#a0a0ab; font-size:13.5px; line-height:1.5; margin:0;">Collaborate with <strong>GanaCuts Visuals</strong> on paid commercial edits, documentary cuts, and creator retainers. Submit your portfolio to join our creative network.</p>
         </div>
-        <div class="hiring-btn-group">
-          <button class="primary-btn pulse-glow" id="hiring-apply-btn">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-              <circle cx="8.5" cy="7" r="4"></circle>
-              <line x1="20" y1="8" x2="20" y2="14"></line>
-              <line x1="23" y1="11" x2="17" y2="11"></line>
-            </svg>
+        <div class="hiring-btn-group" style="display:flex; gap:12px; align-items:center;">
+          <button class="primary-btn pulse-glow" id="hiring-apply-btn" style="padding:10px 18px; font-size:13px; font-weight:700;">
             <span>Apply to Team</span>
           </button>
-          
-          <button class="secondary-btn light-btn" id="hiring-track-btn">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-              <circle cx="12" cy="7" r="4"></circle>
-            </svg>
+          <button class="secondary-btn light-btn" id="hiring-track-btn" style="padding:10px 16px; font-size:13px;">
             <span>Already a Member</span>
           </button>
+          <a href="/editor" class="secondary-btn light-btn" style="padding:10px 16px; font-size:13px; text-decoration:none;">
+            <span>Editor Studio ➔</span>
+          </a>
         </div>
       </div>
     </div>
@@ -321,6 +425,123 @@
               <polyline points="7 7 17 7 17 17"></polyline>
             </svg>
           </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ======================================================================
+       MODAL: CLIENT PROJECT INQUIRY & QUOTE REQUEST
+       ====================================================================== -->
+  <div id="client-quote-modal" class="modal-overlay" aria-hidden="true" onclick="if(event.target === this) closeClientQuoteModal()">
+    <div class="quote-modal-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:14px;">
+        <div>
+          <span style="font-size:11px; font-weight:800; color:var(--accent-orange); letter-spacing:0.5px; text-transform:uppercase;">Direct Project Brief</span>
+          <h2 style="font-family:var(--font-display); font-size:22px; font-weight:800; color:#ffffff; margin:2px 0 0;">Get a Video Project Quote</h2>
+        </div>
+        <button type="button" onclick="closeClientQuoteModal()" style="background:none; border:none; color:#888894; font-size:26px; cursor:pointer; line-height:1;">&times;</button>
+      </div>
+
+      <div id="quote-form-content">
+        <p style="font-size:13px; color:#a0a0ab; margin-bottom:18px; line-height:1.5;">
+          Tell Ganesh & GanaCuts Visuals about your video project. We'll review your brief and send a custom quote within 24 hours.
+        </p>
+
+        <form id="client-quote-form" onsubmit="handleClientQuoteSubmit(event)">
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+            <div class="form-group">
+              <label for="quote-client-name">Your Name *</label>
+              <input type="text" id="quote-client-name" placeholder="e.g. Alex Morgan" required>
+            </div>
+            <div class="form-group">
+              <label for="quote-brand-name">Brand / Channel Name</label>
+              <input type="text" id="quote-brand-name" placeholder="e.g. CreatorBrand / YouTube Channel">
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+            <div class="form-group">
+              <label for="quote-client-email">Email Address *</label>
+              <input type="email" id="quote-client-email" placeholder="name@company.com" required>
+            </div>
+            <div class="form-group">
+              <label for="quote-client-contact">WhatsApp / Phone *</label>
+              <input type="text" id="quote-client-contact" placeholder="+91 or international phone" required>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+            <div class="form-group">
+              <label for="quote-project-type">Project Type *</label>
+              <select id="quote-project-type" required>
+                <option value="Short-Form Reels & Shorts">Short-Form Reels & Shorts</option>
+                <option value="YouTube Long-Form / Documentary">YouTube Long-Form / Documentary</option>
+                <option value="3D Motion Graphics & VFX">3D Motion Graphics & VFX</option>
+                <option value="Commercial & Brand Ads">Commercial & Brand Ads</option>
+                <option value="Monthly Agency Retainer">Monthly Agency Retainer</option>
+                <option value="Custom Project">Custom Project</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="quote-video-count">Number of Videos</label>
+              <select id="quote-video-count">
+                <option value="1 Single Video">1 Single Video</option>
+                <option value="4-8 Videos / Month" selected>4-8 Videos / Month</option>
+                <option value="10-20 Videos / Month">10-20 Videos / Month</option>
+                <option value="Ongoing Monthly Retainer">Ongoing Monthly Retainer</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:14px;">
+            <div class="form-group">
+              <label for="quote-budget">Target Budget</label>
+              <select id="quote-budget">
+                <option value="₹10,000 - ₹25,000 / $150 - $300">₹10,000 - ₹25,000 / $150 - $300</option>
+                <option value="₹25,000 - ₹60,000 / $300 - $750" selected>₹25,000 - ₹60,000 / $300 - $750</option>
+                <option value="₹60,000 - ₹1,50,000 / $750 - $2,000">₹60,000 - ₹1,50,000 / $750 - $2,000</option>
+                <option value="₹1,50,000+ / $2,000+ Enterprise">₹1,50,000+ / $2,000+ Enterprise</option>
+                <option value="Discuss with Agency">Discuss with Agency</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="quote-footage-link">Footage or Reference Link</label>
+              <input type="url" id="quote-footage-link" placeholder="Google Drive, Dropbox, YouTube link">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:18px;">
+            <label for="quote-notes">Project Goals & Creative Vision</label>
+            <textarea id="quote-notes" rows="3" placeholder="Tell us about the video concept, deadline, editing style, reference videos, or any specific requirements..."></textarea>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end; gap:12px; align-items:center;">
+            <button type="button" class="secondary-btn light-btn" onclick="closeClientQuoteModal()" style="font-size:13px;">Cancel</button>
+            <button type="submit" id="quote-submit-btn" class="primary-btn" style="padding:11px 24px; font-size:13.5px; font-weight:800; background:var(--accent-orange); border:none; box-shadow:0 4px 16px rgba(217,78,40,0.4); display:inline-flex; align-items:center; gap:8px;">
+              <span>Submit Project Brief ➔</span>
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Success Confirmation State (Hidden initially) -->
+      <div id="quote-success-content" style="display:none; text-align:center; padding:24px 10px;">
+        <div style="width:60px; height:60px; border-radius:50%; background:rgba(34,197,94,0.15); color:#22c55e; font-size:28px; display:inline-flex; align-items:center; justify-content:center; margin-bottom:16px;">
+          ✓
+        </div>
+        <h3 style="font-size:22px; font-weight:800; color:#ffffff; margin-bottom:8px;">Project Brief Received!</h3>
+        <p style="color:#a0a0ab; font-size:13.5px; line-height:1.6; max-width:440px; margin:0 auto 20px;">
+          Thank you <strong id="quote-success-name" style="color:#ffffff;"></strong>. Ganesh Mogili has received your inquiry and will review your footage and requirements.
+        </p>
+        <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+          <a id="quote-success-wa-link" href="#" target="_blank" rel="noopener" class="primary-btn" style="background:#25d366; border:none; font-weight:700; display:inline-flex; align-items:center; gap:6px; padding:10px 20px;">
+            <span>💬 Confirm on WhatsApp</span>
+          </a>
+          <button type="button" class="secondary-btn light-btn" onclick="closeClientQuoteModal()">
+            <span>Done</span>
+          </button>
         </div>
       </div>
     </div>
