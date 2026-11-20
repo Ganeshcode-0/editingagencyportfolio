@@ -23,21 +23,22 @@ function isRateLimited(ip) {
 
 // Helper to safely get Gemini API Key without leaking to frontend
 function getGeminiApiKey() {
-  // Check local .env first for full key
+  // Check Vercel server environment variables first
+  if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 10) {
+    return process.env.GEMINI_API_KEY.trim();
+  }
+
+  // Check local .env for local Node development
   try {
     const envPath = path.join(__dirname, '..', '.env');
     if (fs.existsSync(envPath)) {
       const content = fs.readFileSync(envPath, 'utf8');
       const m = content.match(/GEMINI_API_KEY=([^\r\n]+)/);
-      if (m && m[1].trim().length > 30) return m[1].trim();
+      if (m && m[1].trim().length > 10) return m[1].trim();
     }
   } catch (e) {}
 
-  if (process.env.GEMINI_API_KEY && process.env.GEMINI_API_KEY.trim().length > 30) {
-    return process.env.GEMINI_API_KEY.trim();
-  }
-
-  return process.env.GEMINI_API_KEY ? process.env.GEMINI_API_KEY.trim() : null;
+  return null;
 }
 
 // Call Google Gemini API
@@ -170,7 +171,7 @@ module.exports = async function handler(req, res) {
       success: true,
       configured: Boolean(apiKey),
       provider: 'Google Gemini AI',
-      model: 'gemini-3.5-flash-lite',
+      aiEngine: 'Active',
       activeCapabilities: ['profile_analysis', 'email_automation', 'tier_recommendation', 'copilot_chat']
     }));
   }
@@ -208,7 +209,7 @@ module.exports = async function handler(req, res) {
 
       // ACTION 0: Test Connection
       if (action === 'test_connection') {
-        const testRes = await callGemini('Respond with short JSON: {"status":"connected","model":"gemini-3.5-flash-lite","message":"Google Gemini AI is active and responding."}', true);
+        const testRes = await callGemini('Respond with short JSON: {"status":"connected","engine":"active","message":"AI Engine is active and responding."}', true);
         res.statusCode = 200;
         return res.end(JSON.stringify({
           success: true,
@@ -223,7 +224,7 @@ module.exports = async function handler(req, res) {
         const editor = body.editor || {};
         const adminDesc = body.adminDescription || editor.adminDescription || editor.notes || 'None provided yet';
 
-        const prompt = `You are the Executive Creative Director at GanaCuts Visuals (a high-tier post-production & creative video agency founded by Ganesh Mogili).
+        const prompt = `You are the Executive Creative Director at GanaCuts Visuals (a high-tier post-production & creative video agency).
 Analyze this video editor's profile and provide an incisive, realistic professional evaluation:
 
 EDITOR PROFILE:
@@ -245,7 +246,7 @@ Your job:
    - "basic" = Junior, learning pacing, needs practice tasks or trial edits first.
 4. Highlight 3-4 specific strengths.
 5. Identify their best project fit (what type of client videos they should edit).
-6. Give practical coaching advice for Ganesh on how to manage or level up this editor.
+6. Give practical coaching advice on how to manage or level up this editor.
 7. Write a 2-sentence executive summary.
 
 Return ONLY a valid JSON object matching this schema:
@@ -278,7 +279,7 @@ Return ONLY a valid JSON object matching this schema:
         const purpose = body.purpose || 'project_offer';
         const customNotes = body.customNotes || '';
 
-        const prompt = `You are Ganesh Mogili, Founder & Creative Director of GanaCuts Visuals.
+        const prompt = `You are the Creative Director of GanaCuts Visuals.
 Write a personalized, professional, and motivating email from your Gmail (designsbygani@gmail.com) directly to this video editor:
 
 RECIPIENT:
@@ -298,7 +299,6 @@ GUIDELINES:
 - Warm, direct, professional tone of a high-growth creative agency founder.
 - Keep it concise, actionable, and clear.
 - Sign off cleanly as:
-  Ganesh Mogili
   Founder & Creative Director | GanaCuts Visuals
 
 Format the output as ONLY valid JSON:
@@ -323,7 +323,7 @@ Format the output as ONLY valid JSON:
         const userQuery = body.message || body.prompt || 'Hello Copilot';
         const agencyContext = body.agencyContext || {};
 
-        const prompt = `You are GanaCuts Agency Copilot, an intelligent AI Executive Partner for Ganesh Mogili (Founder & Creative Director) and operations managers at GanaCuts Visuals.
+        const prompt = `You are GanaCuts Agency Copilot, an intelligent AI Executive Partner for the Creative Director and operations managers at GanaCuts Visuals.
 
 AGENCY OPERATING CONTEXT:
 - Agency: GanaCuts Visuals (High-retention video editing agency)

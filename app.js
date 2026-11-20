@@ -2273,7 +2273,7 @@ window.executeUniversalGemini = async function(action, payload = {}) {
   // Fallback directly to client-side Google Generative Language API
   if (action === "test_connection") {
     const start = Date.now();
-    const testRes = await window.callGeminiDirectClient('Respond with JSON: {"status":"connected","model":"gemini-3.5-flash-lite","message":"Google Gemini AI is active and responding."}', true);
+    const testRes = await window.callGeminiDirectClient('Respond with JSON: {"status":"connected","engine":"active","message":"AI Engine is active and responding."}', true);
     return {
       success: true,
       action: "test_connection",
@@ -2285,7 +2285,7 @@ window.executeUniversalGemini = async function(action, payload = {}) {
   if (action === "analyze_editor") {
     const editor = payload.editor || {};
     const adminDesc = payload.adminDescription || editor.adminDescription || editor.notes || "None provided yet";
-    const prompt = `You are the Executive Creative Director at GanaCuts Visuals (a high-tier post-production & creative video agency founded by Ganesh Mogili).
+    const prompt = `You are the Executive Creative Director at GanaCuts Visuals (a high-tier post-production & creative video agency).
 Analyze this video editor's profile and provide an incisive, realistic professional evaluation:
 
 EDITOR PROFILE:
@@ -2307,7 +2307,7 @@ Your job:
    - "basic" = Junior, learning pacing, needs practice tasks or trial edits first.
 4. Highlight 3-4 specific strengths.
 5. Identify their best project fit (what type of client videos they should edit).
-6. Give practical coaching advice for Ganesh on how to manage or level up this editor.
+6. Give practical coaching advice on how to manage or level up this editor.
 7. Write a 2-sentence executive summary.
 
 Return ONLY a valid JSON object matching this schema:
@@ -2336,7 +2336,7 @@ Return ONLY a valid JSON object matching this schema:
     const editor = payload.editor || {};
     const purpose = payload.purpose || "project_offer";
     const customNotes = payload.customNotes || "";
-    const prompt = `You are Ganesh Mogili, Founder & Creative Director of GanaCuts Visuals.
+    const prompt = `You are the Creative Director of GanaCuts Visuals.
 Write a personalized, professional, and motivating email from your Gmail (designsbygani@gmail.com) directly to this video editor:
 
 RECIPIENT:
@@ -2356,7 +2356,6 @@ GUIDELINES:
 - Warm, direct, professional tone of a high-growth creative agency founder.
 - Keep it concise, actionable, and clear.
 - Sign off cleanly as:
-Ganesh Mogili
 Founder & Creative Director | GanaCuts Visuals
 designsbygani@gmail.com
 
@@ -2459,7 +2458,7 @@ window.testGeminiConnectionLive = async function() {
           <strong style="font-size:13.5px; color:#065f46;">Connection Successful! Latency: ${ms}ms</strong>
         </div>
         <div style="font-size:12px; color:#047857; margin-top:4px;">
-          Model: <code>gemini-3.5-flash-lite</code> &bull; Status: Online & ready for AI profile evaluations and Gmail generation.
+          AI Engine: <code>Active</code> &bull; Status: Online & ready for AI profile evaluations and proposal drafting.
         </div>
       `;
     }
@@ -2594,7 +2593,7 @@ window.openDirectGmailModal = function(id) {
   // Pre-fill initial subject and body
   if (subjectInput) subjectInput.value = `GanaCuts Visuals: Video Project Collaboration (${app.name})`;
   if (bodyInput) {
-    bodyInput.value = `Hi ${app.name},\n\nI hope you're doing well.\n\nWe reviewed your portfolio and editing work at GanaCuts Visuals and wanted to discuss upcoming commercial video editing opportunities.\n\nPlease let me know your availability for this week so we can coordinate footage delivery.\n\nBest regards,\n\nGanesh Mogili\nFounder & Creative Director | GanaCuts Visuals\ndesignsbygani@gmail.com`;
+    bodyInput.value = `Hi ${app.name},\n\nI hope you're doing well.\n\nWe reviewed your portfolio and editing work at GanaCuts Visuals and wanted to discuss upcoming commercial video editing opportunities.\n\nPlease let me know your availability for this week so we can coordinate footage delivery.\n\nBest regards,\n\nFounder & Creative Director | GanaCuts Visuals\ndesignsbygani@gmail.com`;
   }
 
   updateMailtoLink();
@@ -4681,6 +4680,9 @@ Agency Asset Folders: ${(profile && profile.agencyFolders ? profile.agencyFolder
 
 window.initAiCopilot = function() {
   if (document.getElementById("ai-copilot-launcher")) return;
+  // STRICT ADMIN ACCESS ONLY: Do NOT initialize for editors or public visitors
+  const isAdmin = window.location.pathname.includes("admin") || Boolean(document.getElementById("pane-overview"));
+  if (!isAdmin) return;
 
   // Floating trigger button
   const btn = document.createElement("div");
@@ -4710,7 +4712,7 @@ window.initAiCopilot = function() {
             <strong style="font-size:14px; color:#ffffff;">GanaCuts AI Copilot</strong>
             <span style="background:rgba(16,185,129,0.15); color:#10b981; font-size:9.5px; font-weight:800; padding:1px 6px; border-radius:8px; border:1px solid rgba(16,185,129,0.3);">🟢 LIVE ROSTER ACCESS</span>
           </div>
-          <span style="font-size:11px; color:#a1a1aa;">Powered by gemini-3.5-flash-lite</span>
+          <span style="font-size:11px; color:#a1a1aa;">Agency AI Intelligence</span>
         </div>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
@@ -4734,7 +4736,7 @@ window.initAiCopilot = function() {
       <div style="background:#202026; border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:12px 14px; color:#e4e4e7;">
         <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
           <span style="font-size:16px;">👋</span>
-          <strong style="color:#ffffff; font-size:13px;">Hi Ganesh & Team! I am your AI Copilot.</strong>
+          <strong style="color:#ffffff; font-size:13px;">Welcome to GanaCuts AI Copilot.</strong>
         </div>
         <p style="margin:0 0 6px; color:#a1a1aa; font-size:12px;">
           I have <strong>real-time live access</strong> to all 32+ video editors, new members awaiting approval, divided editing phases (Special, Normal, Basic), rates, tools, and admin notes.
@@ -4834,13 +4836,13 @@ window.sendAiCopilotMessage = async function(manualText = null) {
   msgBox.scrollTop = msgBox.scrollHeight;
 
   const liveContext = window.buildLiveAgencyKnowledgeContext();
-  const prompt = `You are GanaCuts AI Copilot, Chief Operations Assistant for GanaCuts Visuals (an elite commercial post-production video editing agency founded by Ganesh Mogili).
+  const prompt = `You are GanaCuts AI Copilot, Chief Operations Assistant for GanaCuts Visuals (an elite commercial post-production video editing agency).
 
 LIVE AGENCY DATABASE CONTEXT:
 ${liveContext}
 
 CONVERSATION HISTORY:
-${_copilotChatHistory.slice(-4).map(m => `${m.role === 'user' ? 'Ganesh/Manager' : 'Copilot'}: ${m.text}`).join('\n')}
+${_copilotChatHistory.slice(-4).map(m => `${m.role === 'user' ? 'Admin/Manager' : 'Copilot'}: ${m.text}`).join('\n')}
 
 USER QUESTION / TASK:
 ${text}
@@ -4885,12 +4887,15 @@ Answer:`;
   }
 };
 
-// Initialize Copilot on page load
+// Initialize Copilot on page load (Strict Admin Studio only)
 if (typeof document !== 'undefined') {
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => { setTimeout(window.initAiCopilot, 800); });
-  } else {
-    setTimeout(window.initAiCopilot, 800);
+  const isAdmin = window.location.pathname.includes("admin") || Boolean(document.getElementById("pane-overview"));
+  if (isAdmin) {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', () => { setTimeout(window.initAiCopilot, 800); });
+    } else {
+      setTimeout(window.initAiCopilot, 800);
+    }
   }
 }
 
@@ -5008,7 +5013,7 @@ window.handleClientQuoteSubmit = async function(event) {
 
   if (succName) succName.textContent = name;
   if (succWa) {
-    const waText = encodeURIComponent("Hi Ganesh! I just submitted a project inquiry for " + projectType + " on GanaCuts Visuals. My name is " + name + (brand ? " (Brand: " + brand + ")" : ""));
+    const waText = encodeURIComponent("Hi GanaCuts Visuals! I just submitted a project inquiry for " + projectType + " on GanaCuts Visuals. My name is " + name + (brand ? " (Brand: " + brand + ")" : ""));
     succWa.href = "https://wa.me/917075081947?text=" + waText;
   }
 
@@ -5126,7 +5131,7 @@ window.renderInquiriesManager = function() {
   container.innerHTML = list.map(inq => {
     const rawContact = inq.contact || "";
     const cleanPhone = rawContact.replace(/\D/g, "");
-    const waLink = cleanPhone ? ("https://wa.me/" + cleanPhone + "?text=" + encodeURIComponent("Hi " + (inq.client_name || "") + ", this is Ganesh Mogili from GanaCuts Visuals regarding your video editing inquiry.")) : '#';
+    const waLink = cleanPhone ? ("https://wa.me/" + cleanPhone + "?text=" + encodeURIComponent("Hi " + (inq.client_name || "") + ", this is GanaCuts Visuals regarding your video editing inquiry.")) : '#';
     const emailLink = inq.email ? ("mailto:" + inq.email + "?subject=" + encodeURIComponent("GanaCuts Visuals - Video Project Proposal for " + (inq.brand_name || inq.client_name || "Your Brand"))) : '#';
     const dateStr = inq.created_at ? new Date(inq.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) : 'Recent';
 
@@ -5191,7 +5196,7 @@ window.draftAiProposalForInquiry = async function(inquiryId) {
   const inq = list.find(i => i.id === inquiryId);
   if (!inq) return;
 
-  const prompt = "You are Ganesh Mogili, Founder & Creative Director of GanaCuts Visuals.\n" +
+  const prompt = "You are the Creative Director of GanaCuts Visuals.\n" +
     "Write a high-converting, professional, and crisp video editing proposal email directly to this client:\n\n" +
     "CLIENT INQUIRY:\n" +
     "- Client Name: " + (inq.client_name || 'Client') + "\n" +
@@ -5206,7 +5211,7 @@ window.draftAiProposalForInquiry = async function(inquiryId) {
     "- Explain our 4-step workflow (Footage brief -> 48h rough cut -> sound & color polish -> 4K delivery).\n" +
     "- Provide a clear, structured pricing & timeline recommendation fitting their stated budget.\n" +
     "- End with a clean call-to-action inviting them to a WhatsApp or Google Meet kickoff.\n" +
-    "- Sign off as: Ganesh Mogili, Founder & Creative Director | GanaCuts Visuals";
+    "- Sign off as: Founder & Creative Director | GanaCuts Visuals";
 
   window.switchAdminTab('copilot');
   const container = document.getElementById("copilot-messages-container");

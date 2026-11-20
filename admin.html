@@ -1013,7 +1013,7 @@
         <div class="copilot-container">
           <div class="copilot-messages" id="copilot-messages-container">
             <div class="copilot-bubble-ai">
-              <strong>👋 Hello Ganesh!</strong> I'm your GanaCuts Agency Copilot. I have live awareness of your active editor roster, applicant phases (⭐ Special, 💼 Normal, 🔰 Basic), client quote inquiries, and project workflows. How can I help you manage the agency today?
+              <strong>👋 Hello Admin!</strong> I'm your GanaCuts Agency Copilot. I have live awareness of your active editor roster, applicant phases (⭐ Special, 💼 Normal, 🔰 Basic), client quote inquiries, and project workflows. How can I help you manage the agency today?
             </div>
           </div>
 
@@ -1730,7 +1730,7 @@
       <!-- Quick AI Draft Prompt Presets -->
       <div style="margin-bottom:14px;">
         <label style="font-size:11.5px; font-weight:700; color:#6366f1; display:flex; align-items:center; gap:5px; margin-bottom:7px;">
-          <span>✨ 1-Click AI Draft Presets (Powered by Gemini AI)</span>
+          <span>✨ 1-Click AI Draft Presets</span>
         </label>
         <div style="display:flex; flex-wrap:wrap; gap:6px;">
           <button type="button" class="ai-prompt-chip" onclick="draftEmailWithPreset('Commercial Client Project Assignment (High-ticket reel with deadline & payout)')">
@@ -1809,7 +1809,7 @@
               <h3 style="font-size:18px; font-weight:800; color:#121214; margin:0;">Google Gemini AI Integration</h3>
               <span class="badge-mini" style="background:rgba(16,185,129,0.15); color:#059669; border:1px solid rgba(16,185,129,0.3); font-size:11px; padding:2px 8px; border-radius:10px; font-weight:700;">🟢 Active</span>
             </div>
-            <p style="font-size:12px; color:#5a5a62; margin:2px 0 0;">Configured with <strong>gemini-3.5-flash-lite</strong> for automated profile analysis, phase recommendations, and Gmail drafting.</p>
+            <p style="font-size:12px; color:#5a5a62; margin:2px 0 0;">Configured for automated profile analysis, phase recommendations, and proposal drafting.</p>
           </div>
         </div>
         <button type="button" onclick="closeGeminiSettingsModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#888894; line-height:1;">&times;</button>
@@ -1932,7 +1932,7 @@
       const role = (isManager && !isMaster) ? "manager" : "admin";
       const displayName = (isManager && !isMaster)
         ? (manager.name + " (👑 Agency Manager)")
-        : (isMaster ? "Ganesh (Master Admin)" : name);
+        : (isMaster ? "Master Admin" : name);
 
       const sessionData = {
         email: email,
