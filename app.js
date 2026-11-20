@@ -827,6 +827,7 @@ const STORAGE_KEY_PRACTICE_ASGS = "cutscale_practice_asgs_v1";
 const STORAGE_KEY_CLIENT_PROJS = "cutscale_client_projs_v1";
 const STORAGE_KEY_AGENCY_FOLDERS = "cutscale_agency_folders_v1";
 const STORAGE_KEY_DELETED_VAULT_IDS = "ganacuts_deleted_vault_ids_v1";
+const STORAGE_KEY_DELETED_APP_IDS = "ganacuts_deleted_app_ids_v1";
 const ADMIN_PIN = "7075";
 
 let practiceAssignments = [];
@@ -1444,13 +1445,34 @@ async function fetchRemotePortfolioData() {
         localStorage.setItem(STORAGE_KEY_CATS, JSON.stringify(categories));
         changed = true;
       }
+      const deletedAppIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_APP_IDS) || "[]"));
+      const trashIds = new Set((trashApplicants || []).map(t => t.id));
+
       if (data && Array.isArray(data.applicants) && data.applicants.length > 0) {
         const aMap = new Map();
-        (applicants || []).forEach(a => { if (a && a.id) aMap.set(a.id, a); });
-        data.applicants.forEach(a => {
-          if (a && a.id) {
-            const existing = aMap.get(a.id) || {};
-            aMap.set(a.id, { ...a, ...existing });
+        // 1. In-memory local applicants (from localStorage) take absolute precedence
+        (applicants || []).forEach(a => {
+          if (a && a.id && !trashIds.has(a.id) && !deletedAppIds.has(a.id)) {
+            aMap.set(a.id, a);
+          }
+        });
+        // 2. Incoming remote applicants from portfolio.json: ONLY add if not deleted, not trashed
+        data.applicants.forEach(remote => {
+          if (remote && remote.id && !trashIds.has(remote.id) && !deletedAppIds.has(remote.id)) {
+            if (!aMap.has(remote.id)) {
+              aMap.set(remote.id, remote);
+            } else {
+              // Local already has this editor! Preserve local edits: editorTier, status, adminDescription, isApproved, notes
+              const local = aMap.get(remote.id);
+              aMap.set(remote.id, {
+                ...remote,
+                ...local,
+                editorTier: local.editorTier || remote.editorTier || 'normal',
+                status: local.status || remote.status || 'pending',
+                adminDescription: local.adminDescription !== undefined ? local.adminDescription : (remote.adminDescription || ''),
+                isApproved: local.isApproved !== undefined ? local.isApproved : remote.isApproved
+              });
+            }
           }
         });
         applicants = Array.from(aMap.values());
@@ -1541,13 +1563,31 @@ async function fetchRemotePortfolioData() {
           categories = data2.categories;
           localStorage.setItem(STORAGE_KEY_CATS, JSON.stringify(categories));
         }
+        const deletedAppIds2 = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_APP_IDS) || "[]"));
+        const trashIds2 = new Set((trashApplicants || []).map(t => t.id));
+
         if (data2 && Array.isArray(data2.applicants) && data2.applicants.length > 0) {
           const aMap = new Map();
-          (applicants || []).forEach(a => { if (a && a.id) aMap.set(a.id, a); });
-          data2.applicants.forEach(a => {
-            if (a && a.id) {
-              const existing = aMap.get(a.id) || {};
-              aMap.set(a.id, { ...a, ...existing });
+          (applicants || []).forEach(a => {
+            if (a && a.id && !trashIds2.has(a.id) && !deletedAppIds2.has(a.id)) {
+              aMap.set(a.id, a);
+            }
+          });
+          data2.applicants.forEach(remote => {
+            if (remote && remote.id && !trashIds2.has(remote.id) && !deletedAppIds2.has(remote.id)) {
+              if (!aMap.has(remote.id)) {
+                aMap.set(remote.id, remote);
+              } else {
+                const local = aMap.get(remote.id);
+                aMap.set(remote.id, {
+                  ...remote,
+                  ...local,
+                  editorTier: local.editorTier || remote.editorTier || 'normal',
+                  status: local.status || remote.status || 'pending',
+                  adminDescription: local.adminDescription !== undefined ? local.adminDescription : (remote.adminDescription || ''),
+                  isApproved: local.isApproved !== undefined ? local.isApproved : remote.isApproved
+                });
+              }
             }
           });
           applicants = Array.from(aMap.values());
@@ -1686,16 +1726,18 @@ function initData() {
   localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
   if (typeof window !== "undefined") window.profile = profile;
 
-  const storedApps = localStorage.getItem(STORAGE_KEY_APPS);
-  applicants = storedApps ? JSON.parse(storedApps) : [...DEFAULT_APPLICANTS];
-  // Purge any legacy fake applicants (Suresh, Arjun, Kavya) or system vault row
-  applicants = applicants.filter(a => a && a.id !== "app_1" && a.id !== "app_2" && a.id !== "app_3" && a.id !== '__agency_system_vault__' && !a.id.startsWith('__'));
-  localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
-  if (typeof window !== "undefined") window.applicants = applicants;
-
   const storedTrash = localStorage.getItem(STORAGE_KEY_TRASH_APPS);
   trashApplicants = storedTrash ? JSON.parse(storedTrash) : [];
   localStorage.setItem(STORAGE_KEY_TRASH_APPS, JSON.stringify(trashApplicants));
+
+  const deletedAppIdsInit = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_APP_IDS) || "[]"));
+  const trashIdsInit = new Set((trashApplicants || []).map(t => t.id));
+
+  const storedApps = localStorage.getItem(STORAGE_KEY_APPS);
+  applicants = storedApps ? JSON.parse(storedApps) : [...DEFAULT_APPLICANTS];
+  applicants = applicants.filter(a => a && a.id !== "app_1" && a.id !== "app_2" && a.id !== "app_3" && a.id !== '__agency_system_vault__' && !a.id.startsWith('__') && !trashIdsInit.has(a.id) && !deletedAppIdsInit.has(a.id));
+  localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
+  if (typeof window !== "undefined") window.applicants = applicants;
 
   const storedMsgs = localStorage.getItem(STORAGE_KEY_MSGS);
   messages = storedMsgs ? JSON.parse(storedMsgs) : [...DEFAULT_MESSAGES];
@@ -3338,11 +3380,28 @@ function renderSingleApplicantCard(app) {
         </div>
         <div class="applicant-detail-item">
           <strong style="color:#ffffff;">Specialization & Tools</strong>
-          <span style="color:#a1a1aa;">🎬 ${app.specialization || 'Video Editing'} (${app.tools || 'Video Editor'})</span>
+          <span style="color:#a1a1aa;">🎬 ${app.specialization || 'Video Editing'} (${[app.tools, app.otherTools].filter(Boolean).join(', ') || '<span style="color:#f59e0b; font-style:italic;">No tools specified yet</span>'})</span>
         </div>
         <div class="applicant-detail-item">
           <strong style="color:#ffffff;">Expected Rate per reel/video</strong>
           <span style="color:#a1a1aa;">💰 ${app.rate || 'Standard / Discuss'}</span>
+        </div>
+      </div>
+
+      <!-- NEW MEMBER PENDING APPROVAL BAR -->
+      <div id="pending-banner-${app.id}" style="display:${(app.status === 'pending' || app.isApproved === false) ? 'flex' : 'none'}; background:rgba(245,158,11,0.12); border:1.5px solid rgba(245,158,11,0.35); border-radius:10px; padding:10px 14px; margin-top:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:18px;">⏳</span>
+          <div>
+            <strong style="color:#fbbf24; font-size:12.5px;">New Member Awaiting Approval</strong>
+            <div style="font-size:11px; color:#cbd5e1;">Review editor details and approve into an active editing phase:</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap;">
+          <button type="button" class="primary-btn" onclick="approveNewMember('${app.id}', 'normal')" style="background:#10b981; border:none; padding:5px 12px; font-size:11px; font-weight:700; box-shadow:0 2px 8px rgba(16,185,129,0.3);">✅ Approve (Normal)</button>
+          <button type="button" class="primary-btn" onclick="approveNewMember('${app.id}', 'special')" style="background:#f59e0b; border:none; padding:5px 12px; font-size:11px; font-weight:700; color:#18181c; box-shadow:0 2px 8px rgba(245,158,11,0.3);">⭐ Special Phase</button>
+          <button type="button" class="primary-btn" onclick="approveNewMember('${app.id}', 'basic')" style="background:#8b5cf6; border:none; padding:5px 12px; font-size:11px; font-weight:700; box-shadow:0 2px 8px rgba(139,92,246,0.3);">🔰 Basic Phase</button>
+          <button type="button" class="delete-btn" onclick="moveApplicantToTrash('${app.id}')" style="padding:5px 10px; font-size:11px;" title="Reject and move to Recycle Bin">🗑️ Reject</button>
         </div>
       </div>
 
@@ -3457,17 +3516,20 @@ function renderApplicantsManager() {
     return;
   }
 
-  // Calculate Tier Counts
-  const specialTotal = applicants.filter(a => a.editorTier === 'special' || (!a.editorTier && a.status === 'selected')).length;
-  const normalTotal = applicants.filter(a => ((!a.editorTier && a.status !== 'selected' && a.status !== 'pending') || a.editorTier === 'normal')).length;
-  const basicTotal = applicants.filter(a => (a.editorTier === 'basic' || (!a.editorTier && a.status === 'pending'))).length;
+  // Calculate Tier Counts & Pending Approvals
+  const pendingList = applicants.filter(a => a.status === 'pending' || a.isApproved === false);
+  const specialTotal = applicants.filter(a => (a.status !== 'pending' && a.isApproved !== false) && (a.editorTier === 'special' || (!a.editorTier && a.status === 'selected'))).length;
+  const normalTotal = applicants.filter(a => (a.status !== 'pending' && a.isApproved !== false) && ((!a.editorTier && a.status !== 'selected') || a.editorTier === 'normal')).length;
+  const basicTotal = applicants.filter(a => (a.status !== 'pending' && a.isApproved !== false) && a.editorTier === 'basic').length;
 
   safeSetText("count-tier-all", applicants.length);
+  safeSetText("count-tier-pending", pendingList.length);
   safeSetText("count-tier-special", specialTotal);
   safeSetText("count-tier-normal", normalTotal);
   safeSetText("count-tier-basic", basicTotal);
   safeSetText("dash-applicants-total", applicants.length);
   safeSetText("cta-app-count", applicants.length);
+  if (window.updateAiCopilotBadge) window.updateAiCopilotBadge();
 
   // Filter list by Search
   let filtered = [...applicants];
@@ -3486,10 +3548,15 @@ function renderApplicantsManager() {
 
   // Filter by Tier Tab if active
   if (currentRosterTierFilter !== "all") {
-    filtered = filtered.filter(a => {
-      const tier = a.editorTier || (a.status === 'selected' ? 'special' : (a.status === 'trial' ? 'normal' : 'basic'));
-      return tier === currentRosterTierFilter;
-    });
+    if (currentRosterTierFilter === "pending") {
+      filtered = filtered.filter(a => a.status === 'pending' || a.isApproved === false);
+    } else {
+      filtered = filtered.filter(a => {
+        if (a.status === 'pending' || a.isApproved === false) return false;
+        const tier = a.editorTier || (a.status === 'selected' ? 'special' : (a.status === 'trial' ? 'normal' : 'basic'));
+        return tier === currentRosterTierFilter;
+      });
+    }
   }
 
   if (filtered.length === 0) {
@@ -3502,15 +3569,37 @@ function renderApplicantsManager() {
     return;
   }
 
-  // DIVIDED PHASE SECTIONS VIEW MODE (Grouped into Special, Normal, Basic)
+  // DIVIDED PHASE SECTIONS VIEW MODE (Grouped into Pending, Special, Normal, Basic)
   if (currentRosterViewMode === "grouped" && currentRosterTierFilter === "all" && !currentRosterSearchQuery) {
-    const specialList = filtered.filter(a => (a.editorTier === 'special' || (!a.editorTier && a.status === 'selected')));
-    const normalList = filtered.filter(a => ((!a.editorTier && a.status !== 'selected' && a.status !== 'pending') || a.editorTier === 'normal'));
-    const basicList = filtered.filter(a => (a.editorTier === 'basic' || (!a.editorTier && a.status === 'pending')));
+    const specialList = filtered.filter(a => (a.status !== 'pending' && a.isApproved !== false) && (a.editorTier === 'special' || (!a.editorTier && a.status === 'selected')));
+    const normalList = filtered.filter(a => (a.status !== 'pending' && a.isApproved !== false) && ((!a.editorTier && a.status !== 'selected') || a.editorTier === 'normal'));
+    const basicList = filtered.filter(a => (a.status !== 'pending' && a.isApproved !== false) && a.editorTier === 'basic');
+    const pendingListFiltered = filtered.filter(a => a.status === 'pending' || a.isApproved === false);
 
-    listEl.innerHTML = `
-      <!-- PHASE 1: ⭐ SPECIAL EDITORS SECTION -->
-      <div class="divided-phase-section" style="border-left: 4.5px solid #f59e0b;">
+    let pendingHtml = '';
+    if (pendingListFiltered.length > 0) {
+      pendingHtml = '<div class="divided-phase-section" style="border-left: 4.5px solid #f59e0b; background:rgba(245,158,11,0.04); border:1px solid rgba(245,158,11,0.3); border-radius:16px; padding:18px 20px; margin-bottom:22px;">' +
+        '<div class="divided-phase-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">' +
+          '<div style="display:flex; align-items:center; gap:10px;">' +
+            '<span style="font-size:22px;">🚨</span>' +
+            '<div>' +
+              '<div style="display:flex; align-items:center; gap:8px;">' +
+                '<h4 style="font-size:16px; font-weight:800; color:#fbbf24; margin:0;">New Members Awaiting Approval (' + pendingListFiltered.length + ')</h4>' +
+                '<span class="badge-mini" style="background:#f59e0b; color:#18181c; font-weight:800; font-size:10px; padding:1px 7px; border-radius:8px;">ACTION REQUIRED</span>' +
+              '</div>' +
+              '<small style="color:#a1a1aa; font-size:12px;">New editors who recently signed in or applied. Review their details and approve them into an active editing phase.</small>' +
+            '</div>' +
+          '</div>' +
+          '<button type="button" class="primary-btn" onclick="approveAllPendingMembers()" style="background:#10b981; border:none; padding:7px 14px; font-size:12px; font-weight:700; box-shadow:0 3px 10px rgba(16,185,129,0.3);">' +
+            '✅ Approve All as Normal' +
+          '</button>' +
+        '</div>' +
+        pendingListFiltered.map(renderSingleApplicantCard).join('') +
+      '</div>';
+    }
+
+    listEl.innerHTML = pendingHtml + `
+      <!-- PHASE 1: ⭐ SPECIAL EDITORS SECTION -->      <div class="divided-phase-section" style="border-left: 4.5px solid #f59e0b;">
         <div class="divided-phase-header">
           <div style="display:flex; align-items:center; gap:10px;">
             <span style="font-size:22px;">⭐</span>
@@ -4305,7 +4394,7 @@ function showToast(msg, duration = 3200) {
   }, duration);
 }
 
-// Move Applicant to Recycle Bin (Trash)
+// Move Applicant to Recycle Bin (Trash) - Permanently persistent
 window.moveApplicantToTrash = async function(id) {
   const app = applicants.find(a => a.id === id);
   if (!app) return;
@@ -4318,6 +4407,13 @@ window.moveApplicantToTrash = async function(id) {
   };
   trashApplicants.unshift(trashItem);
   saveTrashApplicants();
+
+  // Add to deleted tombstone so remote fetch will NEVER resurrect it
+  try {
+    const deletedAppIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_APP_IDS) || "[]"));
+    deletedAppIds.add(id);
+    localStorage.setItem(STORAGE_KEY_DELETED_APP_IDS, JSON.stringify(Array.from(deletedAppIds)));
+  } catch (e) {}
 
   applicants = applicants.filter(a => a.id !== id);
   saveApplicants();
@@ -4345,6 +4441,13 @@ window.restoreApplicantFromTrash = async function(id) {
   trashApplicants.splice(itemIndex, 1);
   saveTrashApplicants();
 
+  // Remove from deleted tombstone
+  try {
+    const deletedAppIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_APP_IDS) || "[]"));
+    deletedAppIds.delete(id);
+    localStorage.setItem(STORAGE_KEY_DELETED_APP_IDS, JSON.stringify(Array.from(deletedAppIds)));
+  } catch (e) {}
+
   const restoredApp = {
     ...item,
     status: item.previousStatus || "pending"
@@ -4371,6 +4474,13 @@ window.permanentlyDeleteApplicant = function(id) {
 
   trashApplicants = trashApplicants.filter(t => t.id !== id);
   saveTrashApplicants();
+
+  try {
+    const deletedAppIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_APP_IDS) || "[]"));
+    deletedAppIds.add(id);
+    localStorage.setItem(STORAGE_KEY_DELETED_APP_IDS, JSON.stringify(Array.from(deletedAppIds)));
+  } catch (e) {}
+
   updateAdminUI();
   showToast(`Editor permanently deleted.`);
 };
@@ -4382,6 +4492,12 @@ window.emptyTrashBin = function() {
     return;
   }
   if (!confirm(`Permanently empty entire Recycle Bin (${trashApplicants.length} editors)? This cannot be undone.`)) return;
+
+  try {
+    const deletedAppIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_APP_IDS) || "[]"));
+    (trashApplicants || []).forEach(t => { if (t && t.id) deletedAppIds.add(t.id); });
+    localStorage.setItem(STORAGE_KEY_DELETED_APP_IDS, JSON.stringify(Array.from(deletedAppIds)));
+  } catch (e) {}
 
   trashApplicants = [];
   saveTrashApplicants();
@@ -5108,3 +5224,311 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+
+// ==========================================
+// NEW MEMBER APPROVAL WORKFLOW
+// ==========================================
+window.approveNewMember = async function(id, targetTier = 'normal') {
+  const app = applicants.find(a => a.id === id);
+  if (!app) return;
+
+  app.status = 'selected';
+  app.isApproved = true;
+  app.editorTier = targetTier;
+  app.adminFeedback = `Approved by GanaCuts Visuals management into ${targetTier.toUpperCase()} editing phase. Welcome aboard!`;
+
+  saveApplicants();
+  if (window.syncApplicantToSupabase) {
+    await window.syncApplicantToSupabase(app);
+  }
+
+  const tierNames = { special: "⭐ Special Editor", normal: "💼 Normal Editor", basic: "🔰 Basic Editor" };
+  showToast(`✅ ${app.name} approved & assigned to ${tierNames[targetTier] || targetTier}!`);
+  renderApplicantsManager();
+  if (typeof updateAdminUI === 'function') updateAdminUI();
+  if (window.updateAiCopilotBadge) window.updateAiCopilotBadge();
+};
+
+window.approveAllPendingMembers = async function() {
+  const pending = applicants.filter(a => a.status === 'pending' || a.isApproved === false);
+  if (!pending.length) {
+    alert("No pending members waiting for approval.");
+    return;
+  }
+  if (!confirm(`Approve all ${pending.length} new members into Normal Editor phase?`)) return;
+
+  pending.forEach(app => {
+    app.status = 'selected';
+    app.isApproved = true;
+    if (!app.editorTier) app.editorTier = 'normal';
+    app.adminFeedback = "Approved by GanaCuts Visuals management. Welcome to the active editing roster!";
+    if (window.syncApplicantToSupabase) window.syncApplicantToSupabase(app);
+  });
+
+  saveApplicants();
+  showToast(`✅ Approved ${pending.length} new members!`);
+  renderApplicantsManager();
+  if (typeof updateAdminUI === 'function') updateAdminUI();
+  if (window.updateAiCopilotBadge) window.updateAiCopilotBadge();
+};
+
+
+// ==========================================
+// GANCUTS AI AGENCY COPILOT (CHATGPT-STYLE)
+// Full real-time live access to all 32+ editors,
+// new members, pending approvals, client projects, and tools.
+// ==========================================
+
+let _copilotChatHistory = [];
+
+window.buildLiveAgencyKnowledgeContext = function() {
+  const pending = (applicants || []).filter(a => a.status === 'pending' || a.isApproved === false);
+  const special = (applicants || []).filter(a => (a.status !== 'pending' && a.isApproved !== false) && (a.editorTier === 'special' || (!a.editorTier && a.status === 'selected')));
+  const normal = (applicants || []).filter(a => (a.status !== 'pending' && a.isApproved !== false) && ((!a.editorTier && a.status !== 'selected') || a.editorTier === 'normal'));
+  const basic = (applicants || []).filter(a => (a.status !== 'pending' && a.isApproved !== false) && a.editorTier === 'basic');
+  const trashed = (trashApplicants || []).length;
+
+  return `
+=== LIVE GANCUTS AGENCY DATABASE SNAPSHOT (${new Date().toLocaleDateString('en-IN')}) ===
+Total Active Editors: ${applicants.length}
+- ⏳ Pending Approvals / New Members: ${pending.length}
+- ⭐ Special Phase Editors: ${special.length}
+- 💼 Normal Phase Editors: ${normal.length}
+- 🔰 Basic Phase Editors: ${basic.length}
+- 🗑️ Recycle Bin (Trash): ${trashed} editors
+
+--- PENDING APPROVAL QUEUE (NEW MEMBERS NEEDING REVIEW) ---
+${pending.length ? pending.map((a, i) => `${i+1}. ${a.name} | Email: ${a.email || 'None'} | Phone: ${a.phone || 'None'} | Tools: ${a.tools || 'None specified'} | Portfolio: ${a.portfolio || 'None'} | Applied: ${a.appliedAt || 'Recent'}`).join('\n') : 'No new members awaiting approval.'}
+
+--- COMPLETE ROSTER DETAILS (ALL 32+ EDITORS) ---
+${(applicants || []).map((a, i) => {
+  const t = a.editorTier || (a.status === 'selected' ? 'special' : (a.status === 'trial' ? 'normal' : 'basic'));
+  const toolsStr = [a.tools, a.otherTools].filter(Boolean).join(', ') || 'Not specified';
+  const roleStr = (a.role === 'manager' || a.isManager) ? '👑 MANAGER' : 'Editor';
+  const notesStr = a.adminDescription || a.notes || 'None';
+  return `[${i+1}] ${a.name} (${roleStr}) | Phase: ${t.toUpperCase()} | Status: ${a.status} | Tools: ${toolsStr} | Rate: ${a.rate || 'Standard'} | Email: ${a.email || 'N/A'} | Phone: ${a.phone || 'N/A'} | Notes: ${notesStr}`;
+}).join('\n')}
+
+--- COMMERCIAL CLIENT PROJECTS & PRACTICE TASKS ---
+Client Projects: ${(clientProjects || []).length}
+Practice Assignments: ${(practiceAssignments || []).length}
+Agency Asset Folders: ${(profile && profile.agencyFolders ? profile.agencyFolders.length : 0)}
+============================================================
+`;
+};
+
+window.initAiCopilot = function() {
+  if (document.getElementById("ai-copilot-launcher")) return;
+
+  // Floating trigger button
+  const btn = document.createElement("div");
+  btn.id = "ai-copilot-launcher";
+  btn.onclick = window.toggleAiCopilot;
+  btn.style.cssText = "position:fixed; bottom:24px; right:24px; z-index:99998; background:linear-gradient(135deg, #8b5cf6, #6366f1); color:#fff; border-radius:50px; padding:11px 18px; display:inline-flex; align-items:center; gap:8px; cursor:pointer; box-shadow:0 10px 28px rgba(99,102,241,0.45); font-weight:800; font-size:12.5px; border:1px solid rgba(255,255,255,0.2); transition:transform 0.2s, box-shadow 0.2s; user-select:none;";
+  btn.innerHTML = `
+    <span style="font-size:18px;">🤖</span>
+    <span>AI Copilot</span>
+    <span id="ai-copilot-badge" style="background:#ef4444; color:#fff; font-size:10px; font-weight:800; padding:1px 6px; border-radius:10px; display:none;">0</span>
+  `;
+  document.body.appendChild(btn);
+
+  // Chat window container
+  const win = document.createElement("div");
+  win.id = "ai-copilot-window";
+  win.style.cssText = "position:fixed; bottom:84px; right:24px; width:430px; max-width:calc(100vw - 32px); height:600px; max-height:calc(100vh - 110px); background:#18181c; border:1px solid rgba(255,255,255,0.12); border-radius:20px; box-shadow:0 25px 60px rgba(0,0,0,0.55); z-index:99999; display:none; flex-direction:column; overflow:hidden; font-family:inherit; color:#ffffff;";
+  win.innerHTML = `
+    <!-- Copilot Header -->
+    <div style="background:#121214; padding:14px 18px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg, #8b5cf6, #6366f1); display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 2px 10px rgba(139,92,246,0.4);">
+          🤖
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <strong style="font-size:14px; color:#ffffff;">GanaCuts AI Copilot</strong>
+            <span style="background:rgba(16,185,129,0.15); color:#10b981; font-size:9.5px; font-weight:800; padding:1px 6px; border-radius:8px; border:1px solid rgba(16,185,129,0.3);">🟢 LIVE ROSTER ACCESS</span>
+          </div>
+          <span style="font-size:11px; color:#a1a1aa;">Powered by gemini-3.5-flash-lite</span>
+        </div>
+      </div>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button type="button" onclick="clearAiCopilotChat()" title="Clear conversation" style="background:transparent; border:none; color:#a1a1aa; font-size:14px; cursor:pointer; padding:4px;">🧹</button>
+        <button type="button" onclick="toggleAiCopilot()" title="Close Copilot" style="background:transparent; border:none; color:#a1a1aa; font-size:18px; cursor:pointer; padding:4px; line-height:1;">&times;</button>
+      </div>
+    </div>
+
+    <!-- Quick Action Prompt Chips -->
+    <div style="background:#151518; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; gap:6px; overflow-x:auto; white-space:nowrap;" class="no-scrollbar">
+      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('Who is currently waiting for approval in the new members list?')" style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.35); color:#fbbf24; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">⏳ Pending Approvals</button>
+      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('List all our Special Editors and their main editing strengths and tools.')" style="background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.35); color:#c084fc; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">⭐ Special Editors</button>
+      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('Which editors know DaVinci Resolve or After Effects?')" style="background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.35); color:#60a5fa; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">🛠️ DaVinci / AE Editors</button>
+      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('Give me an executive summary of our full 32+ editor roster capacity, divided phases, and manager roles.')" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#e4e4e7; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">📊 Roster Summary</button>
+      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('Recommend the top 2 editors best suited to cut a high-ticket commercial talking head reel under 36 hours.')" style="background:rgba(234,67,53,0.15); border:1px solid rgba(234,67,53,0.35); color:#f87171; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">🚀 Project Recommender</button>
+    </div>
+
+    <!-- Messages Container -->
+    <div id="ai-copilot-messages" style="flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:12px; font-size:12.5px; line-height:1.5;">
+      <!-- Welcome Message -->
+      <div style="background:#202026; border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:12px 14px; color:#e4e4e7;">
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+          <span style="font-size:16px;">👋</span>
+          <strong style="color:#ffffff; font-size:13px;">Hi Ganesh & Team! I am your AI Copilot.</strong>
+        </div>
+        <p style="margin:0 0 6px; color:#a1a1aa; font-size:12px;">
+          I have <strong>real-time live access</strong> to all 32+ video editors, new members awaiting approval, divided editing phases (Special, Normal, Basic), rates, tools, and admin notes.
+        </p>
+        <div style="color:#c084fc; font-size:11.5px; font-weight:600;">
+          Ask me anything — e.g. "Who can edit 3D reels?", "Review new applicant Rahul", or click a quick prompt above!
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Input Bar -->
+    <div style="background:#121214; padding:10px 14px; border-top:1px solid rgba(255,255,255,0.08); display:flex; gap:8px; align-items:flex-end;">
+      <textarea id="ai-copilot-input" rows="1" placeholder="Ask about editors, approvals, rates, or operations..." style="flex:1; background:#1c1c22; color:#ffffff; border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:9px 12px; font-size:12.5px; resize:none; max-height:90px; font-family:inherit; outline:none;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiCopilotMessage();}"></textarea>
+      <button type="button" id="ai-copilot-send-btn" onclick="sendAiCopilotMessage()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; color:#fff; border-radius:10px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; flex-shrink:0;">
+        🚀
+      </button>
+    </div>
+  `;
+  document.body.appendChild(win);
+  window.updateAiCopilotBadge();
+};
+
+window.toggleAiCopilot = function() {
+  const win = document.getElementById("ai-copilot-window");
+  if (!win) {
+    window.initAiCopilot();
+    return window.toggleAiCopilot();
+  }
+  if (win.style.display === "none" || !win.style.display) {
+    win.style.display = "flex";
+    const inp = document.getElementById("ai-copilot-input");
+    if (inp) setTimeout(() => inp.focus(), 100);
+  } else {
+    win.style.display = "none";
+  }
+};
+
+window.updateAiCopilotBadge = function() {
+  const badge = document.getElementById("ai-copilot-badge");
+  if (!badge) return;
+  const pending = (applicants || []).filter(a => a.status === 'pending' || a.isApproved === false);
+  if (pending.length > 0) {
+    badge.textContent = pending.length;
+    badge.style.display = "inline-block";
+  } else {
+    badge.style.display = "none";
+  }
+};
+
+window.clearAiCopilotChat = function() {
+  _copilotChatHistory = [];
+  const msgBox = document.getElementById("ai-copilot-messages");
+  if (msgBox) {
+    msgBox.innerHTML = `
+      <div style="background:#202026; border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:12px 14px; color:#e4e4e7;">
+        <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+          <span style="font-size:16px;">🧹</span>
+          <strong style="color:#ffffff; font-size:13px;">Chat Cleared</strong>
+        </div>
+        <p style="margin:0; color:#a1a1aa; font-size:12px;">
+          Conversation history reset. I still have live access to your entire roster and pending members!
+        </p>
+      </div>
+    `;
+  }
+};
+
+window.sendAiCopilotPreset = function(presetText) {
+  const inp = document.getElementById("ai-copilot-input");
+  if (inp) inp.value = presetText;
+  window.sendAiCopilotMessage(presetText);
+};
+
+window.sendAiCopilotMessage = async function(manualText = null) {
+  const inp = document.getElementById("ai-copilot-input");
+  const text = (manualText !== null ? manualText : (inp ? inp.value : "")).trim();
+  if (!text) return;
+
+  if (inp) inp.value = "";
+
+  const msgBox = document.getElementById("ai-copilot-messages");
+  if (!msgBox) return;
+
+  // Append User Bubble
+  const userDiv = document.createElement("div");
+  userDiv.style.cssText = "align-self:flex-end; background:#27272e; border:1px solid rgba(255,255,255,0.12); color:#ffffff; padding:10px 14px; border-radius:14px 14px 2px 14px; max-width:85%; word-break:break-word;";
+  userDiv.textContent = text;
+  msgBox.appendChild(userDiv);
+
+  // Append Thinking Indicator
+  const thinkingId = "copilot-thinking-" + Date.now();
+  const thinkingDiv = document.createElement("div");
+  thinkingDiv.id = thinkingId;
+  thinkingDiv.style.cssText = "align-self:flex-start; background:#202026; border:1px solid rgba(139,92,246,0.3); color:#c084fc; padding:9px 13px; border-radius:14px 14px 14px 2px; max-width:85%; display:flex; align-items:center; gap:8px;";
+  thinkingDiv.innerHTML = '<span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span> <span>Copilot is analyzing agency data...</span>';
+  msgBox.appendChild(thinkingDiv);
+  msgBox.scrollTop = msgBox.scrollHeight;
+
+  const liveContext = window.buildLiveAgencyKnowledgeContext();
+  const prompt = `You are GanaCuts AI Copilot, Chief Operations Assistant for GanaCuts Visuals (an elite commercial post-production video editing agency founded by Ganesh Mogili).
+
+LIVE AGENCY DATABASE CONTEXT:
+${liveContext}
+
+CONVERSATION HISTORY:
+${_copilotChatHistory.slice(-4).map(m => `${m.role === 'user' ? 'Ganesh/Manager' : 'Copilot'}: ${m.text}`).join('\n')}
+
+USER QUESTION / TASK:
+${text}
+
+GUIDELINES:
+- You have 100% direct visibility into every single editor, their tier, status, contact email/phone, tools, and admin notes.
+- If asked about new members or pending approvals, list them clearly with their tools and contact info.
+- If asked about Special/Normal/Basic editors, list the matching editors accurately.
+- If asked for recommendations, give sharp, creative operational advice.
+- Keep answers structured, highly readable, and concise. Use bolding and markdown bullet points.
+
+Answer:`;
+
+  try {
+    const res = await window.callGeminiDirectClient(prompt, false);
+    const thinkingEl = document.getElementById(thinkingId);
+    if (thinkingEl) thinkingEl.remove();
+
+    // Append AI Response Bubble
+    const aiDiv = document.createElement("div");
+    aiDiv.style.cssText = "align-self:flex-start; background:#1c1c24; border:1px solid rgba(255,255,255,0.08); color:#e4e4e7; padding:12px 14px; border-radius:14px 14px 14px 2px; max-width:92%; line-height:1.55; word-break:break-word;";
+    
+    // Format basic markdown (bold, lists, code)
+    let formatted = escapeHtml(res)
+      .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#ffffff;">$1</strong>')
+      .replace(/^\s*[-*]\s+(.*)$/gm, '<li style="margin-left:14px; margin-bottom:3px;">$1</li>')
+      .replace(/(?:<li>.*?<\/li>\s*)+/gs, '<ul style="margin:6px 0; padding-left:4px;">$&</ul>')
+      .replace(/\n/g, '<br>');
+
+    aiDiv.innerHTML = formatted;
+    msgBox.appendChild(aiDiv);
+    msgBox.scrollTop = msgBox.scrollHeight;
+
+    _copilotChatHistory.push({ role: 'user', text });
+    _copilotChatHistory.push({ role: 'assistant', text: res });
+  } catch (err) {
+    const thinkingEl = document.getElementById(thinkingId);
+    if (thinkingEl) {
+      thinkingEl.style.color = "#ef4444";
+      thinkingEl.innerHTML = '❌ ' + escapeHtml(err.message || 'Error communicating with Gemini');
+    }
+  }
+};
+
+// Initialize Copilot on page load
+if (typeof document !== 'undefined') {
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => { setTimeout(window.initAiCopilot, 800); });
+  } else {
+    setTimeout(window.initAiCopilot, 800);
+  }
+}

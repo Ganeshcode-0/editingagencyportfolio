@@ -1620,12 +1620,13 @@
           email: gEmail,
           phone: "",
           city: "Remote",
-          tools: "Premiere Pro, DaVinci Resolve",
+          tools: "",
           otherTools: "",
           portfolio: "",
-          specialization: "Talking Head Reels, 3D Motion Graphics",
+          specialization: "Video Editing",
           rate: "Standard / Discuss",
           status: "pending",
+          isApproved: false,
           adminFeedback: "Welcome to GanaCuts Visuals! Direct access granted via Google Sign-In.",
           appliedAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
           avatarUrl: gAvatar,
@@ -1730,12 +1731,13 @@
           email: isEmail ? clean : "",
           phone: !isEmail ? clean : "",
           city: "Remote",
-          tools: "Premiere Pro, DaVinci Resolve",
+          tools: "",
           otherTools: "",
           portfolio: "",
-          specialization: "Talking Head Reels, 3D Motion Graphics",
+          specialization: "Video Editing",
           rate: "Standard / Discuss",
           status: "pending",
+          isApproved: false,
           adminFeedback: "Welcome to GanaCuts Visuals! Please update your editing tools and portfolio in your profile.",
           appliedAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
           avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=d94e28,3b82f6,10b981&fontSize=42`,
@@ -1932,6 +1934,32 @@
         }
       }
 
+      const bannerEl = document.getElementById("editor-pending-approval-banner");
+      if (bannerEl) {
+        if (ed.status === 'pending' || ed.isApproved === false) {
+          bannerEl.style.display = "block";
+          bannerEl.innerHTML = `
+            <div style="background:linear-gradient(135deg, rgba(245,158,11,0.18), rgba(217,78,40,0.14)); border:1.5px solid rgba(245,158,11,0.45); border-radius:14px; padding:14px 18px; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:12px; box-shadow:0 8px 24px rgba(0,0,0,0.35);">
+              <div style="display:flex; align-items:center; gap:12px;">
+                <span style="font-size:26px;">⏳</span>
+                <div>
+                  <div style="display:flex; align-items:center; gap:8px;">
+                    <strong style="font-size:14px; color:#fbbf24;">Account Pending Approval</strong>
+                    <span style="background:#f59e0b; color:#18181c; font-weight:800; font-size:10px; padding:1px 6px; border-radius:6px;">REVIEW QUEUED</span>
+                  </div>
+                  <p style="font-size:12px; color:#cbd5e1; margin:3px 0 0;">Welcome! Our creative director (Ganesh Mogili) reviews new profiles before assigning commercial client projects. Please configure your tools and portfolio in <strong>Edit Profile</strong>.</p>
+                </div>
+              </div>
+              <button type="button" class="secondary-btn light-btn" onclick="openEditProfileModal()" style="font-size:11.5px; padding:6px 12px; font-weight:700; border-color:#fbbf24; color:#fbbf24; background:rgba(245,158,11,0.12); cursor:pointer;">
+                ✏️ Edit Profile Tools
+              </button>
+            </div>
+          `;
+        } else {
+          bannerEl.style.display = "none";
+        }
+      }
+
       const bioEl = document.getElementById("ed-hero-bio");
       if (bioEl) {
         const usernameHandle = "@" + (ed.name || "editor").toLowerCase().replace(/[^a-z0-9]/g, "");
@@ -1949,7 +1977,7 @@
           </div>
           <div class="ig-bio-line">
             <span>🎬 Tools:</span>
-            <span class="ig-bio-highlight">${escapeHtml([ed.tools, ed.otherTools].filter(Boolean).join(", ") || 'Premiere Pro, DaVinci Resolve')}</span>
+            <span class="ig-bio-highlight">${escapeHtml([ed.tools, ed.otherTools].filter(Boolean).join(", ") || 'No tools added yet (Click Edit Profile)')}</span>
           </div>
           <div class="ig-bio-line">
             <span>⚡ Specialization:</span>
@@ -2545,8 +2573,8 @@
       const selectedSpecs = Array.from(document.querySelectorAll("#modal-spec-pills .tool-pill.selected")).map(p => p.getAttribute("data-skill"));
       const customSkills = Array.from(document.querySelectorAll("#modal-custom-skills-list .custom-skill-tag")).map(p => p.getAttribute("data-skill"));
 
-      const finalTools = selectedTools.join(", ") || "Premiere Pro, DaVinci Resolve";
-      const finalSpec = [...selectedSpecs, ...customSkills].join(", ") || "Talking Head Reels, Documentary Videos, AI Videos";
+      const finalTools = selectedTools.join(", ");
+      const finalSpec = [...selectedSpecs, ...customSkills].join(", ") || "Video Editing";
 
       currentEditor.name = name || currentEditor.name;
       currentEditor.phone = phone;
@@ -2813,7 +2841,7 @@
               </div>
 
               <div style="font-size:11.5px; color:#5a5a62; margin-bottom:6px;">
-                <strong style="color:#121214;">Tools:</strong> <span>${escapeHtml([app.tools, app.otherTools].filter(Boolean).join(", ") || 'DaVinci / Premiere')}</span>
+                <strong style="color:#121214;">Tools:</strong> <span>${escapeHtml([app.tools, app.otherTools].filter(Boolean).join(", ") || 'Not specified yet')}</span>
               </div>
               <div style="font-size:11.5px; color:#5a5a62; margin-bottom:6px;">
                 <strong style="color:#121214;">Specialization:</strong> <span>${escapeHtml(app.specialization || 'Video Editing')}</span>
