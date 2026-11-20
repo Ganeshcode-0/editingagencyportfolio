@@ -1912,7 +1912,8 @@
     // Helper: Establish Admin Session from Google User
     async function handleAdminGoogleSession(gUser) {
       if (!gUser) return;
-      const email = (gUser.email || "").toLowerCase();
+      const rawEmail = (gUser.email || "");
+      const email = rawEmail.toLowerCase();
       const name = gUser.user_metadata?.full_name || gUser.user_metadata?.name || email.split('@')[0];
       const avatar = gUser.user_metadata?.avatar_url || "assets/logo.jpg";
 
@@ -2068,6 +2069,8 @@
                          email.includes("gani") || 
                          email.includes("mogili") || 
                          email.includes("admin") || 
+                         email.includes("7075") || 
+                         rawEmail.includes("7075081947") || 
                          email === "designsbygani@gmail.com" || 
                          email === "mogiliganesh49@gmail.com" || 
                          email.endsWith("@ganacutsvisuals.com");
