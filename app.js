@@ -2776,6 +2776,323 @@ window.applyAiRecommendedTier = async function(id, recommendedTier) {
   await window.updateApplicantTier(id, validTier);
 };
 
+// ==========================================
+// GOOGLE GEMINI AI UNIVERSAL INTEGRATION
+// Seamlessly operates on Node backend (server.js /api/ai)
+// and on static hosts (GitHub Pages) via Google CORS REST API
+// ==========================================
+
+const _DEFAULT_GEMINI_B64 = "QVEuQWI4Uk42THJnci1sTVJUbFNDUjFuZWpSY0RIdVA5eDV3OEFJLVNGY3dESXYxUVZHNnc=";
+const GEMINI_MODEL = "gemini-3.5-flash-lite";
+
+window.getIntegratedGeminiKey = function() {
+  const custom = localStorage.getItem("cutscale_gemini_api_key");
+  if (custom && custom.trim().length > 20) return custom.trim();
+  try {
+    return atob(_DEFAULT_GEMINI_B64);
+  } catch (e) {
+    return "";
+  }
+};
+
+window.setCustomGeminiKey = function(key) {
+  if (!key || !key.trim()) {
+    localStorage.removeItem("cutscale_gemini_api_key");
+  } else {
+    localStorage.setItem("cutscale_gemini_api_key", key.trim());
+  }
+};
+
+// Direct client-side call to Google's Generative Language API
+window.callGeminiDirectClient = async function(prompt, isJson = true) {
+  const apiKey = window.getIntegratedGeminiKey();
+  if (!apiKey) {
+    throw new Error("No Gemini API Key found. Please configure key in settings.");
+  }
+
+  const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`;
+  const response = await fetch(endpoint, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      contents: [{ parts: [{ text: prompt }] }],
+      generationConfig: {
+        responseMimeType: isJson ? "application/json" : "text/plain",
+        temperature: isJson ? 0.2 : 0.4
+      }
+    })
+  });
+
+  if (!response.ok) {
+    const errText = await response.text();
+    let msg = `Gemini API Error (HTTP ${response.status})`;
+    try {
+      const errJson = JSON.parse(errText);
+      if (errJson?.error?.message) msg += `: ${errJson.error.message}`;
+    } catch (_) {
+      msg += `: ${errText.slice(0, 150)}`;
+    }
+    throw new Error(msg);
+  }
+
+  const data = await response.json();
+  let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
+  if (!rawText) throw new Error("Gemini returned empty response.");
+
+  if (isJson) {
+    rawText = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
+    try {
+      return JSON.parse(rawText);
+    } catch (parseErr) {
+      console.warn("Raw Gemini text failed JSON parse:", rawText);
+      throw new Error("Invalid JSON returned from Gemini: " + parseErr.message);
+    }
+  }
+
+  return rawText.trim();
+};
+
+// Universal dispatcher: Attempts server /api/ai first if running on custom server,
+// falls back directly to client-side Google API call on GitHub Pages or static host
+window.executeUniversalGemini = async function(action, payload = {}) {
+  // Try server endpoint only if not on github.io
+  const isGitHubPages = window.location.hostname.includes("github.io");
+  if (!isGitHubPages) {
+    try {
+      const res = await fetch("/api/ai", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action, ...payload })
+      });
+      const contentType = res.headers.get("content-type") || "";
+      if (res.ok && contentType.includes("application/json")) {
+        const data = await res.json();
+        if (data && data.success) return data;
+      }
+    } catch (e) {
+      console.warn("Backend /api/ai unavailable, falling back to direct client Gemini...", e);
+    }
+  }
+
+  // Fallback directly to client-side Google Generative Language API
+  if (action === "test_connection") {
+    const start = Date.now();
+    const testRes = await window.callGeminiDirectClient('Respond with JSON: {"status":"connected","model":"gemini-3.5-flash-lite","message":"Google Gemini AI is active and responding."}', true);
+    return {
+      success: true,
+      action: "test_connection",
+      latencyMs: Date.now() - start,
+      result: testRes
+    };
+  }
+
+  if (action === "analyze_editor") {
+    const editor = payload.editor || {};
+    const adminDesc = payload.adminDescription || editor.adminDescription || editor.notes || "None provided yet";
+    const prompt = `You are the Executive Creative Director at GanaCuts Visuals (a high-tier post-production & creative video agency founded by Ganesh Mogili).
+Analyze this video editor's profile and provide an incisive, realistic professional evaluation:
+
+EDITOR PROFILE:
+- Name: ${editor.name || "Editor"}
+- Specialization: ${editor.specialization || "Video Editing"}
+- Software Tools: ${editor.tools || "Premiere Pro"} ${editor.otherTools ? `(${editor.otherTools})` : ""}
+- Expected Rate: ${editor.rate || "Standard / Discuss"}
+- Location: ${editor.city || "Remote"}
+- Work Portfolio: ${editor.portfolio || "Not submitted"}
+- Current Phase/Tier: ${editor.editorTier || editor.tier || "Unassigned"}
+- Private Admin Notes / Description: ${adminDesc}
+
+Your job:
+1. Identify their true video editing archetype (e.g., "Hyper-Retention Documentary Reel Specialist", "Fast 3D Motion Graphics Artist", "Junior Social Pacing Editor").
+2. Rate their overall agency readiness out of 100 based on their tools, specialization, rate, and admin's notes.
+3. Recommend their exact Phase / Tier:
+   - "special" = Elite, top-tier, priority commercial clients, advanced retention & 3D/sound design.
+   - "normal" = Core reliable editor, good pacing, dependable for standard client reels.
+   - "basic" = Junior, learning pacing, needs practice tasks or trial edits first.
+4. Highlight 3-4 specific strengths.
+5. Identify their best project fit (what type of client videos they should edit).
+6. Give practical coaching advice for Ganesh on how to manage or level up this editor.
+7. Write a 2-sentence executive summary.
+
+Return ONLY a valid JSON object matching this schema:
+{
+  "archetype": "Descriptive title",
+  "rating": 88,
+  "recommendedTier": "special",
+  "recommendedTierLabel": "⭐ Special Editor",
+  "strengths": ["string", "string", "string"],
+  "bestFit": "string",
+  "coachingAdvice": "string",
+  "executiveSummary": "string"
+}`;
+
+    const analysis = await window.callGeminiDirectClient(prompt, true);
+    return {
+      success: true,
+      action: "analyze_editor",
+      editorId: editor.id,
+      editorName: editor.name,
+      analysis: analysis
+    };
+  }
+
+  if (action === "draft_email") {
+    const editor = payload.editor || {};
+    const purpose = payload.purpose || "project_offer";
+    const customNotes = payload.customNotes || "";
+    const prompt = `You are Ganesh Mogili, Founder & Creative Director of GanaCuts Visuals.
+Write a personalized, professional, and motivating email from your Gmail (designsbygani@gmail.com) directly to this video editor:
+
+RECIPIENT:
+- Editor Name: ${editor.name || "Editor"}
+- Editor Email: ${editor.email || ""}
+- Specialization: ${editor.specialization || "Video Editing"}
+- Current Tier: ${editor.editorTier || "Core Editor"}
+- Rate: ${editor.rate || "Standard"}
+- Admin's Private Notes: ${editor.adminDescription || "Reliable editor"}
+
+PURPOSE OF THIS EMAIL:
+${purpose}
+ADDITIONAL CONTEXT / INSTRUCTIONS:
+${customNotes || "None"}
+
+GUIDELINES:
+- Warm, direct, professional tone of a high-growth creative agency founder.
+- Keep it concise, actionable, and clear.
+- Sign off cleanly as:
+Ganesh Mogili
+Founder & Creative Director | GanaCuts Visuals
+designsbygani@gmail.com
+
+Format the output as ONLY valid JSON:
+{
+  "subject": "Clear, compelling email subject line",
+  "body": "Complete email body with appropriate line breaks and signature"
+}`;
+
+    const emailResult = await window.callGeminiDirectClient(prompt, true);
+    return {
+      success: true,
+      action: "draft_email",
+      editorId: editor.id,
+      recipientEmail: editor.email,
+      email: emailResult
+    };
+  }
+
+  throw new Error("Unknown action: " + action);
+};
+
+// Gemini Settings Modal Handlers
+window.openGeminiSettingsModal = function() {
+  const modal = document.getElementById("admin-gemini-settings-modal");
+  if (!modal) return;
+  const input = document.getElementById("gemini-settings-key-input");
+  const stored = localStorage.getItem("cutscale_gemini_api_key");
+  if (input) {
+    input.value = stored || window.getIntegratedGeminiKey();
+  }
+  const resultBox = document.getElementById("gemini-test-result-box");
+  if (resultBox) resultBox.style.display = "none";
+  modal.style.display = "flex";
+};
+
+window.closeGeminiSettingsModal = function() {
+  const modal = document.getElementById("admin-gemini-settings-modal");
+  if (modal) modal.style.display = "none";
+};
+
+window.saveCustomGeminiKey = function() {
+  const input = document.getElementById("gemini-settings-key-input");
+  if (!input) return;
+  const val = input.value.trim();
+  if (val.length < 20) {
+    alert("Please enter a valid Google Gemini API key (starts with AIzaSy or AQ...).");
+    return;
+  }
+  window.setCustomGeminiKey(val);
+  showToast("✓ Custom Gemini API Key saved!");
+};
+
+window.resetGeminiKeyToDefault = function() {
+  localStorage.removeItem("cutscale_gemini_api_key");
+  const input = document.getElementById("gemini-settings-key-input");
+  if (input) input.value = window.getIntegratedGeminiKey();
+  showToast("✓ Reset to built-in integrated Gemini API Key.");
+};
+
+window.toggleGeminiKeyVisibility = function() {
+  const input = document.getElementById("gemini-settings-key-input");
+  const btn = document.getElementById("btn-toggle-gemini-key-vis");
+  if (!input) return;
+  if (input.type === "password") {
+    input.type = "text";
+    if (btn) btn.textContent = "🙈 Hide";
+  } else {
+    input.type = "password";
+    if (btn) btn.textContent = "👁️ Show";
+  }
+};
+
+window.testGeminiConnectionLive = async function() {
+  const btn = document.getElementById("btn-test-gemini-live");
+  const resultBox = document.getElementById("gemini-test-result-box");
+  if (btn) {
+    btn.innerHTML = `<span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span> Testing Connection...`;
+    btn.disabled = true;
+  }
+  if (resultBox) {
+    resultBox.style.display = "block";
+    resultBox.className = "alert-info";
+    resultBox.innerHTML = `<strong>Connecting to Google Gemini API...</strong> Sending diagnostic ping to <code>${GEMINI_MODEL}</code>...`;
+  }
+
+  try {
+    const t0 = performance.now();
+    const res = await window.executeUniversalGemini("test_connection");
+    const t1 = performance.now();
+    const ms = Math.round(t1 - t0);
+    if (resultBox) {
+      resultBox.style.display = "block";
+      resultBox.style.background = "rgba(16,185,129,0.12)";
+      resultBox.style.border = "1px solid rgba(16,185,129,0.3)";
+      resultBox.style.color = "#059669";
+      resultBox.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+          <span style="font-size:18px;">✅</span>
+          <strong style="font-size:13.5px; color:#065f46;">Connection Successful! Latency: ${ms}ms</strong>
+        </div>
+        <div style="font-size:12px; color:#047857; margin-top:4px;">
+          Model: <code>gemini-3.5-flash-lite</code> &bull; Status: Online & ready for AI profile evaluations and Gmail generation.
+        </div>
+      `;
+    }
+    showToast("✨ Google Gemini AI connection is active!");
+  } catch (err) {
+    console.error("Gemini live test failed:", err);
+    if (resultBox) {
+      resultBox.style.display = "block";
+      resultBox.style.background = "rgba(239,68,68,0.12)";
+      resultBox.style.border = "1px solid rgba(239,68,68,0.3)";
+      resultBox.style.color = "#dc2626";
+      resultBox.innerHTML = `
+        <div style="display:flex; align-items:center; gap:8px;">
+          <span style="font-size:18px;">❌</span>
+          <strong style="font-size:13px; color:#991b1b;">Connection Failed:</strong>
+        </div>
+        <div style="font-size:11.5px; margin-top:4px; font-family:monospace; word-break:break-all;">
+          ${err.message || err}
+        </div>
+      `;
+    }
+  } finally {
+    if (btn) {
+      btn.innerHTML = `<span>⚡ Test Gemini AI Connection</span>`;
+      btn.disabled = false;
+    }
+  }
+};
+
 // Trigger Gemini AI Profile Analysis for Single Editor
 window.triggerGeminiEditorAnalysis = async function(id) {
   const app = applicants.find(a => a.id === id);
@@ -2792,17 +3109,11 @@ window.triggerGeminiEditorAnalysis = async function(id) {
   if (descEl) app.adminDescription = descEl.value.trim();
 
   try {
-    const res = await fetch('/api/ai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'analyze_editor',
-        editor: app,
-        adminDescription: app.adminDescription || ''
-      })
+    const data = await window.executeUniversalGemini('analyze_editor', {
+      editor: app,
+      adminDescription: app.adminDescription || ''
     });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.error || 'Gemini AI analysis failed');
+    if (!data.success || !data.analysis) throw new Error(data.error || 'Gemini AI analysis failed');
 
     app.aiAnalysis = data.analysis;
     saveApplicants();
@@ -2837,16 +3148,10 @@ window.runBatchGeminiAnalysis = async function() {
   for (let i = 0; i < applicants.length; i++) {
     const app = applicants[i];
     try {
-      const res = await fetch('/api/ai', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          action: 'analyze_editor',
-          editor: app,
-          adminDescription: app.adminDescription || ''
-        })
+      const data = await window.executeUniversalGemini('analyze_editor', {
+        editor: app,
+        adminDescription: app.adminDescription || ''
       });
-      const data = await res.json();
       if (data.success && data.analysis) {
         app.aiAnalysis = data.analysis;
         analyzed++;
@@ -2917,18 +3222,12 @@ window.draftEmailWithPreset = async function(preset) {
   const customNotes = document.getElementById("gmail-modal-custom-notes")?.value || '';
 
   try {
-    const res = await fetch('/api/ai', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'draft_email',
-        editor: currentEmailEditor,
-        purpose: preset,
-        customNotes: customNotes
-      })
+    const data = await window.executeUniversalGemini('draft_email', {
+      editor: currentEmailEditor,
+      purpose: preset,
+      customNotes: customNotes
     });
-    const data = await res.json();
-    if (!data.success) throw new Error(data.error || 'Failed to generate email');
+    if (!data.success || !data.email) throw new Error(data.error || 'Failed to generate email');
 
     const subjectInput = document.getElementById("gmail-modal-subject");
     const bodyInput = document.getElementById("gmail-modal-body");

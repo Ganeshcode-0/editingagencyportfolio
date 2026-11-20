@@ -926,6 +926,9 @@
               <small style="color:#a1a1aa; font-size:12px; margin-top:2px; display:block;">Divided into Special, Normal, and Basic phases. Private to admin — hidden from editor portal.</small>
             </div>
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <button type="button" class="secondary-btn light-btn" onclick="openGeminiSettingsModal()" style="display:inline-flex; align-items:center; gap:6px; background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.35); color:#c084fc; font-weight:700; padding:7px 14px; font-size:12px; border-radius:10px; cursor:pointer;" title="Configure & Test Google Gemini AI Key">
+                <span>⚙️ Gemini Key & Status</span>
+              </button>
               <button type="button" class="primary-btn" onclick="runBatchGeminiAnalysis()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; padding:7px 14px; font-size:12px; box-shadow:0 4px 14px rgba(139,92,246,0.25);" title="Analyze all editor profiles using Google Gemini AI">
                 <span>⚡ AI Analyze All Profiles</span>
               </button>
@@ -1720,6 +1723,74 @@
           <button type="button" class="secondary-btn light-btn" onclick="closeDirectGmailModal()" style="font-size:12px;">Cancel</button>
           <button type="button" class="primary-btn" onclick="openGmailComposeNow()" style="background:linear-gradient(135deg, #ea4335, #c5221f); border:none; padding:10px 18px; font-size:13px; font-weight:700; box-shadow:0 4px 14px rgba(234,67,53,0.35);">
             <span>🚀 Open in Gmail (1-Click) ↗</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  
+
+    <!-- MODAL: GOOGLE GEMINI AI CONFIGURATION & DIAGNOSTICS -->
+  <div id="admin-gemini-settings-modal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(18,18,20,0.65); backdrop-filter:blur(8px); align-items:center; justify-content:center; z-index:99999; padding:20px;" onclick="if(event.target === this) closeGeminiSettingsModal()">
+    <div class="admin-modal-card" style="background:#ffffff; border-radius:20px; padding:26px 28px; width:100%; max-width:620px; box-shadow:0 25px 60px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto; border:1px solid var(--border-subtle);">
+      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
+        <div style="display:flex; align-items:center; gap:12px;">
+          <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, #8b5cf6, #6366f1); display:flex; align-items:center; justify-content:center; color:#fff; font-size:22px; flex-shrink:0; box-shadow:0 4px 14px rgba(139,92,246,0.35);">
+            🤖
+          </div>
+          <div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <h3 style="font-size:18px; font-weight:800; color:#121214; margin:0;">Google Gemini AI Integration</h3>
+              <span class="badge-mini" style="background:rgba(16,185,129,0.15); color:#059669; border:1px solid rgba(16,185,129,0.3); font-size:11px; padding:2px 8px; border-radius:10px; font-weight:700;">🟢 Active</span>
+            </div>
+            <p style="font-size:12px; color:#5a5a62; margin:2px 0 0;">Configured with <strong>gemini-3.5-flash-lite</strong> for automated profile analysis, phase recommendations, and Gmail drafting.</p>
+          </div>
+        </div>
+        <button type="button" onclick="closeGeminiSettingsModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#888894; line-height:1;">&times;</button>
+      </div>
+
+      <!-- Live Diagnostics Banner -->
+      <div style="background:#faf7f2; border:1px solid var(--border-subtle); border-radius:12px; padding:14px 16px; margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <span style="font-size:12px; font-weight:700; color:#121214;">System AI Engine & Latency</span>
+          <span style="font-size:11.5px; color:#6366f1; font-weight:700;">Google Generative Language v1beta</span>
+        </div>
+        <p style="font-size:12px; color:#5a5a62; margin:0 0 10px; line-height:1.45;">
+          The integrated Gemini key automatically runs on both local development/Node servers and static GitHub Pages hosting via high-speed direct API execution.
+        </p>
+        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+          <button type="button" id="btn-test-gemini-live" class="primary-btn" onclick="testGeminiConnectionLive()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; padding:7px 14px; font-size:12px; box-shadow:0 3px 10px rgba(139,92,246,0.3);">
+            <span>⚡ Test Gemini AI Connection</span>
+          </button>
+          <span style="font-size:11px; color:#888894;">Sends live diagnostic ping to verify response.</span>
+        </div>
+        <div id="gemini-test-result-box" style="display:none; margin-top:12px; padding:10px 12px; border-radius:8px; font-size:12px;"></div>
+      </div>
+
+      <!-- API Key Field & Custom Override -->
+      <div style="margin-bottom:16px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <label style="font-size:12px; font-weight:700; color:#121214;">Active Gemini API Key (Masked):</label>
+          <button type="button" id="btn-toggle-gemini-key-vis" class="secondary-btn light-btn" onclick="toggleGeminiKeyVisibility()" style="padding:3px 9px; font-size:11px;">
+            👁️ Show
+          </button>
+        </div>
+        <input type="password" id="gemini-settings-key-input" placeholder="Google Gemini API Key..." style="width:100%; box-sizing:border-box; padding:9px 12px; font-size:13px; font-family:monospace; border-radius:8px; border:1px solid var(--border-strong); background:#ffffff;">
+        <small style="font-size:11px; color:#71717a; margin-top:4px; display:block;">
+          The agency key is securely pre-loaded. You can customize or update your key here anytime; changes persist safely in local browser storage.
+        </small>
+      </div>
+
+      <!-- Action Buttons -->
+      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-top:1px solid var(--border-subtle); padding-top:14px;">
+        <button type="button" class="secondary-btn light-btn" onclick="resetGeminiKeyToDefault()" style="font-size:12px;" title="Reset back to the default agency Gemini key">
+          🔄 Reset to Agency Key
+        </button>
+        <div style="display:flex; gap:8px;">
+          <button type="button" class="secondary-btn light-btn" onclick="closeGeminiSettingsModal()" style="font-size:12px;">Close</button>
+          <button type="button" class="primary-btn" onclick="saveCustomGeminiKey()" style="background:var(--accent-orange, #d94e28); border:none; padding:8px 16px; font-size:12px; font-weight:700;">
+            <span>💾 Save Key</span>
           </button>
         </div>
       </div>

@@ -155,6 +155,18 @@ module.exports = async function handler(req, res) {
         }));
       }
 
+      // ACTION 0: Test Connection
+      if (action === 'test_connection') {
+        const testRes = await callGemini('Respond with short JSON: {"status":"connected","model":"gemini-3.5-flash-lite","message":"Google Gemini AI is active and responding."}', true);
+        res.statusCode = 200;
+        return res.end(JSON.stringify({
+          success: true,
+          action: 'test_connection',
+          result: testRes,
+          timestamp: Date.now()
+        }));
+      }
+
       // ACTION 1: Analyze Editor Profile with Admin Description
       if (action === 'analyze_editor') {
         const editor = body.editor || {};
