@@ -2547,6 +2547,113 @@ window.testGeminiConnectionLive = async function() {
   }
 };
 
+window.initGeminiTabUI = function() {
+  const input = document.getElementById("gemini-pane-key-input");
+  const stored = localStorage.getItem("cutscale_gemini_api_key") || "";
+  if (input) input.value = stored;
+
+  const statusBadge = document.getElementById("gemini-pane-status-badge");
+  if (statusBadge) {
+    if (stored) {
+      statusBadge.style.background = "rgba(16,185,129,0.15)";
+      statusBadge.style.color = "#10b981";
+      statusBadge.style.borderColor = "rgba(16,185,129,0.3)";
+      statusBadge.textContent = "🟢 Direct Key Active";
+    } else {
+      statusBadge.style.background = "rgba(245,158,11,0.15)";
+      statusBadge.style.color = "#f59e0b";
+      statusBadge.style.borderColor = "rgba(245,158,11,0.3)";
+      statusBadge.textContent = "🟡 Waiting for Key";
+    }
+  }
+};
+
+window.savePaneGeminiKey = function() {
+  const input = document.getElementById("gemini-pane-key-input");
+  if (!input) return;
+  const key = input.value.trim().replace(/^['"](.*)['"]$/, '$1').trim();
+  if (!key || key.length < 15) {
+    alert("Please paste a valid Google Gemini API key (starts with AIzaSy or AQ...).");
+    return;
+  }
+  localStorage.setItem("cutscale_gemini_api_key", key);
+  window.initGeminiTabUI();
+  if (typeof showToast === "function") showToast("✓ Gemini API Key saved successfully!");
+  alert("✓ Gemini API Key saved! AI Copilot, Editor Evaluations, and Gmail Drafts are now fully active.");
+};
+
+window.clearPaneGeminiKey = function() {
+  if (confirm("Clear your custom Gemini API key from this browser?")) {
+    localStorage.removeItem("cutscale_gemini_api_key");
+    const input = document.getElementById("gemini-pane-key-input");
+    if (input) input.value = "";
+    window.initGeminiTabUI();
+    const resultBox = document.getElementById("gemini-pane-test-result");
+    if (resultBox) resultBox.style.display = "none";
+    if (typeof showToast === "function") showToast("✓ Saved Gemini key removed.");
+  }
+};
+
+window.togglePaneKeyVisibility = function() {
+  const input = document.getElementById("gemini-pane-key-input");
+  const btn = document.getElementById("btn-toggle-pane-key");
+  if (!input) return;
+  if (input.type === "password") {
+    input.type = "text";
+    if (btn) btn.textContent = "🙈 Hide";
+  } else {
+    input.type = "password";
+    if (btn) btn.textContent = "👁️ Show";
+  }
+};
+
+window.testPaneGeminiLive = async function() {
+  const resultBox = document.getElementById("gemini-pane-test-result");
+  const btn = document.getElementById("btn-test-pane-gemini");
+  if (resultBox) {
+    resultBox.style.display = "block";
+    resultBox.innerHTML = '<span style="color:#a1a1aa;">⏳ Connecting to Google Gemini AI...</span>';
+  }
+  if (btn) btn.disabled = true;
+
+  try {
+    const input = document.getElementById("gemini-pane-key-input");
+    if (input && input.value.trim().length > 15) {
+      localStorage.setItem("cutscale_gemini_api_key", input.value.trim().replace(/^['"](.*)['"]$/, '$1').trim());
+      window.initGeminiTabUI();
+    }
+
+    const t0 = performance.now();
+    const res = await window.executeUniversalGemini("test_connection");
+    const elapsed = Math.round(performance.now() - t0);
+
+    if (resultBox) {
+      resultBox.style.display = "block";
+      resultBox.innerHTML = `
+        <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:14px; color:#10b981;">
+          <div style="font-weight:800; font-size:14px; margin-bottom:4px;">✅ Gemini AI Engine Connected Successfully!</div>
+          <div style="font-size:12px; color:#d1d1d8;">Response latency: <strong>${elapsed}ms</strong></div>
+          <div style="font-size:12px; color:#d1d1d8; margin-top:6px; background:#141418; padding:8px 10px; border-radius:6px; font-family:monospace;">
+            ${JSON.stringify(res.result || res)}
+          </div>
+        </div>
+      `;
+    }
+  } catch (err) {
+    if (resultBox) {
+      resultBox.style.display = "block";
+      resultBox.innerHTML = `
+        <div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:10px; padding:14px; color:#ef4444;">
+          <div style="font-weight:800; font-size:14px; margin-bottom:4px;">❌ Connection Test Failed</div>
+          <div style="font-size:12px; color:#d1d1d8;">${err.message || 'Unknown error communicating with Gemini'}</div>
+        </div>
+      `;
+    }
+  } finally {
+    if (btn) btn.disabled = false;
+  }
+};
+
 // Trigger Gemini AI Profile Analysis for Single Editor
 window.triggerGeminiEditorAnalysis = async function(id) {
   const app = applicants.find(a => a.id === id);
@@ -4163,6 +4270,9 @@ window.switchAdminTab = function(tabName) {
   const targetPane = document.getElementById(`pane-${tabName}`);
   if (tabBtn) tabBtn.classList.add("active");
   if (targetPane) targetPane.classList.add("active");
+  if (tabName === "gemini" && typeof window.initGeminiTabUI === "function") {
+    window.initGeminiTabUI();
+  }
   if (tabName === "sheet" && typeof renderAgencySheet === "function") {
     renderAgencySheet();
   }
@@ -5372,11 +5482,14 @@ window.clearCopilotChat = function() {
   }
 };
 
-// Prime client inquiries on page boot
+// Prime client inquiries and Gemini tab UI on page boot
 if (typeof window !== "undefined") {
   setTimeout(() => {
     if (typeof window.fetchClientInquiries === "function") {
       window.fetchClientInquiries();
+    }
+    if (typeof window.initGeminiTabUI === "function") {
+      window.initGeminiTabUI();
     }
   }, 1000);
 }
