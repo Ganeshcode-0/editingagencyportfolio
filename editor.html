@@ -806,6 +806,40 @@
     }
 
     /* ==========================================================================
+       SECTION 6: TEAM EDITORS ROSTER (MANAGER ACCESS EXCLUSIVE)
+       ========================================================================== */
+    .manager-roster-card {
+      background: #ffffff;
+      border: 1px solid rgba(245, 158, 11, 0.35);
+      border-radius: 22px;
+      padding: 24px 26px;
+      box-shadow: 0 14px 36px rgba(245, 158, 11, 0.08);
+      margin-bottom: 24px;
+    }
+    .mgr-editor-card {
+      background: #fbf9f5;
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      gap: 12px;
+      transition: all 0.2s ease;
+    }
+    .mgr-editor-card:hover {
+      border-color: #f59e0b;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(245, 158, 11, 0.12);
+    }
+    .mgr-tier-btn {
+      transition: all 0.15s ease;
+    }
+    .mgr-tier-btn:hover {
+      opacity: 0.85;
+    }
+
+    /* ==========================================================================
        SECTION 5: AGENCY ASSET FOLDERS (ADMIN ONLY, NO FAKE CARDS)
        ========================================================================== */
     .folders-card {
@@ -1129,6 +1163,10 @@
           <span style="font-size:10px; opacity:0.7;">📷</span>
         </div>
 
+        <a href="admin.html" onclick="switchToAdminStudioAsManager()" id="manager-studio-btn" class="ig-btn primary" style="display:none; background:linear-gradient(135deg, #f59e0b, #d97706); border-color:#d97706; color:#fff; font-weight:800; text-decoration:none; padding:6px 14px; font-size:11.5px; border-radius:10px; box-shadow:0 3px 12px rgba(245,158,11,0.35); align-items:center; gap:6px;" title="Open Admin Studio with Manager Privileges">
+          <span>👑 Open Admin Studio ↗</span>
+        </a>
+
         <button id="editor-logout-btn" class="ig-btn" style="padding:5px 10px; font-size:11px;" title="Sign out">
           <span>Sign Out</span>
         </button>
@@ -1146,6 +1184,7 @@
         <a href="#sec-assignments" class="dock-pill" onclick="highlightDockPill(this)">🎯 Practice / Assignments</a>
         <a href="#sec-projects" class="dock-pill" onclick="highlightDockPill(this)">🎬 Client Projects</a>
         <a href="#sec-folders" class="dock-pill" onclick="highlightDockPill(this)">📁 Asset Folders</a>
+        <a href="#sec-team-roster" id="dock-manager-roster-tab" class="dock-pill" style="display:none; background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.4); color:#b45309; font-weight:700;" onclick="highlightDockPill(this)">👑 Team Editors Roster (<span id="dock-roster-count">0</span>)</a>
       </div>
     </nav>
 
@@ -1329,6 +1368,60 @@
 
         <div id="agency-folders-container">
           <!-- Rendered dynamically -->
+        </div>
+      </section>
+
+      <!-- ====================================================================
+           6. TEAM EDITORS ROSTER (MANAGER ACCESS EXCLUSIVE)
+           ==================================================================== -->
+      <section class="manager-roster-card" id="sec-team-roster" style="display:none;">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:16px; margin-bottom:20px; border-bottom:1px solid var(--border-subtle); padding-bottom:18px;">
+          <div style="display:flex; align-items:center; gap:14px;">
+            <div style="width:48px; height:48px; border-radius:14px; background:linear-gradient(135deg, rgba(245,158,11,0.25), rgba(217,119,6,0.15)); border:1px solid rgba(245,158,11,0.4); display:flex; align-items:center; justify-content:center; font-size:24px;">👑</div>
+            <div>
+              <div style="display:flex; align-items:center; gap:8px;">
+                <h3 style="font-size:18px; font-weight:800; color:#121214; margin:0;">Agency Team Editors Roster</h3>
+                <span class="badge-mini" style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; font-size:10px; font-weight:800; padding:2px 8px; border-radius:10px;">Manager Access</span>
+              </div>
+              <p style="font-size:12px; color:#5a5a62; margin:4px 0 0;">
+                Complete database of active video editors. View contact info, portfolio links, specialized tools, and project status.
+              </p>
+            </div>
+          </div>
+          <div style="display:flex; align-items:center; gap:10px;">
+            <a href="admin.html" onclick="switchToAdminStudioAsManager()" class="primary-btn" style="background:linear-gradient(135deg, #f59e0b, #d97706); border:none; color:#fff; font-weight:800; padding:9px 18px; border-radius:10px; text-decoration:none; display:inline-flex; align-items:center; gap:6px; font-size:12px; box-shadow:0 4px 14px rgba(245,158,11,0.35);">
+              <span>⚡ Full Admin Studio ↗</span>
+            </a>
+          </div>
+        </div>
+
+        <!-- Toolbar: Search + Tier Filter Tabs -->
+        <div class="manager-roster-toolbar" style="background:#f5f2ec; border:1px solid var(--border-subtle); border-radius:14px; padding:12px 16px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+          <!-- Tier Filter Pills -->
+          <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+            <button type="button" class="mgr-tier-btn active" data-tier="all" onclick="filterEditorManagerRoster('all')" style="background:#121214; color:#fff; border:none; padding:6px 14px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+              All Editors (<span id="mgr-count-all">0</span>)
+            </button>
+            <button type="button" class="mgr-tier-btn" data-tier="special" onclick="filterEditorManagerRoster('special')" style="background:transparent; color:#b45309; border:1px solid rgba(245,158,11,0.35); padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+              ⭐ Special (<span id="mgr-count-special">0</span>)
+            </button>
+            <button type="button" class="mgr-tier-btn" data-tier="normal" onclick="filterEditorManagerRoster('normal')" style="background:transparent; color:#1d4ed8; border:1px solid rgba(59,130,246,0.35); padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+              💼 Normal (<span id="mgr-count-normal">0</span>)
+            </button>
+            <button type="button" class="mgr-tier-btn" data-tier="basic" onclick="filterEditorManagerRoster('basic')" style="background:transparent; color:#7c3aed; border:1px solid rgba(139,92,246,0.35); padding:6px 12px; border-radius:8px; font-size:12px; font-weight:700; cursor:pointer;">
+              🔰 Basic (<span id="mgr-count-basic">0</span>)
+            </button>
+          </div>
+
+          <!-- Real-time Search Box -->
+          <div style="position:relative; min-width:260px; flex:1; max-width:380px;">
+            <input type="text" id="mgr-roster-search" placeholder="🔍 Search editors by name, tool, city, email..." oninput="handleEditorManagerSearch(this.value)" style="width:100%; background:#ffffff; color:#121214; border:1px solid var(--border-subtle); border-radius:10px; padding:8px 14px; font-size:12px; outline:none; box-sizing:border-box;">
+          </div>
+        </div>
+
+        <!-- Grid Container for Editor Cards -->
+        <div id="editor-manager-roster-list" class="manager-roster-grid" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(320px, 1fr)); gap:16px;">
+          <!-- Dynamic cards rendered by renderManagerRosterInEditor() -->
         </div>
       </section>
 
@@ -1778,6 +1871,37 @@
 
       // 5. Agency Asset Folders
       renderAgencyFolders();
+
+      // 6. Manager Team Roster (If user is Manager or Admin)
+      const isManager = Boolean(ed.role === 'manager' || ed.isManager === true);
+      const managerStudioBtn = document.getElementById("manager-studio-btn");
+      const dockManagerTab = document.getElementById("dock-manager-roster-tab");
+      const secTeamRoster = document.getElementById("sec-team-roster");
+
+      if (isManager) {
+        if (managerStudioBtn) managerStudioBtn.style.display = "inline-flex";
+        if (dockManagerTab) dockManagerTab.style.display = "inline-flex";
+        if (secTeamRoster) secTeamRoster.style.display = "block";
+        renderManagerRosterInEditor(ed);
+        // Automatically sync admin session so 1-click switch to admin.html works
+        try {
+          const adminSession = {
+            email: ed.email || "manager@ganacuts.com",
+            name: ed.name + " (Manager)",
+            role: "manager",
+            isManager: true,
+            managerId: ed.id,
+            avatar: avatarSrc,
+            authProvider: "manager_session",
+            loggedInAt: Date.now()
+          };
+          localStorage.setItem("cutscale_admin_session", JSON.stringify(adminSession));
+        } catch(e) {}
+      } else {
+        if (managerStudioBtn) managerStudioBtn.style.display = "none";
+        if (dockManagerTab) dockManagerTab.style.display = "none";
+        if (secTeamRoster) secTeamRoster.style.display = "none";
+      }
     }
 
     // 1. Render Instagram-Style Profile
@@ -1790,7 +1914,13 @@
 
       const badgeEl = document.getElementById("ed-hero-roster-badge");
       if (badgeEl) {
-        if (ed.status === "selected") {
+        if (ed.role === "manager" || ed.isManager === true) {
+          badgeEl.className = "ig-roster-badge manager";
+          badgeEl.style.background = "linear-gradient(135deg, #f59e0b, #d97706)";
+          badgeEl.style.color = "#ffffff";
+          badgeEl.style.boxShadow = "0 2px 10px rgba(245,158,11,0.45)";
+          badgeEl.innerHTML = "👑 AGENCY MANAGER";
+        } else if (ed.status === "selected") {
           badgeEl.className = "ig-roster-badge pro";
           badgeEl.innerHTML = "⭐ OFFICIAL PRO ROSTER";
         } else if (ed.status === "trial") {
@@ -2545,6 +2675,169 @@
       }
       checkEditorUnreadMessages();
     }, 4000);
+    // =========================================================================
+    // MANAGER ACCESS: TEAM EDITORS ROSTER & ADMIN GATEWAY
+    // =========================================================================
+    let currentMgrRosterTier = "all";
+    let currentMgrRosterSearch = "";
+
+    window.switchToAdminStudioAsManager = function() {
+      if (!currentEditor) return;
+      const sessionData = {
+        email: currentEditor.email || "manager@ganacuts.com",
+        name: (currentEditor.name || "Manager") + " (👑 Agency Manager)",
+        role: "manager",
+        isManager: true,
+        managerId: currentEditor.id,
+        avatar: currentEditor.avatarUrl || "assets/logo.jpg",
+        authProvider: "manager_session",
+        loggedInAt: Date.now()
+      };
+      localStorage.setItem("cutscale_admin_session", JSON.stringify(sessionData));
+    };
+
+    window.filterEditorManagerRoster = function(tier) {
+      currentMgrRosterTier = tier;
+      document.querySelectorAll(".mgr-tier-btn").forEach(btn => {
+        const isActive = btn.getAttribute("data-tier") === tier;
+        btn.style.background = isActive ? "#121214" : "transparent";
+        btn.style.color = isActive ? "#ffffff" : (btn.getAttribute("data-tier") === "special" ? "#b45309" : btn.getAttribute("data-tier") === "normal" ? "#1d4ed8" : btn.getAttribute("data-tier") === "basic" ? "#7c3aed" : "#5a5a62");
+      });
+      renderManagerRosterInEditor(currentEditor);
+    };
+
+    window.handleEditorManagerSearch = function(query) {
+      currentMgrRosterSearch = (query || "").trim().toLowerCase();
+      renderManagerRosterInEditor(currentEditor);
+    };
+
+    window.renderManagerRosterInEditor = function(manager) {
+      const listEl = document.getElementById("editor-manager-roster-list");
+      if (!listEl) return;
+
+      const roster = (window.applicants && Array.isArray(window.applicants) && window.applicants.length > 0)
+        ? window.applicants
+        : ((typeof applicants !== 'undefined' && Array.isArray(applicants)) ? applicants : []);
+
+      const validRoster = roster.filter(a => a && a.id !== "app_2" && a.id !== "app_3" && a.id !== '__agency_system_vault__' && !a.id.startsWith('__'));
+
+      // Update counters
+      const totalCount = validRoster.length;
+      const specialCount = validRoster.filter(a => a.editorTier === 'special' || (!a.editorTier && a.status === 'selected')).length;
+      const normalCount = validRoster.filter(a => (a.editorTier === 'normal' || (!a.editorTier && a.status !== 'selected' && a.status !== 'pending'))).length;
+      const basicCount = validRoster.filter(a => (a.editorTier === 'basic' || (!a.editorTier && a.status === 'pending'))).length;
+
+      const cAll = document.getElementById("mgr-count-all");
+      const cSpec = document.getElementById("mgr-count-special");
+      const cNorm = document.getElementById("mgr-count-normal");
+      const cBas = document.getElementById("mgr-count-basic");
+      const dockCount = document.getElementById("dock-roster-count");
+
+      if (cAll) cAll.textContent = totalCount;
+      if (cSpec) cSpec.textContent = specialCount;
+      if (cNorm) cNorm.textContent = normalCount;
+      if (cBas) cBas.textContent = basicCount;
+      if (dockCount) dockCount.textContent = totalCount;
+
+      let filtered = [...validRoster];
+      if (currentMgrRosterSearch) {
+        const q = currentMgrRosterSearch;
+        filtered = filtered.filter(a => 
+          (a.name || "").toLowerCase().includes(q) ||
+          (a.email || "").toLowerCase().includes(q) ||
+          (a.phone || "").includes(q) ||
+          (a.tools || "").toLowerCase().includes(q) ||
+          (a.specialization || "").toLowerCase().includes(q) ||
+          (a.city || "").toLowerCase().includes(q)
+        );
+      }
+
+      if (currentMgrRosterTier !== "all") {
+        filtered = filtered.filter(a => {
+          const tier = a.editorTier || (a.status === 'selected' ? 'special' : (a.status === 'trial' ? 'normal' : 'basic'));
+          return tier === currentMgrRosterTier;
+        });
+      }
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = `
+          <div style="grid-column:1/-1; padding:32px 20px; text-align:center; background:#f5f2ec; border-radius:14px; border:1px solid var(--border-subtle); color:#5a5a62;">
+            <p style="margin:0; font-size:13px; font-weight:600;">No editors match your search query or selected tier.</p>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = filtered.map(app => {
+        const isSelected = app.status === 'selected';
+        const isTrial = app.status === 'trial';
+        const statusBadge = isSelected
+          ? `<span style="background:rgba(16,185,129,0.15); color:#059669; border:1px solid rgba(16,185,129,0.3); font-size:10px; font-weight:800; padding:2px 7px; border-radius:6px;">✅ SELECTED</span>`
+          : (isTrial
+            ? `<span style="background:rgba(59,130,246,0.15); color:#2563eb; border:1px solid rgba(59,130,246,0.3); font-size:10px; font-weight:800; padding:2px 7px; border-radius:6px;">🎯 TRIAL</span>`
+            : `<span style="background:rgba(245,158,11,0.15); color:#d97706; border:1px solid rgba(245,158,11,0.3); font-size:10px; font-weight:800; padding:2px 7px; border-radius:6px;">⏳ PENDING</span>`);
+
+        const tier = app.editorTier || (isSelected ? 'special' : (isTrial ? 'normal' : 'basic'));
+        const tierBadge = tier === 'special'
+          ? `<span style="background:rgba(245,158,11,0.15); color:#b45309; border:1px solid rgba(245,158,11,0.3); font-size:10px; font-weight:800; padding:2px 7px; border-radius:6px;">⭐ SPECIAL</span>`
+          : (tier === 'normal'
+            ? `<span style="background:rgba(59,130,246,0.15); color:#1d4ed8; border:1px solid rgba(59,130,246,0.3); font-size:10px; font-weight:800; padding:2px 7px; border-radius:6px;">💼 NORMAL</span>`
+            : `<span style="background:rgba(168,85,247,0.15); color:#7c3aed; border:1px solid rgba(168,85,247,0.3); font-size:10px; font-weight:800; padding:2px 7px; border-radius:6px;">🔰 BASIC</span>`);
+
+        const isMgr = Boolean(app.role === 'manager' || app.isManager === true);
+        const mgrBadge = isMgr
+          ? `<span style="background:linear-gradient(135deg, #f59e0b, #d97706); color:#fff; font-size:10px; font-weight:800; padding:2px 7px; border-radius:6px; box-shadow:0 2px 8px rgba(245,158,11,0.35);">👑 MANAGER</span>`
+          : '';
+
+        const avatar = app.avatarUrl || `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(app.name || 'Editor')}`;
+        const portfolioLink = app.portfolio && app.portfolio.length > 5 && !app.portfolio.includes("Google Auth")
+          ? `<a href="${app.portfolio}" target="_blank" rel="noopener" class="ig-btn" style="background:#ffffff; border:1px solid var(--border-subtle); color:#121214; font-size:11px; padding:5px 10px; text-decoration:none; border-radius:8px; font-weight:700; display:inline-flex; align-items:center; gap:4px; box-shadow:0 1px 3px rgba(0,0,0,0.05);">📂 View Portfolio ↗</a>`
+          : `<span style="color:#888894; font-size:11px;">No drive link</span>`;
+
+        return `
+          <div class="mgr-editor-card">
+            <div>
+              <div style="display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px;">
+                <div style="display:flex; align-items:center; gap:10px;">
+                  <img src="${avatar}" alt="${escapeHtml(app.name)}" style="width:38px; height:38px; border-radius:50%; object-fit:cover; border:1.5px solid var(--border-subtle);">
+                  <div>
+                    <div style="font-weight:800; color:#121214; font-size:13.5px; line-height:1.2;">${escapeHtml(app.name)}</div>
+                    <div style="font-size:11px; color:#5a5a62;">📍 ${escapeHtml(app.city || 'Remote')}</div>
+                  </div>
+                </div>
+                <div style="display:flex; flex-direction:column; align-items:flex-end; gap:4px;">
+                  ${mgrBadge}
+                  ${statusBadge}
+                  ${tierBadge}
+                </div>
+              </div>
+
+              <div style="font-size:11.5px; color:#5a5a62; margin-bottom:6px;">
+                <strong style="color:#121214;">Tools:</strong> <span>${escapeHtml([app.tools, app.otherTools].filter(Boolean).join(", ") || 'DaVinci / Premiere')}</span>
+              </div>
+              <div style="font-size:11.5px; color:#5a5a62; margin-bottom:6px;">
+                <strong style="color:#121214;">Specialization:</strong> <span>${escapeHtml(app.specialization || 'Video Editing')}</span>
+              </div>
+              <div style="font-size:11.5px; color:#5a5a62; margin-bottom:8px;">
+                <strong style="color:#121214;">Rate:</strong> <span style="color:#b45309; font-weight:700;">${escapeHtml(app.rate || 'Negotiable')}</span>
+              </div>
+
+              <div style="font-size:11px; color:#5a5a62; display:flex; flex-direction:column; gap:3px; padding:8px 10px; background:#f0ede6; border-radius:8px; border:1px solid var(--border-subtle);">
+                ${app.email ? `<div>✉️ <a href="mailto:${escapeHtml(app.email)}" style="color:#0284c7; text-decoration:none; font-weight:600;">${escapeHtml(app.email)}</a></div>` : ''}
+                ${app.phone ? `<div>📞 <a href="tel:${escapeHtml(app.phone)}" style="color:#5a5a62; text-decoration:none;">${escapeHtml(app.phone)}</a></div>` : ''}
+              </div>
+            </div>
+
+            <div style="display:flex; align-items:center; justify-content:space-between; gap:8px; border-top:1px solid var(--border-subtle); padding-top:10px; margin-top:4px;">
+              ${portfolioLink}
+              <a href="admin.html" onclick="switchToAdminStudioAsManager()" style="color:#d97706; font-size:11.5px; font-weight:800; text-decoration:none; display:inline-flex; align-items:center; gap:3px;">
+                <span>Manage ➔</span>
+              </a>
+            </div>
+          </div>
+        `;
+      }).join('');
+    };
   </script>
 </body>
 </html>

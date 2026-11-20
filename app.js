@@ -111,7 +111,649 @@ const DEFAULT_VIDEOS = [
 ];
 
 // Real Applicants (Loaded dynamically from Supabase database)
-const DEFAULT_APPLICANTS = [];
+const DEFAULT_APPLICANTS = [
+  {
+    "id": "app_1793026214710",
+    "name": "Karthik Edits",
+    "email": "karthikedits21@gmail.com",
+    "phone": "Google Account",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "Registered via Google Auth",
+    "specialization": "Motion Graphics / Retention Cuts",
+    "rate": "₹800 / reel",
+    "password": "1234",
+    "status": "trial",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1",
+    "name": "Suresh Reddy",
+    "email": "suresh.reddy.cuts@gmail.com",
+    "phone": "919876543210",
+    "city": "Hyderabad",
+    "tools": "Premiere Pro, After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Suresh+Reddy",
+    "specialization": "Cinematic Color & Montage",
+    "rate": "₹1,000 / video",
+    "password": "1234",
+    "status": "selected",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "special",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794025203127",
+    "name": "AKHILKUMAR NIMMALA",
+    "email": "akhilgarena54@gmail.com",
+    "phone": "",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=AKHILKUMAR%20NIMMALA",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1793025602699",
+    "name": "Techpad gaming FF",
+    "email": "techpadgamingff@gmail.com",
+    "phone": "Google Account",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "Registered via Google Auth",
+    "specialization": "Motion Graphics / Video Editing",
+    "rate": "₹800 / reel",
+    "password": "1234",
+    "status": "trial",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794028842483",
+    "name": "Eswar Varma",
+    "email": "eswarvarman@gmail.com",
+    "phone": "",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Eswar%20Varma",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794067105748",
+    "name": "Yaswanth Mothukuri",
+    "email": "yaswanthmothukuri82@gmail.com",
+    "phone": "",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Yaswanth%20Mothukuri",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1793439716363",
+    "name": "Uday Kumar",
+    "email": "uday2442007@gmail.com",
+    "phone": "6300734430",
+    "city": "Remote",
+    "tools": "Premiere Pro, After Effects, CapCut",
+    "portfolio": "https://comfy-kleicha-356324.netlify.app",
+    "specialization": "Talking Head & Retention",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "selected",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794067270206",
+    "name": "R vijay Reddy",
+    "email": "reddyvijayreddy8495@gmail.com",
+    "phone": "",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=R%20vijay%20Reddy",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1793410401066",
+    "name": "ganesh",
+    "email": "mogiliganesh49@gmail.com",
+    "phone": "7075081947",
+    "city": "Hyderabad",
+    "tools": "Premiere Pro, DaVinci Resolve, After Effects, CapCut",
+    "portfolio": "https://ganacutsvisualsportfolio.vercel.app",
+    "specialization": "Motion Graphics & Cinematic",
+    "rate": "Standard",
+    "password": "7075",
+    "status": "selected",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "manager",
+    "editorTier": "special",
+    "adminDescription": "",
+    "isManager": true
+  },
+  {
+    "id": "app_1793513323788",
+    "name": "Naresh N",
+    "email": "nn8773462@gmail.com",
+    "phone": "8519828987",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro",
+    "portfolio": "https://drive.google.com/drive/search?q=Naresh%20N",
+    "specialization": "Talking Head & Podcasts",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "selected",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1793726857523",
+    "name": "Madhuri Sunil",
+    "email": "madhusr712@gmail.com",
+    "phone": "",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Madhuri%20Sunil",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1793026470412",
+    "name": "Vinay Miryala",
+    "email": "vinaymiryala18@gmail.com",
+    "phone": "7013930943",
+    "city": "Suryepet/remote",
+    "tools": "Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/file/d/1kLzg3mC1iesS0KZ-gVnI-un3wAwrS81A/view?usp=drivesdk",
+    "specialization": "Talking Head",
+    "rate": "₹750 / cut",
+    "password": "9912",
+    "status": "selected",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "special",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1793042765210",
+    "name": "Karthik",
+    "email": "karthikeega2@gmail.com",
+    "phone": "9154701718",
+    "city": "Hyderabad",
+    "tools": "Premiere Pro / After Effects",
+    "portfolio": "https://karthikedits.my.canva.site/",
+    "specialization": "Talking Head & Reels",
+    "rate": "₹1,500 / reel",
+    "password": "9989",
+    "status": "selected",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "special",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_test_1793979730261",
+    "name": "Rohit Sharma (Test Editor)",
+    "email": "rohit.test@gmail.com",
+    "phone": "9876543210",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Rohit%20Sharma%20(Test%20Editor)",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794069313596",
+    "name": "Yaswanth Manepalli",
+    "email": "manepallivyaswanthoff@gmail.com",
+    "phone": "",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Yaswanth%20Manepalli",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794380946296",
+    "name": "Karan",
+    "email": "karangupta7781@gmail.com",
+    "phone": "",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Karan",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794303967638",
+    "name": "Ayush Kumar",
+    "email": "kayush7629@gmail.com",
+    "phone": "7667909117",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Ayush%20Kumar",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794380955082",
+    "name": "Tirtho Manna",
+    "email": "tirthomanna@gmail.com",
+    "phone": "9903030447",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Tirtho%20Manna",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794393666111",
+    "name": "ganesh kumar",
+    "email": "bulbuleganesh5@gmail.com",
+    "phone": "",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=ganesh%20kumar",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794381661868",
+    "name": "Harsx",
+    "email": "harsxmedia@gmail.com",
+    "phone": "8055317653",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Harsx",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794380652134",
+    "name": "Salman Sheikh",
+    "email": "connectwithsalmansheikh@gmail.com",
+    "phone": "7428690305",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Salman%20Sheikh",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794380837834",
+    "name": "ABHISHEK",
+    "email": "abhishekmodugu24@gmail.com",
+    "phone": "",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=ABHISHEK",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794383073222",
+    "name": "Hinglishh",
+    "email": "graphicsbyhinglishh@gmail.com",
+    "phone": "",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Hinglishh",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794393635623",
+    "name": "Shohan Chinnu",
+    "email": "shohanchinnu47@gmail.com",
+    "phone": "9019024773",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Shohan%20Chinnu",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794394358753",
+    "name": "Sagar Gadhvi",
+    "email": "gadhvis126@gmail.com",
+    "phone": "070433 68173",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Sagar%20Gadhvi",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794381346055",
+    "name": "Neeeraj Sonii",
+    "email": "neeerajsonii@gmail.com",
+    "phone": "",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Neeeraj%20Sonii",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794398925089",
+    "name": "Shoaib",
+    "email": "aelibwork@gmail.com",
+    "phone": "6306128229",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Shoaib",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794398941569",
+    "name": "pavan kumar",
+    "email": "pavankumar6432@gmail.com",
+    "phone": "",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=pavan%20kumar",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794399471594",
+    "name": "Rᴜsʜᴀᴅ Rusha",
+    "email": "srgaming1430@gmail.com",
+    "phone": "",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=R%E1%B4%9Cs%CA%9C%E1%B4%80%E1%B4%85%20Rusha",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794401304895",
+    "name": "Samrat Sarkar",
+    "email": "sarkarsamrat313@gmail.com",
+    "phone": "6364808332",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Samrat%20Sarkar",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794410911774",
+    "name": "Vishal Meena",
+    "email": "vishalmeena61617@gmail.com",
+    "phone": "8826710634",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Vishal%20Meena",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  },
+  {
+    "id": "app_1794413682630",
+    "name": "Ram Manem",
+    "email": "rammanem1@gmail.com",
+    "phone": "",
+    "city": "Remote",
+    "tools": "DaVinci Resolve / Premiere Pro / After Effects",
+    "portfolio": "https://drive.google.com/drive/search?q=Ram%20Manem",
+    "specialization": "Video Editing",
+    "rate": "Standard / Discuss",
+    "password": "1234",
+    "status": "pending",
+    "adminFeedback": "",
+    "appliedAt": "Nov 2026",
+    "assignedProject": null,
+    "submittedDraft": null,
+    "role": "editor",
+    "editorTier": "normal",
+    "adminDescription": ""
+  }
+];
 
 
 // Official crisp vector SVG logos for creative editing tools
@@ -708,20 +1350,25 @@ async function fetchSupabaseApplicants() {
           appliedAt: remote.applied_at || remote.appliedAt,
           assignedProject: remote.assigned_project || remote.assignedProject || null,
           submittedDraft: remote.submitted_draft || remote.submittedDraft || null,
-          avatarUrl: remote.avatar_url || remote.avatarUrl || null
+          avatarUrl: remote.avatar_url || remote.avatarUrl || null,
+          role: remote.role || (remote.is_manager ? 'manager' : 'editor'),
+          isManager: Boolean(remote.is_manager || remote.isManager || remote.role === 'manager'),
+          editorTier: remote.editor_tier || remote.editorTier || 'normal',
+          adminDescription: remote.admin_description || remote.adminDescription || ''
         };
         if (localIdx >= 0) {
           const local = applicants[localIdx];
-          applicants[localIdx] = { ...local, ...mapped };
+          applicants[localIdx] = { ...local, ...mapped, role: local.role || mapped.role, isManager: local.isManager || mapped.isManager, editorTier: local.editorTier || mapped.editorTier, adminDescription: local.adminDescription || mapped.adminDescription };
         } else {
           applicants.push(mapped);
         }
       });
       // Purge fake demo entries
-      applicants = applicants.filter(a => a && a.id !== "app_1" && a.id !== "app_2" && a.id !== "app_3");
+      applicants = applicants.filter(a => a && a.id !== "app_2" && a.id !== "app_3" && a.id !== '__agency_system_vault__' && !a.id.startsWith('__'));
       localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
       if (typeof window !== "undefined") window.applicants = applicants;
       if (typeof updateAdminUI === 'function') updateAdminUI();
+      if (typeof renderApplicantsManager === 'function') renderApplicantsManager();
     }
   } catch (err) {
     console.warn("Supabase fetch applicants notice:", err.message || err);
@@ -767,7 +1414,8 @@ async function persistPortfolioToServer() {
       profile, 
       agencyFolders: rawFolders,
       practiceAssignments: practiceAssignments || [],
-      clientProjects: clientProjects || []
+      clientProjects: clientProjects || [],
+      applicants: applicants || []
     };
     await fetch('/api/portfolio', {
       method: 'POST',
@@ -794,6 +1442,20 @@ async function fetchRemotePortfolioData() {
       if (data && Array.isArray(data.categories) && data.categories.length > 0) {
         categories = data.categories;
         localStorage.setItem(STORAGE_KEY_CATS, JSON.stringify(categories));
+        changed = true;
+      }
+      if (data && Array.isArray(data.applicants) && data.applicants.length > 0) {
+        const aMap = new Map();
+        (applicants || []).forEach(a => { if (a && a.id) aMap.set(a.id, a); });
+        data.applicants.forEach(a => {
+          if (a && a.id) {
+            const existing = aMap.get(a.id) || {};
+            aMap.set(a.id, { ...a, ...existing });
+          }
+        });
+        applicants = Array.from(aMap.values());
+        window.applicants = applicants;
+        localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
         changed = true;
       }
       if (data && Array.isArray(data.practiceAssignments) && data.practiceAssignments.length > 0) {
@@ -854,10 +1516,15 @@ async function fetchRemotePortfolioData() {
         if (typeof renderAdminClientProjectsTable === 'function') renderAdminClientProjectsTable();
         if (typeof renderAdminToolsList === 'function') renderAdminToolsList();
         if (typeof renderAdminFeaturedEditorsList === 'function') renderAdminFeaturedEditorsList();
+        if (typeof renderApplicantsManager === 'function') renderApplicantsManager();
+        if (typeof renderAgencySheet === 'function') renderAgencySheet();
         if (typeof updateAdminUI === 'function') updateAdminUI();
         if (typeof currentEditor !== 'undefined' && currentEditor) {
           if (typeof renderPracticeAssignments === 'function') renderPracticeAssignments(currentEditor);
           if (typeof renderClientProjects === 'function') renderClientProjects(currentEditor);
+          if (typeof renderManagerRosterInEditor === 'function' && (currentEditor.role === 'manager' || currentEditor.isManager)) {
+            renderManagerRosterInEditor(currentEditor);
+          }
         }
       }
     }
@@ -873,6 +1540,19 @@ async function fetchRemotePortfolioData() {
         if (data2 && Array.isArray(data2.categories) && data2.categories.length > 0) {
           categories = data2.categories;
           localStorage.setItem(STORAGE_KEY_CATS, JSON.stringify(categories));
+        }
+        if (data2 && Array.isArray(data2.applicants) && data2.applicants.length > 0) {
+          const aMap = new Map();
+          (applicants || []).forEach(a => { if (a && a.id) aMap.set(a.id, a); });
+          data2.applicants.forEach(a => {
+            if (a && a.id) {
+              const existing = aMap.get(a.id) || {};
+              aMap.set(a.id, { ...a, ...existing });
+            }
+          });
+          applicants = Array.from(aMap.values());
+          window.applicants = applicants;
+          localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
         }
         if (data2 && Array.isArray(data2.practiceAssignments)) {
           practiceAssignments = data2.practiceAssignments.filter(a => a && a.id && !deletedIds.has(a.id));
@@ -896,6 +1576,8 @@ async function fetchRemotePortfolioData() {
           localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(currentFolders));
           if (typeof window !== "undefined") window.profile = profile;
         }
+        if (typeof renderApplicantsManager === 'function') renderApplicantsManager();
+        if (typeof updateAdminUI === 'function') updateAdminUI();
       }
     } catch (e2) {}
   }
@@ -1103,8 +1785,10 @@ function saveProfile() {
 }
 
 function saveApplicants() {
-  applicants = applicants.filter(a => a && a.id !== "app_1" && a.id !== "app_2" && a.id !== "app_3" && a.id !== '__agency_system_vault__' && !a.id.startsWith('__'));
+  applicants = applicants.filter(a => a && a.id !== "app_2" && a.id !== "app_3" && a.id !== '__agency_system_vault__' && !a.id.startsWith('__'));
   localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
+  if (typeof window !== "undefined") window.applicants = applicants;
+  persistPortfolioToServer();
   if (typeof syncAllApplicantsToSupabase === 'function') {
     syncAllApplicantsToSupabase();
   }
@@ -3652,6 +4336,9 @@ window.switchAdminTab = function(tabName) {
   }
   if (tabName === "trash" && typeof renderTrashManager === "function") {
     renderTrashManager();
+  }
+  if ((tabName === "applicants" || tabName === "overview" || tabName === "sheet") && typeof renderApplicantsManager === "function") {
+    renderApplicantsManager();
   }
   if ((tabName === "profile" || tabName === "overview" || tabName === "sheet") && typeof renderAdminFolders === "function") {
     renderAdminFolders();
