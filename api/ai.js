@@ -23,10 +23,20 @@ function isRateLimited(ip) {
 
 function isUsableKey(k) {
   if (!k || typeof k !== 'string') return false;
-  const s = k.trim();
+  let s = k.trim().replace(/^['"](.*)['"]$/, '$1').trim();
+  if (s.startsWith('export ')) s = s.replace(/^export\s+/, '').trim();
+  if (s.includes('=')) s = s.split('=').pop().trim();
   if (s.length < 15) return false;
   if (/^(your_actual_key|placeholder|your_key|none|null|undefined|test_key)/i.test(s)) return false;
   return true;
+}
+
+function cleanKey(k) {
+  if (!k || typeof k !== 'string') return '';
+  let s = k.trim().replace(/^['"](.*)['"]$/, '$1').trim();
+  if (s.startsWith('export ')) s = s.replace(/^export\s+/, '').trim();
+  if (s.includes('=')) s = s.split('=').pop().trim();
+  return s;
 }
 
 // Helper to safely get Gemini API Key without leaking to frontend
@@ -36,19 +46,21 @@ function getGeminiApiKey(req, body) {
     process.env.GEMINI_API_KEY,
     process.env.GEMINI_KEY,
     process.env.GOOGLE_GEMINI_API_KEY,
-    process.env.GOOGLE_API_KEY
+    process.env.GOOGLE_API_KEY,
+    process.env.GEMINI_SECRET,
+    process.env.AI_KEY
   ];
   for (const c of envCandidates) {
     if (isUsableKey(c)) {
-      return c.trim();
+      return cleanKey(c);
     }
   }
 
-  // 2. Check any environment variable containing GEMINI
+  // 2. Check any environment variable containing GEMINI or GOOGLE_API
   if (process.env) {
     for (const [k, v] of Object.entries(process.env)) {
-      if (k.toUpperCase().includes('GEMINI') && isUsableKey(v)) {
-        return v.trim();
+      if ((k.toUpperCase().includes('GEMINI') || k.toUpperCase().includes('GOOGLE_API')) && isUsableKey(v)) {
+        return cleanKey(v);
       }
     }
   }
@@ -58,17 +70,17 @@ function getGeminiApiKey(req, body) {
     const authHeader = req.headers?.['authorization'] || req.headers?.['Authorization'] || '';
     if (authHeader.startsWith('Bearer ')) {
       const token = authHeader.slice(7).trim();
-      if (isUsableKey(token)) return token;
+      if (isUsableKey(token)) return cleanKey(token);
     }
     const xKey = req.headers?.['x-gemini-key'] || req.headers?.['X-Gemini-Key'];
     if (isUsableKey(xKey)) {
-      return xKey.trim();
+      return cleanKey(xKey);
     }
   }
 
   // 4. Check body if supplied
   if (isUsableKey(body?.apiKey)) {
-    return body.apiKey.trim();
+    return cleanKey(body.apiKey);
   }
 
   // 5. Check local .env for local Node development
@@ -77,7 +89,7 @@ function getGeminiApiKey(req, body) {
     if (fs.existsSync(envPath)) {
       const content = fs.readFileSync(envPath, 'utf8');
       const m = content.match(/GEMINI_API_KEY=([^\r\n]+)/);
-      if (m && isUsableKey(m[1])) return m[1].trim();
+      if (m && isUsableKey(m[1])) return cleanKey(m[1]);
     }
   } catch (e) {}
 
@@ -210,11 +222,13 @@ module.exports = async function handler(req, res) {
   // GET /api/ai (Status check)
   if (req.method === 'GET') {
     const apiKey = getGeminiApiKey(req);
+    const envKeys = Object.keys(process.env || {}).filter(k => k.toUpperCase().includes('GEMINI'));
     res.setHeader('Content-Type', 'application/json');
     res.statusCode = 200;
     return res.end(JSON.stringify({
       success: true,
       configured: Boolean(apiKey),
+      envDetected: envKeys.length > 0 ? envKeys : ['None (Redeploy required on Vercel)'],
       provider: 'Google Gemini AI',
       aiEngine: 'Active',
       activeCapabilities: ['profile_analysis', 'email_automation', 'tier_recommendation', 'copilot_chat']
