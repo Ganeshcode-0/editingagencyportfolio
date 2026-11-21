@@ -20,12 +20,6 @@ window.handleGoogleSignIn = async function() {
   window.location.href = '/editor';
 };
 
-window.toggleModalPhoneLookup = function() {
-  const box = document.getElementById("modal-phone-lookup-box");
-  if (box) {
-    box.style.display = box.style.display === "none" ? "block" : "none";
-  }
-};
 
 /**
  * CUTSCALE MEDIA — Video Editing Agency & Creative Operations Engine
@@ -186,7 +180,27 @@ const STORAGE_KEY_CLIENT_PROJS = "cutscale_client_projs_v1";
 const STORAGE_KEY_AGENCY_FOLDERS = "cutscale_agency_folders_v1";
 const STORAGE_KEY_DELETED_VAULT_IDS = "ganacuts_deleted_vault_ids_v1";
 const STORAGE_KEY_DELETED_APP_IDS = "ganacuts_deleted_app_ids_v1";
+const STORAGE_KEY_ROSTER_METADATA = "ganacuts_roster_metadata_v2";
+const STORAGE_KEY_TOOLS = "ganacuts_tools_v2";
 const ADMIN_PIN = "7075";
+
+function getPersistedRosterMetadata() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY_ROSTER_METADATA);
+    return raw ? JSON.parse(raw) : {};
+  } catch (e) {
+    return {};
+  }
+}
+
+function saveRosterMetadataItem(editorId, updates) {
+  if (!editorId) return;
+  const current = getPersistedRosterMetadata();
+  current[editorId] = { ...(current[editorId] || {}), ...updates, updatedAt: Date.now() };
+  try {
+    localStorage.setItem(STORAGE_KEY_ROSTER_METADATA, JSON.stringify(current));
+  } catch (e) {}
+}
 
 let practiceAssignments = [];
 let clientProjects = [];
@@ -276,12 +290,30 @@ async function syncAgencyVaultToSupabase() {
   }
   rawClient = (rawClient || []).filter(p => p && p.id && p.id !== "proj_client_default" && !deletedIds.has(p.id));
 
+  let activeTools = (profile && Array.isArray(profile.tools) && profile.tools.length > 0)
+    ? profile.tools
+    : (typeof window !== "undefined" && window.tools && Array.isArray(window.tools) && window.tools.length > 0 ? window.tools : null);
+  if (!activeTools) {
+    try {
+      const st = localStorage.getItem(STORAGE_KEY_TOOLS);
+      if (st) activeTools = JSON.parse(st);
+    } catch (e) {}
+  }
+  if (!Array.isArray(activeTools) || activeTools.length === 0) {
+    activeTools = [...DEFAULT_TOOLS];
+  }
+
+  const curDeletedAppIds = Array.from(new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_APP_IDS) || "[]")));
+
   const vaultPayload = {
     agencyFolders: rawFolders,
     practiceAssignments: rawPractice,
     clientProjects: rawClient,
-    tools: (profile && Array.isArray(profile.tools)) ? profile.tools : DEFAULT_TOOLS,
+    tools: activeTools,
     featuredEditors: (profile && Array.isArray(profile.featuredEditors)) ? profile.featuredEditors : [],
+    rosterMetadata: getPersistedRosterMetadata(),
+    trashApplicants: (trashApplicants || []).slice(0, 50),
+    deletedApplicantIds: curDeletedAppIds,
     updatedAt: Date.now()
   };
 
@@ -498,15 +530,80 @@ async function fetchSupabaseAgencyVault() {
   // Sync tools & featured editors if remote has them
   if (Array.isArray(vault.tools) && vault.tools.length > 0) {
     if (!profile) profile = { ...DEFAULT_PROFILE };
-    profile.tools = vault.tools;
+    const toolMap = new Map();
+    vault.tools.forEach(t => { if (t && t.id) toolMap.set(t.id, t); });
+    let localStoredTools = [];
+    try {
+      const st = localStorage.getItem(STORAGE_KEY_TOOLS);
+      if (st) localStoredTools = JSON.parse(st);
+    } catch (e) {}
+    if (Array.isArray(localStoredTools)) {
+      localStoredTools.forEach(t => { if (t && t.id) toolMap.set(t.id, t); });
+    }
+    profile.tools = Array.from(toolMap.values());
+    localStorage.setItem(STORAGE_KEY_TOOLS, JSON.stringify(profile.tools));
     localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
-    if (typeof window !== "undefined") window.profile = profile;
+    if (typeof window !== "undefined") {
+      window.profile = profile;
+      window.tools = profile.tools;
+    }
   }
   if (Array.isArray(vault.featuredEditors)) {
     if (!profile) profile = { ...DEFAULT_PROFILE };
     profile.featuredEditors = vault.featuredEditors;
     localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
     if (typeof window !== "undefined") window.profile = profile;
+  }
+
+  // Restore and merge persisted Roster Metadata (Special, Normal, Basic Tiers & Admin Notes)
+  if (vault.rosterMetadata && typeof vault.rosterMetadata === 'object') {
+    const localMeta = getPersistedRosterMetadata();
+    const mergedMeta = { ...vault.rosterMetadata, ...localMeta };
+    localStorage.setItem(STORAGE_KEY_ROSTER_METADATA, JSON.stringify(mergedMeta));
+
+    if (Array.isArray(applicants)) {
+      let rosterChanged = false;
+      applicants.forEach(a => {
+        if (!a || !a.id) return;
+        const meta = mergedMeta[a.id];
+        if (meta) {
+          if (meta.editorTier && a.editorTier !== meta.editorTier) { a.editorTier = meta.editorTier; rosterChanged = true; }
+          if (meta.role && a.role !== meta.role) { a.role = meta.role; rosterChanged = true; }
+          if (meta.isManager !== undefined && a.isManager !== meta.isManager) { a.isManager = meta.isManager; rosterChanged = true; }
+          if (meta.adminDescription !== undefined && !a.adminDescription) { a.adminDescription = meta.adminDescription; rosterChanged = true; }
+          if (meta.status && a.status !== meta.status) { a.status = meta.status; rosterChanged = true; }
+          if (meta.isApproved !== undefined && a.isApproved !== meta.isApproved) { a.isApproved = meta.isApproved; rosterChanged = true; }
+        }
+      });
+      if (rosterChanged) {
+        localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
+      }
+    }
+  }
+
+  // Restore and merge Recycle Bin (Trash)
+  if (Array.isArray(vault.trashApplicants) && vault.trashApplicants.length > 0) {
+    const trashMap = new Map();
+    (trashApplicants || []).forEach(t => { if (t && t.id) trashMap.set(t.id, t); });
+    vault.trashApplicants.forEach(t => { if (t && t.id) trashMap.set(t.id, t); });
+    trashApplicants = Array.from(trashMap.values());
+    localStorage.setItem(STORAGE_KEY_TRASH_APPS, JSON.stringify(trashApplicants));
+
+    const curDeletedApps = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_APP_IDS) || "[]"));
+    trashApplicants.forEach(t => { if (t && t.id) curDeletedApps.add(t.id); });
+    if (Array.isArray(vault.deletedApplicantIds)) {
+      vault.deletedApplicantIds.forEach(id => { if (id) curDeletedApps.add(id); });
+    }
+    localStorage.setItem(STORAGE_KEY_DELETED_APP_IDS, JSON.stringify(Array.from(curDeletedApps)));
+
+    // Ensure trashed applicants NEVER resurrect on active roster
+    if (Array.isArray(applicants)) {
+      const prevLen = applicants.length;
+      applicants = applicants.filter(a => a && a.id && !curDeletedApps.has(a.id) && !trashMap.has(a.id));
+      if (applicants.length !== prevLen) {
+        localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
+      }
+    }
   }
 
   // Persist synced state to server disk
@@ -531,8 +628,20 @@ async function fetchSupabaseAgencyVault() {
 
 // Supabase Database Sync Operations
 async function syncApplicantToSupabase(app) {
-  if (!globalSupabase || !app) return;
+  if (!app) return;
   if (app.id === '__agency_system_vault__' || (typeof app.id === 'string' && app.id.startsWith('__'))) return;
+
+  // Persist roster metadata permanently
+  saveRosterMetadataItem(app.id, {
+    editorTier: app.editorTier,
+    role: app.role,
+    isManager: app.isManager,
+    adminDescription: app.adminDescription,
+    status: app.status,
+    isApproved: app.isApproved
+  });
+
+  if (!globalSupabase) return;
   try {
     const payload = {
       id: app.id,
@@ -686,37 +795,50 @@ async function fetchSupabaseApplicants() {
   try {
     const { data, error } = await globalSupabase.from('applicants').select('*');
     if (!error && Array.isArray(data) && data.length > 0) {
+      const deletedAppIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_APP_IDS) || "[]"));
+      const metaMap = getPersistedRosterMetadata();
+
       data.forEach(remote => {
-        // Skip any legacy fake accounts or items in trash bin
+        // Skip any legacy fake accounts or items in trash bin / tombstones
         if (remote.id === 'app_1' || remote.id === 'app_2' || remote.id === 'app_3' || remote.id === '__agency_system_vault__') return;
+        if (deletedAppIds.has(remote.id)) return;
         if (typeof trashApplicants !== 'undefined' && Array.isArray(trashApplicants) && trashApplicants.some(t => t.id === remote.id)) return;
 
         const localIdx = applicants.findIndex(a => a.id === remote.id || (remote.email && a.email && a.email.toLowerCase() === remote.email.toLowerCase()));
+        const meta = metaMap[remote.id] || {};
+        const local = localIdx >= 0 ? applicants[localIdx] : null;
+
+        const finalTier = (local && local.editorTier) || meta.editorTier || remote.editor_tier || remote.editorTier || 'normal';
+        const finalDesc = (local && local.adminDescription !== undefined) ? local.adminDescription : (meta.adminDescription !== undefined ? meta.adminDescription : (remote.admin_description || remote.adminDescription || ''));
+        const finalRole = (local && local.role) || meta.role || remote.role || (remote.is_manager ? 'manager' : 'editor');
+        const finalApproved = (local && local.isApproved !== undefined) ? local.isApproved : (meta.isApproved !== undefined ? meta.isApproved : remote.is_approved);
+
         const mapped = {
           id: remote.id,
-          name: remote.name,
+          name: (local && local.name) || remote.name,
           email: remote.email,
-          phone: remote.phone,
-          city: remote.city,
-          tools: remote.tools,
-          portfolio: remote.portfolio,
-          specialization: remote.specialization,
-          rate: remote.rate,
+          phone: (local && local.phone) || remote.phone,
+          city: (local && local.city) || remote.city,
+          tools: (local && local.tools) || remote.tools,
+          portfolio: (local && local.portfolio) || remote.portfolio,
+          specialization: (local && local.specialization) || remote.specialization,
+          rate: (local && local.rate) || remote.rate,
           password: remote.password || "1234",
-          status: remote.status || "pending",
-          adminFeedback: remote.admin_feedback || remote.adminFeedback || "",
-          appliedAt: remote.applied_at || remote.appliedAt,
+          status: (local && local.status) || meta.status || remote.status || "pending",
+          isApproved: finalApproved,
+          adminFeedback: (local && local.adminFeedback) || remote.admin_feedback || remote.adminFeedback || "",
+          appliedAt: (local && local.appliedAt) || remote.applied_at || remote.appliedAt,
           assignedProject: remote.assigned_project || remote.assignedProject || null,
           submittedDraft: remote.submitted_draft || remote.submittedDraft || null,
-          avatarUrl: remote.avatar_url || remote.avatarUrl || null,
-          role: remote.role || (remote.is_manager ? 'manager' : 'editor'),
-          isManager: Boolean(remote.is_manager || remote.isManager || remote.role === 'manager'),
-          editorTier: remote.editor_tier || remote.editorTier || 'normal',
-          adminDescription: remote.admin_description || remote.adminDescription || ''
+          avatarUrl: (local && local.avatarUrl) || remote.avatar_url || remote.avatarUrl || null,
+          role: finalRole,
+          isManager: Boolean(finalRole === 'manager' || remote.is_manager || remote.isManager),
+          editorTier: finalTier,
+          adminDescription: finalDesc
         };
+
         if (localIdx >= 0) {
-          const local = applicants[localIdx];
-          applicants[localIdx] = { ...local, ...mapped, role: local.role || mapped.role, isManager: local.isManager || mapped.isManager, editorTier: local.editorTier || mapped.editorTier, adminDescription: local.adminDescription || mapped.adminDescription };
+          applicants[localIdx] = { ...local, ...mapped };
         } else {
           applicants.push(mapped);
         }
@@ -1073,6 +1195,16 @@ function initData() {
   // Strip legacy demo folder
   const deletedIds = new Set(JSON.parse(localStorage.getItem(STORAGE_KEY_DELETED_VAULT_IDS) || "[]"));
   profile.agencyFolders = profile.agencyFolders.filter(f => f && f.id !== "folder_drive_vault" && !deletedIds.has(f.id));
+  // Load custom tools from dedicated storage key
+  try {
+    const storedTools = localStorage.getItem(STORAGE_KEY_TOOLS);
+    if (storedTools) {
+      const parsedTools = JSON.parse(storedTools);
+      if (Array.isArray(parsedTools) && parsedTools.length > 0) {
+        profile.tools = parsedTools;
+      }
+    }
+  } catch (e) {}
   if (!Array.isArray(profile.tools) || profile.tools.length === 0) {
     profile.tools = [...DEFAULT_TOOLS];
   }
@@ -1081,7 +1213,11 @@ function initData() {
   }
   localStorage.setItem(STORAGE_KEY_AGENCY_FOLDERS, JSON.stringify(profile.agencyFolders));
   localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
-  if (typeof window !== "undefined") window.profile = profile;
+  localStorage.setItem(STORAGE_KEY_TOOLS, JSON.stringify(profile.tools));
+  if (typeof window !== "undefined") {
+    window.profile = profile;
+    window.tools = profile.tools;
+  }
 
   const storedTrash = localStorage.getItem(STORAGE_KEY_TRASH_APPS);
   trashApplicants = storedTrash ? JSON.parse(storedTrash) : [];
@@ -1093,6 +1229,21 @@ function initData() {
   const storedApps = localStorage.getItem(STORAGE_KEY_APPS);
   applicants = storedApps ? JSON.parse(storedApps) : [...DEFAULT_APPLICANTS];
   applicants = applicants.filter(a => a && a.id !== "app_1" && a.id !== "app_2" && a.id !== "app_3" && a.id !== '__agency_system_vault__' && !a.id.startsWith('__') && !trashIdsInit.has(a.id) && !deletedAppIdsInit.has(a.id));
+
+  // Merge persisted roster metadata (Special, Normal, Basic tiers & notes)
+  const metaMapInit = getPersistedRosterMetadata();
+  applicants.forEach(a => {
+    if (!a || !a.id) return;
+    const meta = metaMapInit[a.id];
+    if (meta) {
+      if (meta.editorTier) a.editorTier = meta.editorTier;
+      if (meta.role) a.role = meta.role;
+      if (meta.isManager !== undefined) a.isManager = meta.isManager;
+      if (meta.adminDescription !== undefined && !a.adminDescription) a.adminDescription = meta.adminDescription;
+      if (meta.status) a.status = meta.status;
+      if (meta.isApproved !== undefined) a.isApproved = meta.isApproved;
+    }
+  });
   localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
   if (typeof window !== "undefined") window.applicants = applicants;
 
@@ -2128,15 +2279,15 @@ window.saveApplicantDescription = async function(id) {
   const textarea = document.getElementById(`admin-desc-${id}`);
   if (textarea) {
     app.adminDescription = textarea.value.trim();
+    saveRosterMetadataItem(id, { adminDescription: app.adminDescription });
     saveApplicants();
     if (window.syncApplicantToSupabase) {
       await window.syncApplicantToSupabase(app);
     }
+    syncAgencyVaultToSupabase();
     showToast(`✓ Saved private description for ${app.name}`);
   }
 };
-
-// Update Applicant Phase / Tier
 
 // Update Applicant Role (Editor vs Manager with Admin Access)
 window.updateApplicantRole = async function(id, newRole) {
@@ -2144,10 +2295,12 @@ window.updateApplicantRole = async function(id, newRole) {
   if (!app) return;
   app.role = newRole;
   app.isManager = (newRole === 'manager');
+  saveRosterMetadataItem(id, { role: newRole, isManager: app.isManager });
   saveApplicants();
   if (window.syncApplicantToSupabase) {
     await window.syncApplicantToSupabase(app);
   }
+  syncAgencyVaultToSupabase();
   if (newRole === 'manager') {
     showToast(`👑 Assigned ${app.name} as Agency Manager! They now have full Admin Studio dashboard access.`);
   } else {
@@ -2160,10 +2313,12 @@ window.updateApplicantTier = async function(id, newTier) {
   const app = applicants.find(a => a.id === id);
   if (!app) return;
   app.editorTier = newTier;
+  saveRosterMetadataItem(id, { editorTier: newTier });
   saveApplicants();
   if (window.syncApplicantToSupabase) {
     await window.syncApplicantToSupabase(app);
   }
+  syncAgencyVaultToSupabase();
   const tierLabels = { special: "⭐ Special Editor", normal: "💼 Normal Editor", basic: "🔰 Basic Editor" };
   showToast(`✓ ${app.name} updated to ${tierLabels[newTier] || newTier}`);
   renderApplicantsManager();
@@ -2176,482 +2331,44 @@ window.applyAiRecommendedTier = async function(id, recommendedTier) {
 };
 
 // ==========================================
-// GOOGLE GEMINI AI UNIVERSAL INTEGRATION
-// Seamlessly operates on Node backend (server.js /api/ai)
-// and on static hosts (GitHub Pages) via Google CORS REST API
+// GOOGLE GEMINI AI BACKEND INTEGRATION
+// Exclusively operates via serverless /api/ai using process.env.GEMINI_API_KEY.
+// Zero API keys are stored in client JavaScript or browser localStorage.
 // ==========================================
 
-// Gemini AI configuration: server-side uses process.env.GEMINI_API_KEY.
-// On static hosts (GitHub Pages), custom keys persist strictly in admin's private localStorage.
-const GEMINI_MODEL = "gemini-3.5-flash-lite";
+window.executeUniversalGemini = async function(action, payload = {}) {
+  const endpoints = [
+    "/api/ai",
+    "https://editingagencyportfolio.vercel.app/api/ai"
+  ];
 
-window.getIntegratedGeminiKey = function() {
-  const custom = localStorage.getItem("cutscale_gemini_api_key");
-  if (custom && custom.trim().length > 20) return custom.trim();
-  return "";
-};
+  let lastError = null;
 
-window.setCustomGeminiKey = function(key) {
-  if (!key || !key.trim()) {
-    localStorage.removeItem("cutscale_gemini_api_key");
-  } else {
-    localStorage.setItem("cutscale_gemini_api_key", key.trim());
-  }
-};
-
-// Direct client-side call to Google's Generative Language API
-window.callGeminiDirectClient = async function(prompt, isJson = true) {
-  const apiKey = window.getIntegratedGeminiKey();
-  if (!apiKey) {
-    throw new Error("No Gemini API Key found. Please configure key in Settings (⚙️).");
-  }
-
-  const candidateModels = ["gemini-3.5-flash-lite", "gemini-3-flash-preview"];
-  let lastErr = null;
-
-  for (const model of candidateModels) {
+  for (const endpoint of endpoints) {
     try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-      const response = await fetch(endpoint, {
+      const res = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            responseMimeType: isJson ? "application/json" : "text/plain",
-            temperature: isJson ? 0.2 : 0.4
-          }
-        })
-      });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        let msg = `HTTP ${response.status}`;
-        try {
-          const errJson = JSON.parse(errText);
-          if (errJson?.error?.message) msg += `: ${errJson.error.message}`;
-        } catch (_) {
-          msg += `: ${errText.slice(0, 120)}`;
-        }
-        lastErr = new Error(msg);
-        continue;
-      }
-
-      const data = await response.json();
-      let rawText = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
-      if (!rawText) throw new Error("Gemini returned empty response.");
-
-      if (isJson) {
-        rawText = rawText.replace(/^```(?:json)?\s*/i, "").replace(/\s*```$/, "").trim();
-        return JSON.parse(rawText);
-      }
-      return rawText.trim();
-    } catch (e) {
-      lastErr = e;
-    }
-  }
-
-  throw lastErr || new Error("Failed to connect to Gemini AI.");
-};
-
-window.executeDirectGeminiAction = async function(action, payload = {}) {
-  if (action === "test_connection") {
-    const start = Date.now();
-    const testRes = await window.callGeminiDirectClient('Respond with JSON: {"status":"connected","engine":"active","message":"AI Engine is active and responding."}', true);
-    return {
-      success: true,
-      action: "test_connection",
-      latencyMs: Date.now() - start,
-      result: testRes
-    };
-  }
-
-  if (action === "analyze_editor") {
-    const editor = payload.editor || {};
-    const adminDesc = payload.adminDescription || editor.adminDescription || editor.notes || "None provided yet";
-    const prompt = `You are the Executive Creative Director at GanaCuts Visuals (a high-tier post-production & creative video agency).
-Analyze this video editor's profile and provide an incisive, realistic professional evaluation:
-
-EDITOR PROFILE:
-- Name: ${editor.name || "Editor"}
-- Specialization: ${editor.specialization || "Video Editing"}
-- Software Tools: ${editor.tools || "Premiere Pro"} ${editor.otherTools ? `(${editor.otherTools})` : ""}
-- Expected Rate: ${editor.rate || "Standard / Discuss"}
-- Location: ${editor.city || "Remote"}
-- Work Portfolio: ${editor.portfolio || "Not submitted"}
-- Current Phase/Tier: ${editor.editorTier || editor.tier || "Unassigned"}
-- Private Admin Notes / Description: ${adminDesc}
-
-Your job:
-1. Identify their true video editing archetype (e.g., "Hyper-Retention Documentary Reel Specialist", "Fast 3D Motion Graphics Artist", "Junior Social Pacing Editor").
-2. Rate their overall agency readiness out of 100 based on their tools, specialization, rate, and admin's notes.
-3. Recommend their exact Phase / Tier:
-   - "special" = Elite, top-tier, priority commercial clients, advanced retention & 3D/sound design.
-   - "normal" = Core reliable editor, good pacing, dependable for standard client reels.
-   - "basic" = Junior, learning pacing, needs practice tasks or trial edits first.
-4. Highlight 3-4 specific strengths.
-5. Identify their best project fit (what type of client videos they should edit).
-6. Give practical coaching advice on how to manage or level up this editor.
-7. Write a 2-sentence executive summary.
-
-Return ONLY a valid JSON object matching this schema:
-{
-  "archetype": "Descriptive title",
-  "rating": 88,
-  "recommendedTier": "special",
-  "recommendedTierLabel": "⭐ Special Editor",
-  "strengths": ["string", "string", "string"],
-  "bestFit": "string",
-  "coachingAdvice": "string",
-  "executiveSummary": "string"
-}`;
-
-    const analysis = await window.callGeminiDirectClient(prompt, true);
-    return {
-      success: true,
-      action: "analyze_editor",
-      editorId: editor.id,
-      editorName: editor.name,
-      analysis: analysis
-    };
-  }
-
-  if (action === "draft_email") {
-    const editor = payload.editor || {};
-    const purpose = payload.purpose || "project_offer";
-    const customNotes = payload.customNotes || "";
-    const prompt = `You are the Creative Director of GanaCuts Visuals.
-Write a personalized, professional, and motivating email from your Gmail (designsbygani@gmail.com) directly to this video editor:
-
-RECIPIENT:
-- Editor Name: ${editor.name || "Editor"}
-- Editor Email: ${editor.email || ""}
-- Specialization: ${editor.specialization || "Video Editing"}
-- Current Tier: ${editor.editorTier || "Core Editor"}
-- Rate: ${editor.rate || "Standard"}
-- Admin's Private Notes: ${editor.adminDescription || "Reliable editor"}
-
-PURPOSE OF THIS EMAIL:
-${purpose}
-ADDITIONAL CONTEXT / INSTRUCTIONS:
-${customNotes || "None"}
-
-GUIDELINES:
-- Warm, direct, professional tone of a high-growth creative agency founder.
-- Keep it concise, actionable, and clear.
-- Sign off cleanly as:
-Founder & Creative Director | GanaCuts Visuals
-designsbygani@gmail.com
-
-Format the output as ONLY valid JSON:
-{
-  "subject": "Clear, compelling email subject line",
-  "body": "Complete email body with appropriate line breaks and signature"
-}`;
-
-    const emailResult = await window.callGeminiDirectClient(prompt, true);
-    return {
-      success: true,
-      action: "draft_email",
-      editorId: editor.id,
-      recipientEmail: editor.email,
-      email: emailResult
-    };
-  }
-
-  if (action === "copilot_chat") {
-    const userQuery = payload.message || payload.prompt || "Hello Copilot";
-    const agencyContext = payload.agencyContext || {};
-    const prompt = `You are GanaCuts Agency Copilot, an intelligent AI Executive Partner for the Creative Director and operations managers at GanaCuts Visuals.
-
-AGENCY OPERATING CONTEXT:
-- Agency: GanaCuts Visuals (High-retention video editing agency)
-- Specializations: Short-form Reels/Shorts, YouTube Long-form, 3D/Kinetic Motion Graphics, Commercial Ads
-- Editor Tiers: Special, Normal, Basic
-- Active Editors on Roster: ${agencyContext.totalEditors || '30+'}
-- Tier Breakdown: Special: ${agencyContext.specialCount || 0}, Normal: ${agencyContext.normalCount || 0}, Basic: ${agencyContext.basicCount || 0}
-- Summary of Recent Members / Activities: ${agencyContext.rosterSummary || 'Full roster actively managed in Supabase database.'}
-- Recent Client Inquiries / Leads: ${agencyContext.inquiriesSummary || 'Client inquiries active.'}
-
-USER QUERY:
-${userQuery}
-
-INSTRUCTIONS:
-- Speak as a sharp, professional, proactive creative agency director and chief of staff.
-- Be concise, direct, and actionable. Give specific advice, workflow tips, editor assignment recommendations, or drafted messages whenever requested.
-- Format with clean markdown (bullet points, bold text).`;
-
-    const reply = await window.callGeminiDirectClient(prompt, false);
-    return {
-      success: true,
-      action: "copilot_chat",
-      reply: reply,
-      timestamp: Date.now()
-    };
-  }
-
-  throw new Error("Unknown action: " + action);
-};
-
-// Universal dispatcher: Prioritizes direct client call if key is saved in Admin Settings,
-// otherwise uses Vercel server /api/ai
-window.executeUniversalGemini = async function(action, payload = {}) {
-  const clientKey = window.getIntegratedGeminiKey ? window.getIntegratedGeminiKey() : '';
-
-  // 1. Direct fast client if key is configured in Admin Settings (no 10s serverless timeout!)
-  if (clientKey) {
-    try {
-      return await window.executeDirectGeminiAction(action, payload);
-    } catch (err) {
-      console.warn("Direct Gemini call error, falling back to server...", err);
-    }
-  }
-
-  // 2. Server-side /api/ai
-  const isGitHubPages = (typeof window !== "undefined" && window.location && window.location.hostname && window.location.hostname.includes("github.io"));
-  if (!isGitHubPages) {
-    try {
-      const headers = { "Content-Type": "application/json" };
-      if (clientKey) headers["Authorization"] = "Bearer " + clientKey;
-
-      const res = await fetch("/api/ai", {
-        method: "POST",
-        headers,
         body: JSON.stringify({ action, ...payload })
       });
       const contentType = res.headers.get("content-type") || "";
       if (res.ok && contentType.includes("application/json")) {
         const data = await res.json();
         if (data && data.success) return data;
-        if (data && data.error && !clientKey) {
+        if (data && data.error) {
           throw new Error(data.error);
         }
+      } else {
+        const txt = await res.text();
+        throw new Error(`HTTP ${res.status}: ${txt.slice(0, 100)}`);
       }
-    } catch (e) {
-      console.warn("Backend /api/ai error, falling back...", e);
-      if (!clientKey) throw e;
+    } catch (err) {
+      lastError = err;
+      console.warn(`AI endpoint ${endpoint} notice:`, err.message || err);
     }
   }
 
-  // 3. Fallback to direct client
-  return await window.executeDirectGeminiAction(action, payload);
-};
-
-// Gemini Settings Modal Handlers
-window.openGeminiSettingsModal = function() {
-  const modal = document.getElementById("admin-gemini-settings-modal");
-  if (!modal) return;
-  const input = document.getElementById("gemini-settings-key-input");
-  const stored = localStorage.getItem("cutscale_gemini_api_key");
-  if (input) {
-    input.value = stored || window.getIntegratedGeminiKey();
-  }
-  const resultBox = document.getElementById("gemini-test-result-box");
-  if (resultBox) resultBox.style.display = "none";
-  modal.style.display = "flex";
-};
-
-window.closeGeminiSettingsModal = function() {
-  const modal = document.getElementById("admin-gemini-settings-modal");
-  if (modal) modal.style.display = "none";
-};
-
-window.saveCustomGeminiKey = function() {
-  const input = document.getElementById("gemini-settings-key-input");
-  if (!input) return;
-  const val = input.value.trim();
-  if (val.length < 20) {
-    alert("Please enter a valid Google Gemini API key (starts with AIzaSy or AQ...).");
-    return;
-  }
-  window.setCustomGeminiKey(val);
-  showToast("✓ Custom Gemini API Key saved!");
-};
-
-window.resetGeminiKeyToDefault = function() {
-  localStorage.removeItem("cutscale_gemini_api_key");
-  const input = document.getElementById("gemini-settings-key-input");
-  if (input) input.value = window.getIntegratedGeminiKey();
-  showToast("✓ Reset to built-in integrated Gemini API Key.");
-};
-
-window.toggleGeminiKeyVisibility = function() {
-  const input = document.getElementById("gemini-settings-key-input");
-  const btn = document.getElementById("btn-toggle-gemini-key-vis");
-  if (!input) return;
-  if (input.type === "password") {
-    input.type = "text";
-    if (btn) btn.textContent = "🙈 Hide";
-  } else {
-    input.type = "password";
-    if (btn) btn.textContent = "👁️ Show";
-  }
-};
-
-window.testGeminiConnectionLive = async function() {
-  const btn = document.getElementById("btn-test-gemini-live");
-  const resultBox = document.getElementById("gemini-test-result-box");
-  if (btn) {
-    btn.innerHTML = `<span style="display:inline-block; animation:spin 1s linear infinite;">⏳</span> Testing Connection...`;
-    btn.disabled = true;
-  }
-  if (resultBox) {
-    resultBox.style.display = "block";
-    resultBox.className = "alert-info";
-    resultBox.innerHTML = `<strong>Connecting to Google Gemini API...</strong> Sending diagnostic ping to <code>${GEMINI_MODEL}</code>...`;
-  }
-
-  try {
-    const t0 = performance.now();
-    const res = await window.executeUniversalGemini("test_connection");
-    const t1 = performance.now();
-    const ms = Math.round(t1 - t0);
-    if (resultBox) {
-      resultBox.style.display = "block";
-      resultBox.style.background = "rgba(16,185,129,0.12)";
-      resultBox.style.border = "1px solid rgba(16,185,129,0.3)";
-      resultBox.style.color = "#059669";
-      resultBox.innerHTML = `
-        <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
-          <span style="font-size:18px;">✅</span>
-          <strong style="font-size:13.5px; color:#065f46;">Connection Successful! Latency: ${ms}ms</strong>
-        </div>
-        <div style="font-size:12px; color:#047857; margin-top:4px;">
-          AI Engine: <code>Active</code> &bull; Status: Online & ready for AI profile evaluations and proposal drafting.
-        </div>
-      `;
-    }
-    showToast("✨ Google Gemini AI connection is active!");
-  } catch (err) {
-    console.error("Gemini live test failed:", err);
-    if (resultBox) {
-      resultBox.style.display = "block";
-      resultBox.style.background = "rgba(239,68,68,0.12)";
-      resultBox.style.border = "1px solid rgba(239,68,68,0.3)";
-      resultBox.style.color = "#dc2626";
-      resultBox.innerHTML = `
-        <div style="display:flex; align-items:center; gap:8px;">
-          <span style="font-size:18px;">❌</span>
-          <strong style="font-size:13px; color:#991b1b;">Connection Failed:</strong>
-        </div>
-        <div style="font-size:11.5px; margin-top:4px; font-family:monospace; word-break:break-all;">
-          ${err.message || err}
-        </div>
-      `;
-    }
-  } finally {
-    if (btn) {
-      btn.innerHTML = `<span>⚡ Test Gemini AI Connection</span>`;
-      btn.disabled = false;
-    }
-  }
-};
-
-window.initGeminiTabUI = function() {
-  const input = document.getElementById("gemini-pane-key-input");
-  const stored = localStorage.getItem("cutscale_gemini_api_key") || "";
-  if (input) input.value = stored;
-
-  const statusBadge = document.getElementById("gemini-pane-status-badge");
-  if (statusBadge) {
-    if (stored) {
-      statusBadge.style.background = "rgba(16,185,129,0.15)";
-      statusBadge.style.color = "#10b981";
-      statusBadge.style.borderColor = "rgba(16,185,129,0.3)";
-      statusBadge.textContent = "🟢 Direct Key Active";
-    } else {
-      statusBadge.style.background = "rgba(245,158,11,0.15)";
-      statusBadge.style.color = "#f59e0b";
-      statusBadge.style.borderColor = "rgba(245,158,11,0.3)";
-      statusBadge.textContent = "🟡 Waiting for Key";
-    }
-  }
-};
-
-window.savePaneGeminiKey = function() {
-  const input = document.getElementById("gemini-pane-key-input");
-  if (!input) return;
-  const key = input.value.trim().replace(/^['"](.*)['"]$/, '$1').trim();
-  if (!key || key.length < 15) {
-    alert("Please paste a valid Google Gemini API key (starts with AIzaSy or AQ...).");
-    return;
-  }
-  localStorage.setItem("cutscale_gemini_api_key", key);
-  window.initGeminiTabUI();
-  if (typeof showToast === "function") showToast("✓ Gemini API Key saved successfully!");
-  alert("✓ Gemini API Key saved! AI Copilot, Editor Evaluations, and Gmail Drafts are now fully active.");
-};
-
-window.clearPaneGeminiKey = function() {
-  if (confirm("Clear your custom Gemini API key from this browser?")) {
-    localStorage.removeItem("cutscale_gemini_api_key");
-    const input = document.getElementById("gemini-pane-key-input");
-    if (input) input.value = "";
-    window.initGeminiTabUI();
-    const resultBox = document.getElementById("gemini-pane-test-result");
-    if (resultBox) resultBox.style.display = "none";
-    if (typeof showToast === "function") showToast("✓ Saved Gemini key removed.");
-  }
-};
-
-window.togglePaneKeyVisibility = function() {
-  const input = document.getElementById("gemini-pane-key-input");
-  const btn = document.getElementById("btn-toggle-pane-key");
-  if (!input) return;
-  if (input.type === "password") {
-    input.type = "text";
-    if (btn) btn.textContent = "🙈 Hide";
-  } else {
-    input.type = "password";
-    if (btn) btn.textContent = "👁️ Show";
-  }
-};
-
-window.testPaneGeminiLive = async function() {
-  const resultBox = document.getElementById("gemini-pane-test-result");
-  const btn = document.getElementById("btn-test-pane-gemini");
-  if (resultBox) {
-    resultBox.style.display = "block";
-    resultBox.innerHTML = '<span style="color:#a1a1aa;">⏳ Connecting to Google Gemini AI...</span>';
-  }
-  if (btn) btn.disabled = true;
-
-  try {
-    const input = document.getElementById("gemini-pane-key-input");
-    if (input && input.value.trim().length > 15) {
-      localStorage.setItem("cutscale_gemini_api_key", input.value.trim().replace(/^['"](.*)['"]$/, '$1').trim());
-      window.initGeminiTabUI();
-    }
-
-    const t0 = performance.now();
-    const res = await window.executeUniversalGemini("test_connection");
-    const elapsed = Math.round(performance.now() - t0);
-
-    if (resultBox) {
-      resultBox.style.display = "block";
-      resultBox.innerHTML = `
-        <div style="background:rgba(16,185,129,0.1); border:1px solid rgba(16,185,129,0.3); border-radius:10px; padding:14px; color:#10b981;">
-          <div style="font-weight:800; font-size:14px; margin-bottom:4px;">✅ Gemini AI Engine Connected Successfully!</div>
-          <div style="font-size:12px; color:#d1d1d8;">Response latency: <strong>${elapsed}ms</strong></div>
-          <div style="font-size:12px; color:#d1d1d8; margin-top:6px; background:#141418; padding:8px 10px; border-radius:6px; font-family:monospace;">
-            ${JSON.stringify(res.result || res)}
-          </div>
-        </div>
-      `;
-    }
-  } catch (err) {
-    if (resultBox) {
-      resultBox.style.display = "block";
-      resultBox.innerHTML = `
-        <div style="background:rgba(239,68,68,0.1); border:1px solid rgba(239,68,68,0.3); border-radius:10px; padding:14px; color:#ef4444;">
-          <div style="font-weight:800; font-size:14px; margin-bottom:4px;">❌ Connection Test Failed</div>
-          <div style="font-size:12px; color:#d1d1d8;">${err.message || 'Unknown error communicating with Gemini'}</div>
-        </div>
-      `;
-    }
-  } finally {
-    if (btn) btn.disabled = false;
-  }
+  throw (lastError || new Error("Backend Gemini AI engine is currently unreachable."));
 };
 
 // Trigger Gemini AI Profile Analysis for Single Editor
@@ -2870,21 +2587,21 @@ function renderSingleApplicantCard(app) {
   const avatarSrc = getEditorAvatarSrc(app);
 
   return `
-    <div class="applicant-card" id="app-card-${app.id}" style="background:#18181c !important; border:1px solid rgba(255,255,255,0.09) !important; color:#ffffff !important; border-radius:16px; padding:16px 20px; margin-bottom:16px; box-shadow:0 10px 30px rgba(0,0,0,0.3) !important;">
+    <div class="applicant-card" id="app-card-${app.id}" style="background:#ffffff; border:1px solid var(--border-subtle); color:#121214; border-radius:16px; padding:16px 20px; margin-bottom:16px; box-shadow:0 4px 16px rgba(18,18,20,0.03);">
       <div class="applicant-top-bar" style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap;">
         <div style="display:flex; align-items:center; gap:12px;">
           <div style="position:relative; width:48px; height:48px; flex-shrink:0;">
-            <img src="${avatarSrc}" alt="${escapeHtml(app.name)}" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(app.name)}'" class="roster-avatar-circle" style="width:48px; height:48px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-orange); box-shadow:0 0 12px rgba(217,78,40,0.35); display:block;">
+            <img src="${avatarSrc}" alt="${escapeHtml(app.name)}" onerror="this.onerror=null;this.src='https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(app.name)}'" class="roster-avatar-circle" style="width:48px; height:48px; border-radius:50%; object-fit:cover; border:2px solid var(--accent-orange); box-shadow:0 0 12px rgba(217,78,40,0.25); display:block;">
           </div>
           <div class="applicant-name-group" style="display:flex; flex-direction:column; gap:3px;">
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              <span class="applicant-name" style="font-size:15.5px; font-weight:800; color:#ffffff !important;">${escapeHtml(app.name)}</span>
+              <span class="applicant-name" style="font-size:15.5px; font-weight:800; color:#121214;">${escapeHtml(app.name)}</span>
               ${managerBadge}
               ${tierBadge}
               <span class="status-badge ${statusClass}">${escapeHtml(app.status || 'pending')}</span>
-              <span style="font-size:10.5px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.12); padding:2px 7px; border-radius:6px; color:#a1a1aa;">PIN: ${escapeHtml(app.password || '1234')}</span>
+              <span style="font-size:10.5px; background:rgba(18,18,20,0.05); border:1px solid var(--border-subtle); padding:2px 7px; border-radius:6px; color:#5a5a62;">PIN: ${escapeHtml(app.password || '1234')}</span>
             </div>
-            <span style="font-size:11px; color:#a1a1aa;">📍 ${escapeHtml(app.city || 'Remote')} • 📞 ${escapeHtml(app.phone || 'Google Account')} • ✉️ ${escapeHtml(app.email || 'No email')}</span>
+            <span style="font-size:11px; color:#5a5a62;">📍 ${escapeHtml(app.city || 'Remote')} • 📞 ${escapeHtml(app.phone || 'Google Account')} • ✉️ ${escapeHtml(app.email || 'No email')}</span>
           </div>
         </div>
         <div style="display:flex; align-items:center; gap:8px;">
@@ -2894,26 +2611,26 @@ function renderSingleApplicantCard(app) {
 
       <div class="applicant-details-grid" style="margin-top:12px;">
         <div class="applicant-detail-item">
-          <strong style="color:#ffffff;">Location & Contact</strong>
-          <span style="color:#a1a1aa;">📍 ${app.city || 'Remote'} • 📞 ${app.phone || 'Google Account'}</span>
+          <strong style="color:#121214;">Location & Contact</strong>
+          <span style="color:#5a5a62;">📍 ${app.city || 'Remote'} • 📞 ${app.phone || 'Google Account'}</span>
         </div>
         <div class="applicant-detail-item">
-          <strong style="color:#ffffff;">Specialization & Tools</strong>
-          <span style="color:#a1a1aa;">🎬 ${app.specialization || 'Video Editing'} (${[app.tools, app.otherTools].filter(Boolean).join(', ') || '<span style="color:#f59e0b; font-style:italic;">No tools specified yet</span>'})</span>
+          <strong style="color:#121214;">Specialization & Tools</strong>
+          <span style="color:#5a5a62;">🎬 ${app.specialization || 'Video Editing'} (${[app.tools, app.otherTools].filter(Boolean).join(', ') || '<span style="color:#d97706; font-style:italic;">No tools specified yet</span>'})</span>
         </div>
         <div class="applicant-detail-item">
-          <strong style="color:#ffffff;">Expected Rate per reel/video</strong>
-          <span style="color:#a1a1aa;">💰 ${app.rate || 'Standard / Discuss'}</span>
+          <strong style="color:#121214;">Expected Rate per reel/video</strong>
+          <span style="color:#5a5a62;">💰 ${app.rate || 'Standard / Discuss'}</span>
         </div>
       </div>
 
       <!-- NEW MEMBER PENDING APPROVAL BAR -->
-      <div id="pending-banner-${app.id}" style="display:${(app.status === 'pending' || app.isApproved === false) ? 'flex' : 'none'}; background:rgba(245,158,11,0.12); border:1.5px solid rgba(245,158,11,0.35); border-radius:10px; padding:10px 14px; margin-top:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+      <div id="pending-banner-${app.id}" style="display:${(app.status === 'pending' || app.isApproved === false) ? 'flex' : 'none'}; background:rgba(245,158,11,0.1); border:1.5px solid rgba(245,158,11,0.35); border-radius:10px; padding:10px 14px; margin-top:12px; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;">
         <div style="display:flex; align-items:center; gap:8px;">
           <span style="font-size:18px;">⏳</span>
           <div>
-            <strong style="color:#fbbf24; font-size:12.5px;">New Member Awaiting Approval</strong>
-            <div style="font-size:11px; color:#cbd5e1;">Review editor details and approve into an active editing phase:</div>
+            <strong style="color:#d97706; font-size:12.5px;">New Member Awaiting Approval</strong>
+            <div style="font-size:11px; color:#5a5a62;">Review editor details and approve into an active editing phase:</div>
           </div>
         </div>
         <div style="display:flex; gap:6px; flex-wrap:wrap;">
@@ -2925,52 +2642,52 @@ function renderSingleApplicantCard(app) {
       </div>
 
       <!-- Private Admin Notes / Description Box (Confidential) -->
-      <div class="admin-private-desc-box" style="background:#121214; border:1px solid rgba(255,255,255,0.1); padding:10px 14px; border-radius:12px; margin-top:12px;">
+      <div class="admin-private-desc-box" style="background:#faf8f5; border:1px solid var(--border-subtle); padding:10px 14px; border-radius:12px; margin-top:12px;">
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <label style="font-size:11px; font-weight:700; color:#ffffff; display:flex; align-items:center; gap:5px;">
+          <label style="font-size:11px; font-weight:700; color:#121214; display:flex; align-items:center; gap:5px;">
             <span>🔒 PRIVATE ADMIN NOTES & DESCRIPTION</span>
             <span style="font-size:10px; color:#888894; font-weight:500;">(Private to admin • Analyzed by Gemini AI)</span>
           </label>
           <button type="button" class="primary-btn" style="padding:3px 9px; font-size:11px; background:var(--accent-orange); color:#fff; border:none;" onclick="saveApplicantDescription('${app.id}')">💾 Save Note</button>
         </div>
-        <textarea id="admin-desc-${app.id}" placeholder="Describe this editor (e.g. exceptional at fast pacing, 3D motion design, reliable turnaround under 24hrs, needs sound guidance)..." style="width:100%; box-sizing:border-box; padding:8px 10px; font-size:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.12); background:#1c1c22; color:#ffffff; resize:vertical; min-height:46px; font-family:inherit;">${escapeHtml(app.adminDescription || '')}</textarea>
+        <textarea id="admin-desc-${app.id}" placeholder="Describe this editor (e.g. exceptional at fast pacing, 3D motion design, reliable turnaround under 24hrs, needs sound guidance)..." style="width:100%; box-sizing:border-box; padding:8px 10px; font-size:12px; border-radius:8px; border:1px solid var(--border-subtle); background:#ffffff; color:#121214; resize:vertical; min-height:46px; font-family:inherit;">${escapeHtml(app.adminDescription || '')}</textarea>
       </div>
 
       <!-- Gemini AI Profile Analysis Card (Interactive) -->
       ${app.aiAnalysis ? `
-        <div class="ai-analysis-card" id="ai-card-${app.id}" style="background:linear-gradient(135deg, rgba(139,92,246,0.12), rgba(99,102,241,0.08)); border:1px solid rgba(139,92,246,0.35); border-radius:12px; padding:12px 16px; margin-top:12px;">
+        <div class="ai-analysis-card" id="ai-card-${app.id}" style="background:linear-gradient(135deg, rgba(139,92,246,0.08), rgba(99,102,241,0.04)); border:1px solid rgba(139,92,246,0.25); border-radius:12px; padding:12px 16px; margin-top:12px;">
           <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
             <div style="display:flex; align-items:center; gap:8px;">
               <span style="font-size:15px;">✨</span>
               <div>
-                <span style="font-size:12.5px; font-weight:800; color:#a78bfa;">AI ARCHETYPE: ${escapeHtml(app.aiAnalysis.archetype || 'Video Editor')}</span>
+                <span style="font-size:12.5px; font-weight:800; color:#7c3aed;">AI ARCHETYPE: ${escapeHtml(app.aiAnalysis.archetype || 'Video Editor')}</span>
                 <span style="font-size:11px; background:#6366f1; color:#fff; font-weight:700; padding:1px 7px; border-radius:10px; margin-left:6px;">Score: ${app.aiAnalysis.rating || 85}/100</span>
               </div>
             </div>
             <div style="display:flex; align-items:center; gap:6px;">
-              <span style="font-size:11px; color:#d4d4d8;">AI Recommended Phase:</span>
+              <span style="font-size:11px; color:#5a5a62;">AI Recommended Phase:</span>
               <span class="phase-tier-badge phase-${app.aiAnalysis.recommendedTier || 'normal'}">${escapeHtml(app.aiAnalysis.recommendedTierLabel || app.aiAnalysis.recommendedTier || 'Normal')}</span>
               ${(tier !== app.aiAnalysis.recommendedTier) ? `
-                <button type="button" class="secondary-btn light-btn" onclick="applyAiRecommendedTier('${app.id}', '${app.aiAnalysis.recommendedTier}')" style="padding:2px 7px; font-size:10px; border-color:#8b5cf6; color:#c4b5fd; font-weight:700;">Apply Tier ✓</button>
+                <button type="button" class="secondary-btn light-btn" onclick="applyAiRecommendedTier('${app.id}', '${app.aiAnalysis.recommendedTier}')" style="padding:2px 7px; font-size:10px; border-color:#8b5cf6; color:#7c3aed; font-weight:700;">Apply Tier ✓</button>
               ` : ''}
             </div>
           </div>
-          <div style="font-size:11.5px; color:#e4e4e7; margin-top:6px; line-height:1.45;"><strong style="color:#ffffff;">Executive Summary:</strong> ${escapeHtml(app.aiAnalysis.executiveSummary || '')}</div>
+          <div style="font-size:11.5px; color:#121214; margin-top:6px; line-height:1.45;"><strong>Executive Summary:</strong> ${escapeHtml(app.aiAnalysis.executiveSummary || '')}</div>
           ${app.aiAnalysis.strengths && app.aiAnalysis.strengths.length ? `
-            <div style="font-size:11px; color:#d4d4d8; margin-top:4px; display:flex; flex-wrap:wrap; gap:8px;">
-              ${app.aiAnalysis.strengths.map(s => `<span style="background:rgba(99,102,241,0.2); padding:2px 8px; border-radius:6px; color:#c4b5fd;">✓ ${escapeHtml(s)}</span>`).join('')}
+            <div style="font-size:11px; color:#5a5a62; margin-top:4px; display:flex; flex-wrap:wrap; gap:8px;">
+              ${app.aiAnalysis.strengths.map(s => `<span style="background:rgba(99,102,241,0.1); padding:2px 8px; border-radius:6px; color:#6366f1; border:1px solid rgba(99,102,241,0.2);">✓ ${escapeHtml(s)}</span>`).join('')}
             </div>
           ` : ''}
-          <div style="font-size:11.5px; color:#e4e4e7; margin-top:4px;"><strong style="color:#ffffff;">Best Client Fit:</strong> ${escapeHtml(app.aiAnalysis.bestFit || '')}</div>
-          <div style="font-size:11.5px; color:#a1a1aa; margin-top:4px; font-style:italic;">💡 <strong style="color:#ffffff;">Coaching Advice for Admin:</strong> ${escapeHtml(app.aiAnalysis.coachingAdvice || '')}</div>
+          <div style="font-size:11.5px; color:#121214; margin-top:4px;"><strong>Best Client Fit:</strong> ${escapeHtml(app.aiAnalysis.bestFit || '')}</div>
+          <div style="font-size:11.5px; color:#5a5a62; margin-top:4px; font-style:italic;">💡 <strong>Coaching Advice for Admin:</strong> ${escapeHtml(app.aiAnalysis.coachingAdvice || '')}</div>
         </div>
       ` : ''}
 
       <!-- Admin Feedback for applicant status view (Visible to editor in status tracker) -->
-      <div style="background:rgba(217,78,40,0.08); border:1px solid rgba(217,78,40,0.25); padding:10px 12px; border-radius:8px; margin-top:10px;">
+      <div style="background:rgba(217,78,40,0.06); border:1px solid rgba(217,78,40,0.2); padding:10px 12px; border-radius:8px; margin-top:10px;">
         <label style="font-size:11px; font-weight:700; color:var(--accent-orange); display:block; margin-bottom:4px;">PUBLIC STATUS FEEDBACK (Visible to Editor):</label>
         <div style="display:flex; gap:8px;">
-          <input type="text" id="admin-feedback-${app.id}" placeholder="e.g. Sent project brief via email. Submit rough cut by Friday" value="${escapeHtml(app.adminFeedback || '')}" style="flex:1; padding:6px 10px; font-size:12px; border-radius:6px; border:1px solid rgba(255,255,255,0.15); background:#1c1c22; color:#ffffff;">
+          <input type="text" id="admin-feedback-${app.id}" placeholder="e.g. Sent project brief via email. Submit rough cut by Friday" value="${escapeHtml(app.adminFeedback || '')}" style="flex:1; padding:6px 10px; font-size:12px; border-radius:6px; border:1px solid var(--border-subtle); background:#ffffff; color:#121214;">
           <button class="primary-btn" style="padding:6px 12px; font-size:11px; white-space:nowrap;" onclick="saveApplicantFeedback('${app.id}')">Save</button>
         </div>
       </div>
@@ -2983,31 +2700,31 @@ function renderSingleApplicantCard(app) {
           <button class="primary-btn" onclick="openDirectGmailModal('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, #ea4335, #c5221f); color:#fff; border:none; box-shadow:0 2px 8px rgba(234,67,53,0.3);" title="Email editor directly via your Gmail & AI Assistant">
             <span>📧 Email via Gmail</span>
           </button>
-          <a href="${app.portfolio}" target="_blank" rel="noopener" class="portfolio-link-btn" title="Inspect Editor Work" style="color:#ffffff; border-color:rgba(255,255,255,0.2);">
+          <a href="${app.portfolio}" target="_blank" rel="noopener" class="portfolio-link-btn" title="Inspect Editor Work" style="color:#121214; border:1px solid var(--border-subtle); background:#ffffff;">
             <span>View Portfolio ↗</span>
           </a>
           <button class="primary-btn" onclick="openChatWithEditor('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, #3b82f6, #2563eb); color:#fff;" title="Chat directly in Portal">💬 Chat</button>
-          <button class="secondary-btn light-btn" onclick="openPracticeAssignmentModal('${app.id}')" style="padding:6px 12px; font-size:11px; background:rgba(255,255,255,0.06); color:#fff; border-color:rgba(255,255,255,0.18);" title="Assign practice brief">🎯 Practice Task</button>
+          <button class="secondary-btn light-btn" onclick="openPracticeAssignmentModal('${app.id}')" style="padding:6px 12px; font-size:11px; background:#ffffff; color:#121214; border:1px solid var(--border-subtle);" title="Assign practice brief">🎯 Practice Task</button>
           <button class="primary-btn" onclick="openClientProjectModal('${app.id}')" style="padding:6px 12px; font-size:11px; background:linear-gradient(135deg, var(--accent-orange), #ea580c); color:#fff;" title="Assign commercial client project">🎬 Client Project</button>
-          <button class="secondary-btn light-btn" onclick="openFeaturedEditorModal('${app.id}')" style="padding:6px 12px; font-size:11px; color:#d94e28; border-color:rgba(217,78,40,0.3); background:rgba(255,255,255,0.06);" title="Feature in Special Spotlight">⭐ Feature</button>
+          <button class="secondary-btn light-btn" onclick="openFeaturedEditorModal('${app.id}')" style="padding:6px 12px; font-size:11px; color:#d94e28; border:1px solid rgba(217,78,40,0.3); background:#ffffff;" title="Feature in Special Spotlight">⭐ Feature</button>
         </div>
 
         <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
           <!-- Role Selector: Editor vs Manager -->
-          <select class="role-select" onchange="updateApplicantRole('${app.id}', this.value)" title="Assign Role (Manager can access & manage Admin Studio)" style="background:#1c1c22; color:#ffffff; border:1px solid rgba(255,255,255,0.18); border-radius:8px; padding:6px 10px; font-size:11.5px; font-weight:700; cursor:pointer;">
+          <select class="role-select" onchange="updateApplicantRole('${app.id}', this.value)" title="Assign Role (Manager can access & manage Admin Studio)" style="background:#ffffff; color:#121214; border:1px solid var(--border-subtle); border-radius:8px; padding:6px 10px; font-size:11.5px; font-weight:700; cursor:pointer;">
             <option value="editor" ${!isManager ? 'selected' : ''}>👤 Editor</option>
             <option value="manager" ${isManager ? 'selected' : ''}>👑 Manager (Admin Access)</option>
           </select>
 
           <!-- Phase / Tier Selector (Admin Exclusive) -->
-          <select class="tier-select" onchange="updateApplicantTier('${app.id}', this.value)" title="Admin Phase Tier (Confidential)" style="background:#1c1c22; color:#ffffff; border:1px solid rgba(255,255,255,0.18); border-radius:8px; padding:6px 10px; font-size:11.5px; font-weight:700; cursor:pointer;">
+          <select class="tier-select" onchange="updateApplicantTier('${app.id}', this.value)" title="Admin Phase Tier (Confidential)" style="background:#ffffff; color:#121214; border:1px solid var(--border-subtle); border-radius:8px; padding:6px 10px; font-size:11.5px; font-weight:700; cursor:pointer;">
             <option value="special" ${tier === 'special' ? 'selected' : ''}>⭐ Special Editor</option>
             <option value="normal" ${tier === 'normal' ? 'selected' : ''}>💼 Normal Editor</option>
             <option value="basic" ${tier === 'basic' ? 'selected' : ''}>🔰 Basic Editor</option>
           </select>
 
           <!-- Status Selector -->
-          <select class="status-select" onchange="updateApplicantStatus('${app.id}', this.value)" style="background:#1c1c22; color:#ffffff; border:1px solid rgba(255,255,255,0.18); border-radius:8px; padding:6px 10px; font-size:11.5px; font-weight:700; cursor:pointer;">
+          <select class="status-select" onchange="updateApplicantStatus('${app.id}', this.value)" style="background:#ffffff; color:#121214; border:1px solid var(--border-subtle); border-radius:8px; padding:6px 10px; font-size:11.5px; font-weight:700; cursor:pointer;">
             <option value="pending" ${app.status === 'pending' ? 'selected' : ''}>⏳ Pending</option>
             <option value="trial" ${app.status === 'trial' ? 'selected' : ''}>🎯 Trial</option>
             <option value="selected" ${app.status === 'selected' ? 'selected' : ''}>✅ Selected</option>
@@ -3191,14 +2908,17 @@ window.updateApplicantStatus = async function(id, newStatus) {
     app.status = newStatus;
     if (newStatus === "selected") {
       app.adminFeedback = "Congratulations! You have been officially selected and hired into the GanaCuts Visuals active agency roster.";
+      app.isApproved = true;
     } else if (newStatus === "trial") {
       app.adminFeedback = "Trial video project in progress. Raw footage and timeline details shared.";
     }
+    saveRosterMetadataItem(id, { status: newStatus, isApproved: app.isApproved });
     saveApplicants();
     updateAdminUI();
     if (window.syncApplicantToSupabase) {
       await window.syncApplicantToSupabase(app);
     }
+    syncAgencyVaultToSupabase();
     showToast(`✓ ${app.name} updated to "${newStatus === 'selected' ? 'Selected & Hired' : newStatus}"!`);
   }
 };
@@ -3230,14 +2950,17 @@ window.updateApplicantStatusFromSheet = async function(id, newStatus) {
     app.status = newStatus;
     if (newStatus === "selected") {
       app.adminFeedback = "Congratulations! You have been officially selected and hired into the GanaCuts Visuals active agency roster.";
+      app.isApproved = true;
     } else if (newStatus === "trial") {
       app.adminFeedback = "Trial video project approved / in progress. Keep up the high standard!";
     }
+    saveRosterMetadataItem(id, { status: newStatus, isApproved: app.isApproved });
     saveApplicants();
     updateAdminUI();
     if (window.syncApplicantToSupabase) {
       await window.syncApplicantToSupabase(app);
     }
+    syncAgencyVaultToSupabase();
     showToast(`✓ ${app.name} updated to "${newStatus === 'selected' ? 'Selected & Hired' : newStatus}"!`);
   }
 };
@@ -3621,11 +3344,16 @@ async function saveClientProjectsAndSync(projs) {
 async function saveToolsAndSync(tools) {
   if (!profile) profile = { ...DEFAULT_PROFILE };
   profile.tools = Array.isArray(tools) ? tools : [...DEFAULT_TOOLS];
+  localStorage.setItem(STORAGE_KEY_TOOLS, JSON.stringify(profile.tools));
   localStorage.setItem(STORAGE_KEY_PROF, JSON.stringify(profile));
-  if (typeof window !== "undefined") window.profile = profile;
+  if (typeof window !== "undefined") {
+    window.profile = profile;
+    window.tools = profile.tools;
+  }
   await persistPortfolioToServer();
   await syncAgencyVaultToSupabase();
   if (typeof renderTools === 'function') renderTools();
+  if (typeof renderAdminToolsList === 'function') renderAdminToolsList();
   return true;
 }
 
@@ -3950,6 +3678,8 @@ window.moveApplicantToTrash = async function(id) {
     }
   }
 
+  // Persist Recycle Bin state permanently in Supabase System Vault
+  syncAgencyVaultToSupabase();
   updateAdminUI();
   showToast(`🗑️ "${app.name}" moved to Recycle Bin.`);
 };
@@ -3986,6 +3716,8 @@ window.restoreApplicantFromTrash = async function(id) {
     await window.syncApplicantToSupabase(restoredApp);
   }
 
+  // Update System Vault
+  syncAgencyVaultToSupabase();
   updateAdminUI();
   showToast(`♻️ "${restoredApp.name}" restored to active roster!`);
 };
@@ -4005,6 +3737,7 @@ window.permanentlyDeleteApplicant = function(id) {
     localStorage.setItem(STORAGE_KEY_DELETED_APP_IDS, JSON.stringify(Array.from(deletedAppIds)));
   } catch (e) {}
 
+  syncAgencyVaultToSupabase();
   updateAdminUI();
   showToast(`Editor permanently deleted.`);
 };
@@ -4025,6 +3758,7 @@ window.emptyTrashBin = function() {
 
   trashApplicants = [];
   saveTrashApplicants();
+  syncAgencyVaultToSupabase();
   updateAdminUI();
   showToast(`Recycle Bin emptied.`);
 };
@@ -4038,10 +3772,10 @@ window.renderTrashManager = function() {
 
   if (trashApplicants.length === 0) {
     listEl.innerHTML = `
-      <div class="empty-cat-box" style="padding:40px 20px; text-align:center;">
+      <div class="empty-cat-box" style="padding:40px 20px; text-align:center; background:#ffffff; border:1px solid var(--border-subtle); border-radius:16px;">
         <div style="font-size:32px; margin-bottom:8px;">🗑️</div>
-        <h4 style="color:#fff; font-size:16px; margin-bottom:6px;">Recycle Bin is Empty</h4>
-        <p style="color:#888894; font-size:13px; max-width:440px; margin:0 auto;">When you delete members from the spreadsheet or editor roster, their complete details are safely held here for quick recovery.</p>
+        <h4 style="color:#121214; font-size:16px; margin-bottom:6px; font-weight:800;">Recycle Bin is Empty</h4>
+        <p style="color:#5a5a62; font-size:13px; max-width:440px; margin:0 auto;">When you delete members from the spreadsheet or editor roster, their complete details are safely held here for quick recovery.</p>
       </div>
     `;
     return;
@@ -4050,15 +3784,15 @@ window.renderTrashManager = function() {
   listEl.innerHTML = `
     <div style="display:flex; flex-direction:column; gap:12px;">
       ${trashApplicants.map(app => `
-        <div class="applicant-card" style="border-left: 3px solid #ef4444; background:#18181c; opacity:0.95;">
+        <div class="applicant-card" style="border:1px solid var(--border-subtle); border-left:4px solid #ef4444; background:#ffffff; box-shadow:0 4px 16px rgba(18,18,20,0.03); color:#121214;">
           <div class="applicant-top-bar">
             <div class="applicant-name-group">
-              <span class="applicant-name" style="color:#fff;">${escapeHtml(app.name)}</span>
-              <span class="status-badge" style="background:rgba(239,68,68,0.15); color:#ef4444; border:1px solid rgba(239,68,68,0.3);">Deleted: ${escapeHtml(app.deletedAt || 'Recent')}</span>
-              <span style="font-size:11px; color:#888;">Prev Status: <strong>${escapeHtml(app.previousStatus || 'pending')}</strong></span>
+              <span class="applicant-name" style="color:#121214; font-weight:800;">${escapeHtml(app.name)}</span>
+              <span class="status-badge" style="background:rgba(239,68,68,0.12); color:#ef4444; border:1px solid rgba(239,68,68,0.3); font-weight:700;">Deleted: ${escapeHtml(app.deletedAt || 'Recent')}</span>
+              <span style="font-size:11.5px; color:#5a5a62;">Prev Status: <strong style="color:#121214;">${escapeHtml(app.previousStatus || 'pending')}</strong></span>
             </div>
             <div style="display:flex; gap:8px;">
-              <button type="button" class="primary-btn" onclick="restoreApplicantFromTrash('${app.id}')" style="padding:6px 14px; font-size:12px; background:#10b981; border-color:#10b981;">
+              <button type="button" class="primary-btn" onclick="restoreApplicantFromTrash('${app.id}')" style="padding:6px 14px; font-size:12px; background:#10b981; border:none; font-weight:700;">
                 ♻️ Restore to Active Roster
               </button>
               <button type="button" class="delete-btn" onclick="permanentlyDeleteApplicant('${app.id}')" style="padding:6px 12px; font-size:12px;">
@@ -4068,16 +3802,16 @@ window.renderTrashManager = function() {
           </div>
           <div class="applicant-details-grid" style="margin-top:10px;">
             <div class="applicant-detail-item">
-              <strong>Contact</strong>
-              <span>📞 ${escapeHtml(app.phone || 'N/A')} • ✉️ ${escapeHtml(app.email || 'N/A')} • 📍 ${escapeHtml(app.city || 'Remote')}</span>
+              <strong style="color:#121214;">Contact</strong>
+              <span style="color:#5a5a62;">📞 ${escapeHtml(app.phone || 'N/A')} • ✉️ ${escapeHtml(app.email || 'N/A')} • 📍 ${escapeHtml(app.city || 'Remote')}</span>
             </div>
             <div class="applicant-detail-item">
-              <strong>Tools & Styles</strong>
-              <span>🎬 ${escapeHtml(app.specialization || 'Video Editing')} (${escapeHtml(app.tools || 'Tools')})</span>
+              <strong style="color:#121214;">Tools & Styles</strong>
+              <span style="color:#5a5a62;">🎬 ${escapeHtml(app.specialization || 'Video Editing')} (${escapeHtml(app.tools || 'Tools')})</span>
             </div>
             <div class="applicant-detail-item">
-              <strong>Rate & Portfolio</strong>
-              <span>💰 ${escapeHtml(app.rate || 'Standard')} • <a href="${escapeHtml(app.portfolio || '#')}" target="_blank" rel="noopener" style="color:#60a5fa;">Link ↗</a></span>
+              <strong style="color:#121214;">Rate & Portfolio</strong>
+              <span style="color:#5a5a62;">💰 ${escapeHtml(app.rate || 'Standard')} • <a href="${escapeHtml(app.portfolio || '#')}" target="_blank" rel="noopener" style="color:#2563eb; font-weight:700;">Link ↗</a></span>
             </div>
           </div>
         </div>
@@ -4772,10 +4506,17 @@ window.approveNewMember = async function(id, targetTier = 'normal') {
   app.editorTier = targetTier;
   app.adminFeedback = `Approved by GanaCuts Visuals management into ${targetTier.toUpperCase()} editing phase. Welcome aboard!`;
 
+  saveRosterMetadataItem(id, {
+    editorTier: targetTier,
+    status: 'selected',
+    isApproved: true
+  });
+
   saveApplicants();
   if (window.syncApplicantToSupabase) {
     await window.syncApplicantToSupabase(app);
   }
+  syncAgencyVaultToSupabase();
 
   const tierNames = { special: "⭐ Special Editor", normal: "💼 Normal Editor", basic: "🔰 Basic Editor" };
   showToast(`✅ ${app.name} approved & assigned to ${tierNames[targetTier] || targetTier}!`);
@@ -4797,10 +4538,16 @@ window.approveAllPendingMembers = async function() {
     app.isApproved = true;
     if (!app.editorTier) app.editorTier = 'normal';
     app.adminFeedback = "Approved by GanaCuts Visuals management. Welcome to the active editing roster!";
+    saveRosterMetadataItem(app.id, {
+      editorTier: app.editorTier,
+      status: 'selected',
+      isApproved: true
+    });
     if (window.syncApplicantToSupabase) window.syncApplicantToSupabase(app);
   });
 
   saveApplicants();
+  syncAgencyVaultToSupabase();
   showToast(`✅ Approved ${pending.length} new members!`);
   renderApplicantsManager();
   if (typeof updateAdminUI === 'function') updateAdminUI();

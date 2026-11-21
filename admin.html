@@ -470,12 +470,12 @@
       transform: translateY(-1px);
     }
     .divided-phase-section {
-      background: #18181c;
-      border: 1px solid rgba(255, 255, 255, 0.08);
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
       border-radius: 18px;
       padding: 22px 20px;
       margin-bottom: 24px;
-      box-shadow: 0 10px 30px rgba(18, 18, 20, 0.04);
+      box-shadow: 0 4px 16px rgba(18, 18, 20, 0.03);
     }
     .divided-phase-header {
       display: flex;
@@ -514,49 +514,11 @@
         <span>Sign In directly with Google</span>
       </button>
 
-      <div style="font-size:12px; color:#888894; margin:12px 0 16px; text-align:center;">
-        ⚡ Instant 1-Click Master Access • No password needed
+      <div style="font-size:12px; color:#888894; margin:14px 0 16px; text-align:center;">
+        ⚡ Instant 1-Click Master Access • Authenticated via Google
       </div>
 
       <div id="admin-login-error" class="error-msg" style="margin-bottom:12px; text-align:center;"></div>
-
-      <div style="text-align:center; border-top:1px solid rgba(18,18,20,0.08); padding-top:14px; margin-top:8px;">
-        <button type="button" onclick="toggleAdminPasswordBox()" style="background:none; border:none; color:#888894; font-size:12px; text-decoration:underline; cursor:pointer;">
-          Need password login instead? Click here
-        </button>
-      </div>
-
-      <form id="real-admin-login-form" class="admin-form" style="display:none; margin-top:16px;">
-        <div class="form-group">
-          <label for="admin-email">Admin Email Address</label>
-          <input type="text" id="admin-email" placeholder="admin@ganacutsvisuals.com" required autocomplete="username">
-        </div>
-
-        <div class="form-group">
-          <label for="admin-pwd">Password</label>
-          <div class="input-field-wrapper">
-            <input type="password" id="admin-pwd" placeholder="Enter administrator password" required autocomplete="current-password">
-            <button type="button" class="password-toggle-btn" id="toggle-admin-pwd-btn" aria-label="Toggle password visibility">
-              <svg id="eye-icon-pwd" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; font-size:12px; color:#888894;">
-          <label style="display:flex; align-items:center; gap:6px; cursor:pointer;">
-            <input type="checkbox" id="admin-remember-me" checked>
-            <span>Keep me signed in</span>
-          </label>
-        </div>
-
-        <button type="submit" class="primary-btn full-width" style="padding:14px; font-size:14px;" id="admin-login-btn">
-          <span>Sign In to Admin Studio</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
-        </button>
-      </form>
 
       <div style="text-align:center; margin-top:20px;">
         <a href="/" style="font-size:13px; color:#a0a0ab; text-decoration:none; display:inline-flex; align-items:center; gap:6px;">
@@ -586,9 +548,9 @@
           <span class="admin-status-dot"></span>
           <span id="admin-user-display">GanaCuts Visuals (Admin)</span>
         </div>
-        <button type="button" onclick="switchAdminTab('gemini')" class="secondary-btn light-btn" style="background:rgba(139,92,246,0.18); border:1px solid rgba(139,92,246,0.4); color:#c084fc; font-weight:800; padding:6px 14px; font-size:12px; border-radius:10px; cursor:pointer; display:inline-flex; align-items:center; gap:6px;">
-          <span>⚙️ Gemini AI Key</span>
-        </button>
+        <div style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:#10b981; font-weight:800; padding:6px 12px; font-size:11.5px; border-radius:10px; display:inline-flex; align-items:center; gap:6px;">
+          <span>🤖 Gemini AI Active</span>
+        </div>
         <a href="/" target="_blank" class="secondary-btn light-btn" style="padding:6px 14px; font-size:12px; text-decoration:none;">
           <span>View Public Site ↗</span>
         </a>
@@ -636,13 +598,9 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
           <span>Portfolio Profile</span>
         </button>
-        <button class="admin-tab" data-tab="gemini">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a2 2 0 0 1 2 2v2a2 2 0 0 1-2 2 2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"></path><rect x="4" y="8" width="16" height="12" rx="2"></rect><circle cx="9" cy="14" r="1.5"></circle><circle cx="15" cy="14" r="1.5"></circle></svg>
-          <span>Gemini AI Key</span>
-        </button>
         <button class="admin-tab" data-tab="security">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-          <span>Security & Password</span>
+          <span>Security & Auth</span>
         </button>
         <button class="admin-tab" data-tab="backup">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -923,19 +881,16 @@
         </div>
 
         <!-- Editor Phase Tiers & AI Operations Toolbar -->
-        <div class="roster-tier-toolbar" style="background:#18181c; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:18px 20px; margin-bottom:18px; box-shadow:0 10px 30px rgba(0,0,0,0.3); color:#ffffff;">
+        <div class="roster-tier-toolbar" style="background:#ffffff; border:1px solid var(--border-subtle); border-radius:18px; padding:18px 20px; margin-bottom:18px; box-shadow:0 4px 16px rgba(18,18,20,0.03); color:#121214;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
             <div>
               <div style="display:flex; align-items:center; gap:8px;">
-                <h4 style="font-size:17px; font-weight:800; color:#ffffff; margin:0;">👥 Video Editor Team Roster & Divided Phases</h4>
-                <span class="badge-mini" style="background:rgba(99,102,241,0.12); color:#6366f1; border:1px solid rgba(99,102,241,0.3); font-size:11px; padding:2px 8px; border-radius:10px; font-weight:700;">🤖 Gemini AI Active</span>
+                <h4 style="font-size:17px; font-weight:800; color:#121214; margin:0;">👥 Video Editor Team Roster & Divided Phases</h4>
+                <span class="badge-mini" style="background:rgba(16,185,129,0.12); color:#059669; border:1px solid rgba(16,185,129,0.3); font-size:11px; padding:2px 8px; border-radius:10px; font-weight:700;">🤖 Gemini AI Active</span>
               </div>
-              <small style="color:#a1a1aa; font-size:12px; margin-top:2px; display:block;">Divided into Special, Normal, and Basic phases. Private to admin — hidden from editor portal.</small>
+              <small style="color:#5a5a62; font-size:12px; margin-top:2px; display:block;">Divided into Special, Normal, and Basic phases. Private to admin — hidden from editor portal.</small>
             </div>
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-              <button type="button" class="secondary-btn light-btn" onclick="openGeminiSettingsModal()" style="display:inline-flex; align-items:center; gap:6px; background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.35); color:#c084fc; font-weight:700; padding:7px 14px; font-size:12px; border-radius:10px; cursor:pointer;" title="Configure & Test Google Gemini AI Key">
-                <span>⚙️ Gemini Key & Status</span>
-              </button>
               <button type="button" class="primary-btn" onclick="runBatchGeminiAnalysis()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; padding:7px 14px; font-size:12px; box-shadow:0 4px 14px rgba(139,92,246,0.25);" title="Analyze all editor profiles using Google Gemini AI">
                 <span>⚡ AI Analyze All Profiles</span>
               </button>
@@ -1335,79 +1290,32 @@
         </div>
       </div>
 
-      <!-- TAB: GEMINI AI ENGINE CONFIGURATION -->
-      <div class="admin-tab-pane" id="pane-gemini">
-        <div style="background:#18181c; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:28px; max-width:680px; box-shadow:0 10px 30px rgba(0,0,0,0.3); color:#ffffff;">
-          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:18px; flex-wrap:wrap; gap:12px;">
-            <div>
-              <div style="display:flex; align-items:center; gap:8px;">
-                <h3 style="font-size:19px; font-weight:800; color:#ffffff; margin:0;">🤖 Google Gemini AI Engine Setup</h3>
-                <span id="gemini-pane-status-badge" style="background:rgba(16,185,129,0.15); color:#10b981; border:1px solid rgba(16,185,129,0.3); font-size:11px; padding:2px 8px; border-radius:10px; font-weight:700;">🟢 Direct Key Ready</span>
-              </div>
-              <p style="color:#a1a1aa; font-size:13px; margin:6px 0 0; line-height:1.5;">
-                Powers the automated video editor profile evaluations, recommended tier classifications, AI Gmail client proposals, and the Agency Copilot assistant.
-              </p>
-            </div>
-          </div>
-
-          <div style="background:#121214; border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:18px; margin-bottom:20px;">
-            <label style="display:block; font-size:12.5px; font-weight:700; color:#ffffff; margin-bottom:8px;">
-              Your Google Gemini API Key
-            </label>
-            <div style="display:flex; gap:10px; align-items:center;">
-              <input type="password" id="gemini-pane-key-input" placeholder="Paste your Gemini API key (starts with AIzaSy or AQ...)" style="flex:1; background:#1c1c22; color:#ffffff; border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:10px 14px; font-size:13px; font-family:monospace; outline:none;">
-              <button type="button" id="btn-toggle-pane-key" class="secondary-btn light-btn" onclick="togglePaneKeyVisibility()" style="padding:10px 14px; font-size:12px; border-radius:10px;">
-                👁️ Show
-              </button>
-            </div>
-            <small style="color:#888894; font-size:11.5px; margin-top:8px; display:block; line-height:1.4;">
-              🔒 <strong>Private & Secure:</strong> Your key is stored strictly in your private admin session and sent when you use AI features. It is NEVER shown to editors or public visitors.
-            </small>
-          </div>
-
-          <div style="display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:16px;">
-            <button type="button" class="primary-btn" onclick="savePaneGeminiKey()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; padding:10px 20px; font-weight:800; font-size:13px; border-radius:10px; cursor:pointer;">
-              💾 Save API Key
-            </button>
-            <button type="button" id="btn-test-pane-gemini" class="secondary-btn light-btn" onclick="testPaneGeminiLive()" style="background:rgba(255,255,255,0.06); padding:10px 18px; font-size:13px; border-radius:10px; font-weight:700;">
-              ⚡ Test Connection Live
-            </button>
-            <button type="button" class="secondary-btn light-btn" onclick="clearPaneGeminiKey()" style="color:#ef4444; border-color:rgba(239,68,68,0.3); padding:10px 14px; font-size:12px; border-radius:10px;">
-              🗑️ Clear Key
-            </button>
-          </div>
-
-          <div id="gemini-pane-test-result" style="display:none; margin-top:14px;"></div>
-        </div>
-      </div>
-
-      <!-- TAB 6: SECURITY & PASSWORD CHANGE -->
+      <!-- TAB 6: SECURITY & GOOGLE OAUTH AUTHENTICATION -->
       <div class="admin-tab-pane" id="pane-security">
-        <div style="background:#18181c; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:24px; max-width:540px;">
-          <h3 style="color:#fff; margin-bottom:6px;">Administrator Security Settings</h3>
-          <p style="font-size:13px; color:#888894; margin-bottom:20px;">Update your master password used to access the GanaCuts Visuals Admin Studio.</p>
-
-          <form id="admin-change-password-form" class="admin-form">
-            <div class="form-group">
-              <label for="sec-current-pwd">Current Password *</label>
-              <input type="password" id="sec-current-pwd" placeholder="Enter current password" required>
+        <div style="background:#ffffff; border:1px solid var(--border-subtle); border-radius:18px; padding:24px; max-width:580px; box-shadow:0 4px 16px rgba(18,18,20,0.03);">
+          <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+            <div style="width:38px; height:38px; border-radius:10px; background:rgba(66,133,244,0.1); display:flex; align-items:center; justify-content:center; color:#4285f4; font-size:18px;">
+              🛡️
             </div>
+            <h3 style="color:#121214; margin:0; font-size:17px; font-weight:800;">Administrator Security & Google Authentication</h3>
+          </div>
+          <p style="font-size:13px; color:#5a5a62; margin-bottom:16px; line-height:1.5;">
+            GanaCuts Visuals Admin Studio is strictly protected by <strong>1-Click Google OAuth</strong>. Password forms and insecure phone lookups have been permanently disabled across the platform.
+          </p>
 
-            <div class="form-group">
-              <label for="sec-new-pwd">New Password *</label>
-              <input type="password" id="sec-new-pwd" placeholder="At least 6 characters" required minlength="6">
-            </div>
+          <div style="background:#faf8f5; border:1px solid var(--border-subtle); border-radius:12px; padding:16px; margin-bottom:16px;">
+            <div style="font-size:12px; font-weight:700; color:#121214; margin-bottom:6px;">Authorized Master Administrators:</div>
+            <ul style="margin:0; padding-left:18px; font-size:12px; color:#5a5a62; line-height:1.6;">
+              <li><code>designsbygani@gmail.com</code> (Master Admin)</li>
+              <li><code>mogiliganesh49@gmail.com</code> (Co-Founder)</li>
+              <li>Any verified account ending in <code>@ganacutsvisuals.com</code></li>
+              <li>Any editor assigned the 👑 <strong>Agency Manager</strong> role in your roster</li>
+            </ul>
+          </div>
 
-            <div class="form-group">
-              <label for="sec-confirm-pwd">Confirm New Password *</label>
-              <input type="password" id="sec-confirm-pwd" placeholder="Repeat new password" required minlength="6">
-            </div>
-
-            <button type="submit" class="primary-btn">
-              <span>Update Password</span>
-            </button>
-            <div id="sec-pwd-msg" style="margin-top:12px; font-size:13px;"></div>
-          </form>
+          <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.25); border-radius:12px; padding:14px; font-size:12px; color:#065f46;">
+            ✅ <strong>Zero-Frontend Key Architecture:</strong> All Google Gemini AI operations run securely on the Vercel backend using server environment variables (<code>process.env.GEMINI_API_KEY</code>). No API key is ever stored or exposed in client code.
+          </div>
         </div>
       </div>
 
@@ -1862,72 +1770,6 @@
 
   
 
-    <!-- MODAL: GOOGLE GEMINI AI CONFIGURATION & DIAGNOSTICS -->
-  <div id="admin-gemini-settings-modal" class="modal-overlay" style="display:none; position:fixed; inset:0; background:rgba(18,18,20,0.65); backdrop-filter:blur(8px); align-items:center; justify-content:center; z-index:99999; padding:20px;" onclick="if(event.target === this) closeGeminiSettingsModal()">
-    <div class="admin-modal-card" style="background:#ffffff; border-radius:20px; padding:26px 28px; width:100%; max-width:620px; box-shadow:0 25px 60px rgba(0,0,0,0.25); max-height:90vh; overflow-y:auto; border:1px solid var(--border-subtle);">
-      <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px;">
-        <div style="display:flex; align-items:center; gap:12px;">
-          <div style="width:44px; height:44px; border-radius:50%; background:linear-gradient(135deg, #8b5cf6, #6366f1); display:flex; align-items:center; justify-content:center; color:#fff; font-size:22px; flex-shrink:0; box-shadow:0 4px 14px rgba(139,92,246,0.35);">
-            🤖
-          </div>
-          <div>
-            <div style="display:flex; align-items:center; gap:8px;">
-              <h3 style="font-size:18px; font-weight:800; color:#121214; margin:0;">Google Gemini AI Integration</h3>
-              <span class="badge-mini" style="background:rgba(16,185,129,0.15); color:#059669; border:1px solid rgba(16,185,129,0.3); font-size:11px; padding:2px 8px; border-radius:10px; font-weight:700;">🟢 Active</span>
-            </div>
-            <p style="font-size:12px; color:#5a5a62; margin:2px 0 0;">Configured for automated profile analysis, phase recommendations, and proposal drafting.</p>
-          </div>
-        </div>
-        <button type="button" onclick="closeGeminiSettingsModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#888894; line-height:1;">&times;</button>
-      </div>
-
-      <!-- Live Diagnostics Banner -->
-      <div style="background:#faf7f2; border:1px solid var(--border-subtle); border-radius:12px; padding:14px 16px; margin-bottom:16px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <span style="font-size:12px; font-weight:700; color:#121214;">System AI Engine & Latency</span>
-          <span style="font-size:11.5px; color:#6366f1; font-weight:700;">Google Generative Language v1beta</span>
-        </div>
-        <p style="font-size:12px; color:#5a5a62; margin:0 0 10px; line-height:1.45;">
-          The integrated Gemini key automatically runs on both local development/Node servers and static GitHub Pages hosting via high-speed direct API execution.
-        </p>
-        <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-          <button type="button" id="btn-test-gemini-live" class="primary-btn" onclick="testGeminiConnectionLive()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; padding:7px 14px; font-size:12px; box-shadow:0 3px 10px rgba(139,92,246,0.3);">
-            <span>⚡ Test Gemini AI Connection</span>
-          </button>
-          <span style="font-size:11px; color:#888894;">Sends live diagnostic ping to verify response.</span>
-        </div>
-        <div id="gemini-test-result-box" style="display:none; margin-top:12px; padding:10px 12px; border-radius:8px; font-size:12px;"></div>
-      </div>
-
-      <!-- API Key Field & Custom Override -->
-      <div style="margin-bottom:16px;">
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-          <label style="font-size:12px; font-weight:700; color:#121214;">Active Gemini API Key (Masked):</label>
-          <button type="button" id="btn-toggle-gemini-key-vis" class="secondary-btn light-btn" onclick="toggleGeminiKeyVisibility()" style="padding:3px 9px; font-size:11px;">
-            👁️ Show
-          </button>
-        </div>
-        <input type="password" id="gemini-settings-key-input" placeholder="Google Gemini API Key..." style="width:100%; box-sizing:border-box; padding:9px 12px; font-size:13px; font-family:monospace; border-radius:8px; border:1px solid var(--border-strong); background:#ffffff;">
-        <small style="font-size:11px; color:#71717a; margin-top:4px; display:block;">
-          The agency key is securely pre-loaded. You can customize or update your key here anytime; changes persist safely in local browser storage.
-        </small>
-      </div>
-
-      <!-- Action Buttons -->
-      <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; border-top:1px solid var(--border-subtle); padding-top:14px;">
-        <button type="button" class="secondary-btn light-btn" onclick="resetGeminiKeyToDefault()" style="font-size:12px;" title="Reset back to the default agency Gemini key">
-          🔄 Reset to Agency Key
-        </button>
-        <div style="display:flex; gap:8px;">
-          <button type="button" class="secondary-btn light-btn" onclick="closeGeminiSettingsModal()" style="font-size:12px;">Close</button>
-          <button type="button" class="primary-btn" onclick="saveCustomGeminiKey()" style="background:var(--accent-orange, #d94e28); border:none; padding:8px 16px; font-size:12px; font-weight:700;">
-            <span>💾 Save Key</span>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-
   <script src="app.js?v=4.1"></script>
   <script>
     // Master Admin Email & Supabase Client
@@ -1935,12 +1777,6 @@
     const SUPABASE_PROJECT_URL = window.SUPABASE_URL || "https://urrvvmmurxjwqocrpxct.supabase.co";
     const SUPABASE_PROJECT_KEY = window.SUPABASE_ANON || "sb_publishable_pef_sQ4erO4VhiILPGo6Rw_HgRXR496";
     let supabaseClient = window.SUPABASE_CLIENT || (window.supabase ? window.supabase.createClient(SUPABASE_PROJECT_URL, SUPABASE_PROJECT_KEY) : null);
-
-    // Toggle Password Box visibility
-    window.toggleAdminPasswordBox = function() {
-      const f = document.getElementById("real-admin-login-form");
-      if (f) f.style.display = f.style.display === "none" ? "block" : "none";
-    };
 
     // State tracking to prevent infinite loops and re-render thrashing
     let _adminDashboardOpened = false;
@@ -1999,6 +1835,27 @@
       );
 
       const isManager = Boolean(manager);
+
+      // ACCESS CONTROL GUARD: Strictly allow authorized Google accounts only
+      if (!isMaster && !isManager) {
+        const errorEl = document.getElementById("admin-login-error");
+        if (errorEl) {
+          errorEl.innerHTML = `<div style="background:#fee2e2; border:1px solid #ef4444; color:#b91c1c; padding:12px 14px; border-radius:10px; font-weight:600; font-size:13px; text-align:left;">
+            ⛔ <strong>Access Denied:</strong> Google account <code>${escapeHtml(email)}</code> is not authorized for Admin Studio.<br>
+            <span style="font-size:11.5px; color:#7f1d1d; margin-top:4px; display:block;">Please sign in with your authorized agency Google account or contact the administrator.</span>
+          </div>`;
+        }
+        if (supabaseClient && supabaseClient.auth) {
+          try { await supabaseClient.auth.signOut(); } catch (e) {}
+        }
+        localStorage.removeItem("cutscale_admin_session");
+        const authScreen = document.getElementById("full-admin-login");
+        const appScreen = document.getElementById("full-admin-app");
+        if (authScreen) authScreen.classList.remove("hidden");
+        if (appScreen) appScreen.classList.add("hidden");
+        return;
+      }
+
       const role = (isManager && !isMaster) ? "manager" : "admin";
       const displayName = (isManager && !isMaster)
         ? (manager.name + " (👑 Agency Manager)")
@@ -2108,94 +1965,6 @@
       if (appScreen) appScreen.classList.add("hidden");
     }
 
-    // Toggle Password Visibility
-    const pwdInput = document.getElementById("admin-pwd");
-    const toggleBtn = document.getElementById("toggle-admin-pwd-btn");
-    if (toggleBtn && pwdInput) {
-      toggleBtn.addEventListener("click", () => {
-        const isPwd = pwdInput.type === "password";
-        pwdInput.type = isPwd ? "text" : "password";
-        toggleBtn.style.color = isPwd ? "var(--accent-orange)" : "#888894";
-      });
-    }
-
-    // Login Form Submit (Optional Password Fallback)
-    const loginForm = document.getElementById("real-admin-login-form");
-    if (loginForm) {
-      loginForm.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const rawEmail = document.getElementById("admin-email").value.trim();
-        const email = rawEmail.toLowerCase();
-        const pwd = document.getElementById("admin-pwd").value.trim();
-        const errorEl = document.getElementById("admin-login-error");
-        const btn = document.getElementById("admin-login-btn");
-        if (errorEl) errorEl.textContent = "";
-
-        const isMaster = email === MASTER_ADMIN_EMAIL || 
-                         email.includes("gani") || 
-                         email.includes("mogili") || 
-                         email.includes("admin") || 
-                         email.includes("7075") || 
-                         rawEmail.includes("7075081947") || 
-                         email === "designsbygani@gmail.com" || 
-                         email === "mogiliganesh49@gmail.com" || 
-                         email.endsWith("@ganacutsvisuals.com");
-
-        // Check if credentials match an assigned Manager in applicants
-        const manager = (window.applicants || []).find(a => 
-          (a.role === 'manager' || a.isManager === true) && 
-          ((a.email && a.email.toLowerCase() === email) || (a.phone && a.phone.includes(rawEmail)))
-        );
-
-        if (!isMaster && !manager) {
-          if (errorEl) errorEl.textContent = "Access Denied: No Admin or Manager account found with this email/phone.";
-          return;
-        }
-
-        if (btn) {
-          btn.disabled = true;
-          btn.innerHTML = `<span>Verifying credentials...</span>`;
-        }
-
-        const storedPwd = localStorage.getItem("cutscale_admin_password") || "admin123";
-        const isPwdValid = isMaster 
-          ? (pwd === storedPwd || pwd === "admin123" || pwd === "7075" || pwd === "gani" || pwd === "admin" || pwd === "ganesh" || pwd.length >= 4)
-          : (manager && (pwd === manager.password || pwd === "1234" || pwd === "admin123" || pwd === "7075"));
-
-        if (isPwdValid) {
-          if (isMaster && pwd && pwd.length >= 4 && pwd !== storedPwd) {
-            localStorage.setItem("cutscale_admin_password", pwd);
-          }
-
-          const sessionRole = (manager && !isMaster) ? "manager" : "admin";
-          const sessionName = (manager && !isMaster) ? (manager.name + " (Manager)") : "GanaCuts Admin";
-
-          const sessionData = {
-            email: email,
-            name: sessionName,
-            role: sessionRole,
-            isManager: Boolean(manager && !isMaster),
-            managerId: manager ? manager.id : null,
-            avatar: "assets/logo.jpg",
-            authProvider: (manager && !isMaster) ? "manager_pin" : "verified_master",
-            loggedInAt: Date.now()
-          };
-          localStorage.setItem("cutscale_admin_session", JSON.stringify(sessionData));
-          if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = `<span>Sign In to Admin Studio</span>`;
-          }
-          showAdminDashboard(sessionData);
-        } else {
-          if (btn) {
-            btn.disabled = false;
-            btn.innerHTML = `<span>Sign In to Admin Studio</span>`;
-          }
-          if (errorEl) errorEl.textContent = "Invalid password. Default is admin123 or 7075.";
-        }
-      });
-    }
-
     // Logout Button
     const logoutBtn = document.getElementById("full-admin-logout-btn");
     if (logoutBtn) {
@@ -2208,37 +1977,7 @@
       });
     }
 
-    // Change Password Form
-    const changePwdForm = document.getElementById("admin-change-password-form");
-    if (changePwdForm) {
-      changePwdForm.addEventListener("submit", (e) => {
-        e.preventDefault();
-        const current = document.getElementById("sec-current-pwd").value.trim();
-        const next = document.getElementById("sec-new-pwd").value.trim();
-        const confirm = document.getElementById("sec-confirm-pwd").value.trim();
-        const msgEl = document.getElementById("sec-pwd-msg");
 
-        const activePwd = localStorage.getItem("cutscale_admin_password") || "admin123";
-        if (current !== activePwd && current !== "admin123" && current !== "7075") {
-          msgEl.innerHTML = `<span style="color:#ef4444;">Current password does not match.</span>`;
-          return;
-        }
-
-        if (next !== confirm) {
-          msgEl.innerHTML = `<span style="color:#ef4444;">New passwords do not match.</span>`;
-          return;
-        }
-
-        if (next.length < 6) {
-          msgEl.innerHTML = `<span style="color:#ef4444;">New password must be at least 6 characters.</span>`;
-          return;
-        }
-
-        localStorage.setItem("cutscale_admin_password", next);
-        changePwdForm.reset();
-        msgEl.innerHTML = `<span style="color:#10b981;">✓ Password successfully updated! Use your new password on next login.</span>`;
-      });
-    }
 
     // =========================================================================
     // IN-APP CHAT CONTROLLER FOR ADMIN
