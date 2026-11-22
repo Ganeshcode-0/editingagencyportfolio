@@ -849,6 +849,15 @@ async function fetchSupabaseApplicants() {
       if (typeof window !== "undefined") window.applicants = applicants;
       if (typeof updateAdminUI === 'function') updateAdminUI();
       if (typeof renderApplicantsManager === 'function') renderApplicantsManager();
+      if (typeof renderManagerRosterInEditor === 'function' && typeof currentEditor !== 'undefined' && currentEditor) {
+        renderManagerRosterInEditor(currentEditor);
+      }
+      if (typeof window.initAiCopilot === 'function') {
+        window.initAiCopilot();
+      }
+      if (typeof window.updateAiCopilotBadge === 'function') {
+        window.updateAiCopilotBadge();
+      }
     }
   } catch (err) {
     console.warn("Supabase fetch applicants notice:", err.message || err);
@@ -2634,9 +2643,9 @@ function renderSingleApplicantCard(app) {
           </div>
         </div>
         <div style="display:flex; gap:6px; flex-wrap:wrap;">
-          <button type="button" class="primary-btn" onclick="approveNewMember('${app.id}', 'normal')" style="background:#10b981; border:none; padding:5px 12px; font-size:11px; font-weight:700; box-shadow:0 2px 8px rgba(16,185,129,0.3);">✅ Approve (Normal)</button>
-          <button type="button" class="primary-btn" onclick="approveNewMember('${app.id}', 'special')" style="background:#f59e0b; border:none; padding:5px 12px; font-size:11px; font-weight:700; color:#18181c; box-shadow:0 2px 8px rgba(245,158,11,0.3);">⭐ Special Phase</button>
-          <button type="button" class="primary-btn" onclick="approveNewMember('${app.id}', 'basic')" style="background:#8b5cf6; border:none; padding:5px 12px; font-size:11px; font-weight:700; box-shadow:0 2px 8px rgba(139,92,246,0.3);">🔰 Basic Phase</button>
+          <button type="button" class="primary-btn" onclick="approveNewMember('${app.id}', 'normal')" style="background:#10b981; border:none; padding:5px 12px; font-size:11px; font-weight:700; color:#ffffff; box-shadow:0 2px 8px rgba(16,185,129,0.25);">✅ Approve (Normal)</button>
+          <button type="button" class="primary-btn" onclick="approveNewMember('${app.id}', 'special')" style="background:#d97706; border:none; padding:5px 12px; font-size:11px; font-weight:700; color:#ffffff; box-shadow:0 2px 8px rgba(217,119,6,0.25);">⭐ Special Phase</button>
+          <button type="button" class="primary-btn" onclick="approveNewMember('${app.id}', 'basic')" style="background:#6d28d9; border:none; padding:5px 12px; font-size:11px; font-weight:700; color:#ffffff; box-shadow:0 2px 8px rgba(109,40,217,0.25);">🔰 Basic Phase</button>
           <button type="button" class="delete-btn" onclick="moveApplicantToTrash('${app.id}')" style="padding:5px 10px; font-size:11px;" title="Reject and move to Recycle Bin">🗑️ Reject</button>
         </div>
       </div>
@@ -2655,13 +2664,13 @@ function renderSingleApplicantCard(app) {
 
       <!-- Gemini AI Profile Analysis Card (Interactive) -->
       ${app.aiAnalysis ? `
-        <div class="ai-analysis-card" id="ai-card-${app.id}" style="background:linear-gradient(135deg, rgba(139,92,246,0.08), rgba(99,102,241,0.04)); border:1px solid rgba(139,92,246,0.25); border-radius:12px; padding:12px 16px; margin-top:12px;">
+        <div class="ai-analysis-card" id="ai-card-${app.id}" style="background:#f5f2ec; border:1px solid var(--border-subtle); border-radius:12px; padding:12px 16px; margin-top:12px;">
           <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px;">
             <div style="display:flex; align-items:center; gap:8px;">
               <span style="font-size:15px;">✨</span>
               <div>
-                <span style="font-size:12.5px; font-weight:800; color:#7c3aed;">AI ARCHETYPE: ${escapeHtml(app.aiAnalysis.archetype || 'Video Editor')}</span>
-                <span style="font-size:11px; background:#6366f1; color:#fff; font-weight:700; padding:1px 7px; border-radius:10px; margin-left:6px;">Score: ${app.aiAnalysis.rating || 85}/100</span>
+                <span style="font-size:12.5px; font-weight:800; color:#121214;">AI ARCHETYPE: ${escapeHtml(app.aiAnalysis.archetype || 'Video Editor')}</span>
+                <span style="font-size:11px; background:var(--accent-orange); color:#fff; font-weight:700; padding:1px 7px; border-radius:10px; margin-left:6px;">Score: ${app.aiAnalysis.rating || 85}/100</span>
               </div>
             </div>
             <div style="display:flex; align-items:center; gap:6px;">
@@ -2814,19 +2823,19 @@ function renderApplicantsManager() {
 
     let pendingHtml = '';
     if (pendingListFiltered.length > 0) {
-      pendingHtml = '<div class="divided-phase-section" style="border-left: 4.5px solid #f59e0b; background:rgba(245,158,11,0.04); border:1px solid rgba(245,158,11,0.3); border-radius:16px; padding:18px 20px; margin-bottom:22px;">' +
+      pendingHtml = '<div class="divided-phase-section" style="border-left: 4.5px solid #d97706; background:#fefdfb; border:1px solid rgba(245,158,11,0.3); border-radius:16px; padding:18px 20px; margin-bottom:22px; box-shadow:0 4px 16px rgba(18,18,20,0.03);">' +
         '<div class="divided-phase-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px; margin-bottom:14px;">' +
           '<div style="display:flex; align-items:center; gap:10px;">' +
             '<span style="font-size:22px;">🚨</span>' +
             '<div>' +
               '<div style="display:flex; align-items:center; gap:8px;">' +
-                '<h4 style="font-size:16px; font-weight:800; color:#fbbf24; margin:0;">New Members Awaiting Approval (' + pendingListFiltered.length + ')</h4>' +
-                '<span class="badge-mini" style="background:#f59e0b; color:#18181c; font-weight:800; font-size:10px; padding:1px 7px; border-radius:8px;">ACTION REQUIRED</span>' +
+                '<h4 style="font-size:16px; font-weight:800; color:#b45309; margin:0;">New Members Awaiting Approval (' + pendingListFiltered.length + ')</h4>' +
+                '<span class="badge-mini" style="background:#f59e0b; color:#ffffff; font-weight:800; font-size:10px; padding:2px 8px; border-radius:8px;">ACTION REQUIRED</span>' +
               '</div>' +
-              '<small style="color:#a1a1aa; font-size:12px;">New editors who recently signed in or applied. Review their details and approve them into an active editing phase.</small>' +
+              '<small style="color:#5a5a62; font-size:12px;">New editors who recently signed in or applied. Review their details and approve them into an active editing phase.</small>' +
             '</div>' +
           '</div>' +
-          '<button type="button" class="primary-btn" onclick="approveAllPendingMembers()" style="background:#10b981; border:none; padding:7px 14px; font-size:12px; font-weight:700; box-shadow:0 3px 10px rgba(16,185,129,0.3);">' +
+          '<button type="button" class="primary-btn" onclick="approveAllPendingMembers()" style="background:#10b981; border:none; padding:7px 14px; font-size:12px; font-weight:700; box-shadow:0 3px 10px rgba(16,185,129,0.25);">' +
             '✅ Approve All as Normal' +
           '</button>' +
         '</div>' +
@@ -4601,15 +4610,17 @@ Agency Asset Folders: ${(profile && profile.agencyFolders ? profile.agencyFolder
 
 window.initAiCopilot = function() {
   if (document.getElementById("ai-copilot-launcher")) return;
-  // STRICT ADMIN ACCESS ONLY: Do NOT initialize for editors or public visitors
-  const isAdmin = window.location.pathname.includes("admin") || Boolean(document.getElementById("pane-overview"));
-  if (!isAdmin) return;
+  // Accessible to Admin and Agency Managers
+  const isAdminOrManager = (typeof window !== 'undefined' && window.location && window.location.pathname && window.location.pathname.includes("admin")) ||
+    (typeof currentEditor !== 'undefined' && currentEditor && (currentEditor.role === 'manager' || currentEditor.isManager)) ||
+    Boolean(localStorage.getItem("cutscale_admin_session"));
+  if (!isAdminOrManager) return;
 
-  // Floating trigger button
+  // Floating trigger button (Warm agency orange styling)
   const btn = document.createElement("div");
   btn.id = "ai-copilot-launcher";
   btn.onclick = window.toggleAiCopilot;
-  btn.style.cssText = "position:fixed; bottom:24px; right:24px; z-index:99998; background:linear-gradient(135deg, #8b5cf6, #6366f1); color:#fff; border-radius:50px; padding:11px 18px; display:inline-flex; align-items:center; gap:8px; cursor:pointer; box-shadow:0 10px 28px rgba(99,102,241,0.45); font-weight:800; font-size:12.5px; border:1px solid rgba(255,255,255,0.2); transition:transform 0.2s, box-shadow 0.2s; user-select:none;";
+  btn.style.cssText = "position:fixed; bottom:24px; right:24px; z-index:99998; background:var(--accent-orange, #d94e28); color:#ffffff; border-radius:50px; padding:11px 18px; display:inline-flex; align-items:center; gap:8px; cursor:pointer; box-shadow:0 8px 24px rgba(217,78,40,0.35); font-weight:800; font-size:12.5px; border:none; transition:transform 0.2s, box-shadow 0.2s; user-select:none;";
   btn.innerHTML = `
     <span style="font-size:18px;">🤖</span>
     <span>AI Copilot</span>
@@ -4617,61 +4628,61 @@ window.initAiCopilot = function() {
   `;
   document.body.appendChild(btn);
 
-  // Chat window container
+  // Chat window container (Clean light agency card)
   const win = document.createElement("div");
   win.id = "ai-copilot-window";
-  win.style.cssText = "position:fixed; bottom:84px; right:24px; width:430px; max-width:calc(100vw - 32px); height:600px; max-height:calc(100vh - 110px); background:#18181c; border:1px solid rgba(255,255,255,0.12); border-radius:20px; box-shadow:0 25px 60px rgba(0,0,0,0.55); z-index:99999; display:none; flex-direction:column; overflow:hidden; font-family:inherit; color:#ffffff;";
+  win.style.cssText = "position:fixed; bottom:84px; right:24px; width:430px; max-width:calc(100vw - 32px); height:600px; max-height:calc(100vh - 110px); background:#ffffff; border:1px solid var(--border-subtle); border-radius:20px; box-shadow:0 20px 50px rgba(18,18,20,0.18); z-index:99999; display:none; flex-direction:column; overflow:hidden; font-family:inherit; color:#121214;";
   win.innerHTML = `
     <!-- Copilot Header -->
-    <div style="background:#121214; padding:14px 18px; border-bottom:1px solid rgba(255,255,255,0.08); display:flex; justify-content:space-between; align-items:center;">
+    <div style="background:#f5f2ec; padding:14px 18px; border-bottom:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
       <div style="display:flex; align-items:center; gap:10px;">
-        <div style="width:36px; height:36px; border-radius:50%; background:linear-gradient(135deg, #8b5cf6, #6366f1); display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 2px 10px rgba(139,92,246,0.4);">
+        <div style="width:36px; height:36px; border-radius:50%; background:rgba(217,78,40,0.15); color:var(--accent-orange, #d94e28); display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 2px 8px rgba(217,78,40,0.25);">
           🤖
         </div>
         <div>
           <div style="display:flex; align-items:center; gap:6px;">
-            <strong style="font-size:14px; color:#ffffff;">GanaCuts AI Copilot</strong>
-            <span style="background:rgba(16,185,129,0.15); color:#10b981; font-size:9.5px; font-weight:800; padding:1px 6px; border-radius:8px; border:1px solid rgba(16,185,129,0.3);">🟢 LIVE ROSTER ACCESS</span>
+            <strong style="font-size:14px; color:#121214;">GanaCuts AI Copilot</strong>
+            <span style="background:rgba(16,185,129,0.12); color:#059669; font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:8px; border:1px solid rgba(16,185,129,0.3);">🟢 LIVE ROSTER ACCESS</span>
           </div>
-          <span style="font-size:11px; color:#a1a1aa;">Agency AI Intelligence</span>
+          <span style="font-size:11px; color:#5a5a62;">Agency AI Intelligence • Backend Engine</span>
         </div>
       </div>
       <div style="display:flex; align-items:center; gap:8px;">
-        <button type="button" onclick="clearAiCopilotChat()" title="Clear conversation" style="background:transparent; border:none; color:#a1a1aa; font-size:14px; cursor:pointer; padding:4px;">🧹</button>
-        <button type="button" onclick="toggleAiCopilot()" title="Close Copilot" style="background:transparent; border:none; color:#a1a1aa; font-size:18px; cursor:pointer; padding:4px; line-height:1;">&times;</button>
+        <button type="button" onclick="clearAiCopilotChat()" title="Clear conversation" style="background:transparent; border:none; color:#5a5a62; font-size:14px; cursor:pointer; padding:4px;">🧹</button>
+        <button type="button" onclick="toggleAiCopilot()" title="Close Copilot" style="background:transparent; border:none; color:#5a5a62; font-size:18px; cursor:pointer; padding:4px; line-height:1;">&times;</button>
       </div>
     </div>
 
     <!-- Quick Action Prompt Chips -->
-    <div style="background:#151518; padding:8px 12px; border-bottom:1px solid rgba(255,255,255,0.06); display:flex; gap:6px; overflow-x:auto; white-space:nowrap;" class="no-scrollbar">
-      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('Who is currently waiting for approval in the new members list?')" style="background:rgba(245,158,11,0.15); border:1px solid rgba(245,158,11,0.35); color:#fbbf24; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">⏳ Pending Approvals</button>
-      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('List all our Special Editors and their main editing strengths and tools.')" style="background:rgba(139,92,246,0.15); border:1px solid rgba(139,92,246,0.35); color:#c084fc; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">⭐ Special Editors</button>
-      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('Which editors know DaVinci Resolve or After Effects?')" style="background:rgba(59,130,246,0.15); border:1px solid rgba(59,130,246,0.35); color:#60a5fa; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">🛠️ DaVinci / AE Editors</button>
-      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('Give me an executive summary of our full 32+ editor roster capacity, divided phases, and manager roles.')" style="background:rgba(255,255,255,0.08); border:1px solid rgba(255,255,255,0.15); color:#e4e4e7; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">📊 Roster Summary</button>
-      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('Recommend the top 2 editors best suited to cut a high-ticket commercial talking head reel under 36 hours.')" style="background:rgba(234,67,53,0.15); border:1px solid rgba(234,67,53,0.35); color:#f87171; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">🚀 Project Recommender</button>
+    <div style="background:#faf8f5; padding:8px 12px; border-bottom:1px solid var(--border-subtle); display:flex; gap:6px; overflow-x:auto; white-space:nowrap;" class="no-scrollbar">
+      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('Who is currently waiting for approval in the new members list?')" style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.35); color:#b45309; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">⏳ Pending Approvals</button>
+      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('List all our Special Editors and their main editing strengths and tools.')" style="background:rgba(217,78,40,0.12); border:1px solid rgba(217,78,40,0.35); color:#d94e28; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">⭐ Special Editors</button>
+      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('Which editors know DaVinci Resolve or After Effects?')" style="background:rgba(59,130,246,0.12); border:1px solid rgba(59,130,246,0.35); color:#1d4ed8; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">🛠️ DaVinci / AE Editors</button>
+      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('Give me an executive summary of our full 32+ editor roster capacity, divided phases, and manager roles.')" style="background:#ffffff; border:1px solid var(--border-subtle); color:#121214; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">📊 Roster Summary</button>
+      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('Recommend the top 2 editors best suited to cut a high-ticket commercial talking head reel under 36 hours.')" style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.35); color:#059669; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">🚀 Project Recommender</button>
     </div>
 
     <!-- Messages Container -->
-    <div id="ai-copilot-messages" style="flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:12px; font-size:12.5px; line-height:1.5;">
+    <div id="ai-copilot-messages" style="flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:12px; font-size:12.5px; line-height:1.5; background:#faf8f5;">
       <!-- Welcome Message -->
-      <div style="background:#202026; border:1px solid rgba(255,255,255,0.08); border-radius:14px; padding:12px 14px; color:#e4e4e7;">
+      <div style="background:#ffffff; border:1px solid var(--border-subtle); border-radius:14px; padding:12px 14px; color:#121214; box-shadow:0 2px 8px rgba(18,18,20,0.04);">
         <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
           <span style="font-size:16px;">👋</span>
-          <strong style="color:#ffffff; font-size:13px;">Welcome to GanaCuts AI Copilot.</strong>
+          <strong style="color:#121214; font-size:13px;">Welcome to GanaCuts AI Copilot.</strong>
         </div>
-        <p style="margin:0 0 6px; color:#a1a1aa; font-size:12px;">
+        <p style="margin:0 0 6px; color:#5a5a62; font-size:12px;">
           I have <strong>real-time live access</strong> to all 32+ video editors, new members awaiting approval, divided editing phases (Special, Normal, Basic), rates, tools, and admin notes.
         </p>
-        <div style="color:#c084fc; font-size:11.5px; font-weight:600;">
+        <div style="color:var(--accent-orange, #d94e28); font-size:11.5px; font-weight:700;">
           Ask me anything — e.g. "Who can edit 3D reels?", "Review new applicant Rahul", or click a quick prompt above!
         </div>
       </div>
     </div>
 
     <!-- Bottom Input Bar -->
-    <div style="background:#121214; padding:10px 14px; border-top:1px solid rgba(255,255,255,0.08); display:flex; gap:8px; align-items:flex-end;">
-      <textarea id="ai-copilot-input" rows="1" placeholder="Ask about editors, approvals, rates, or operations..." style="flex:1; background:#1c1c22; color:#ffffff; border:1px solid rgba(255,255,255,0.15); border-radius:10px; padding:9px 12px; font-size:12.5px; resize:none; max-height:90px; font-family:inherit; outline:none;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiCopilotMessage();}"></textarea>
-      <button type="button" id="ai-copilot-send-btn" onclick="sendAiCopilotMessage()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; color:#fff; border-radius:10px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; flex-shrink:0;">
+    <div style="background:#ffffff; padding:10px 14px; border-top:1px solid var(--border-subtle); display:flex; gap:8px; align-items:flex-end;">
+      <textarea id="ai-copilot-input" rows="1" placeholder="Ask about editors, approvals, rates, or operations..." style="flex:1; background:#f5f2ec; color:#121214; border:1px solid var(--border-subtle); border-radius:10px; padding:9px 12px; font-size:12.5px; resize:none; max-height:90px; font-family:inherit; outline:none;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiCopilotMessage();}"></textarea>
+      <button type="button" id="ai-copilot-send-btn" onclick="sendAiCopilotMessage()" style="background:var(--accent-orange, #d94e28); border:none; color:#ffffff; border-radius:10px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; flex-shrink:0; box-shadow:0 3px 10px rgba(217,78,40,0.3);">
         🚀
       </button>
     </div>
@@ -4778,18 +4789,19 @@ GUIDELINES:
 Answer:`;
 
   try {
-    const res = await window.callGeminiDirectClient(prompt, false);
+    const resData = await window.executeUniversalGemini('copilot_chat', { prompt, message: text });
+    const res = (resData && typeof resData === 'object' && resData.reply) ? resData.reply : (typeof resData === 'string' ? resData : (resData?.result || ''));
     const thinkingEl = document.getElementById(thinkingId);
     if (thinkingEl) thinkingEl.remove();
 
-    // Append AI Response Bubble
+    // Append AI Response Bubble (Warm light card)
     const aiDiv = document.createElement("div");
-    aiDiv.style.cssText = "align-self:flex-start; background:#1c1c24; border:1px solid rgba(255,255,255,0.08); color:#e4e4e7; padding:12px 14px; border-radius:14px 14px 14px 2px; max-width:92%; line-height:1.55; word-break:break-word;";
+    aiDiv.style.cssText = "align-self:flex-start; background:#ffffff; border:1px solid var(--border-subtle); color:#121214; padding:12px 14px; border-radius:14px 14px 14px 2px; max-width:92%; line-height:1.55; word-break:break-word; box-shadow:0 2px 8px rgba(18,18,20,0.04);";
     
     // Format basic markdown (bold, lists, code)
     let formatted = escapeHtml(res)
-      .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#ffffff;">$1</strong>')
-      .replace(/^\s*[-*]\s+(.*)$/gm, '<li style="margin-left:14px; margin-bottom:3px;">$1</li>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#121214;">$1</strong>')
+      .replace(/^\s*[-*]\s+(.*)$/gm, '<li style="margin-left:14px; margin-bottom:3px; color:#121214;">$1</li>')
       .replace(/(?:<li>.*?<\/li>\s*)+/gs, '<ul style="margin:6px 0; padding-left:4px;">$&</ul>')
       .replace(/\n/g, '<br>');
 
@@ -4808,10 +4820,10 @@ Answer:`;
   }
 };
 
-// Initialize Copilot on page load (Strict Admin Studio only)
+// Initialize Copilot on page load (Admin Studio & Manager Editor Workspace)
 if (typeof document !== 'undefined') {
-  const isAdmin = (typeof window !== 'undefined' && window.location && window.location.pathname && window.location.pathname.includes("admin")) || Boolean(document.getElementById("pane-overview"));
-  if (isAdmin) {
+  const shouldLoadCopilot = (typeof window !== 'undefined' && window.location && window.location.pathname && (window.location.pathname.includes("admin") || window.location.pathname.includes("editor"))) || Boolean(document.getElementById("pane-overview"));
+  if (shouldLoadCopilot) {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', () => { setTimeout(window.initAiCopilot, 800); });
     } else {

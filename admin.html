@@ -564,7 +564,7 @@
     <!-- Main Workspace Container -->
     <main class="admin-container">
       <!-- Tabs Navigation -->
-      <div class="admin-nav-bar" style="background:#18181c; border-radius:14px; padding:6px; margin-bottom:24px; border:1px solid rgba(255,255,255,0.08);">
+      <div class="admin-nav-bar" style="background:#ffffff; border-radius:14px; padding:6px; margin-bottom:24px; border:1px solid var(--border-subtle); box-shadow:0 4px 16px rgba(18,18,20,0.03);">
         <button class="admin-tab active" data-tab="overview">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
           <span>Overview</span>
@@ -925,7 +925,7 @@
               </button>
             </div>
             <div style="display:flex; align-items:center; gap:8px;">
-              <input type="text" id="roster-search-input" oninput="handleRosterSearch(this.value)" placeholder="Search editors by name, tool, city..." style="padding:7px 12px; font-size:12px; border-radius:8px; border:1px solid rgba(255,255,255,0.15); background:#1c1c22; color:#ffffff; min-width:230px;">
+              <input type="text" id="roster-search-input" oninput="handleRosterSearch(this.value)" placeholder="Search editors by name, tool, city..." style="padding:7px 12px; font-size:12px; border-radius:8px; border:1px solid var(--border-subtle); background:#ffffff; color:#121214; min-width:230px;">
             </div>
           </div>
         </div>
@@ -1201,18 +1201,18 @@
 
       <!-- TAB 5: AGENCY PROFILE -->
       <div class="admin-tab-pane" id="pane-profile">
-        <div style="background:#18181c; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:24px;">
-          <div style="background:linear-gradient(135deg, rgba(139,92,246,0.12), rgba(99,102,241,0.12)); border:1px solid rgba(139,92,246,0.3); border-radius:14px; padding:14px 18px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
+        <div style="background:#ffffff; border:1px solid var(--border-subtle); border-radius:18px; padding:24px; box-shadow:var(--shadow-card);">
+          <div style="background:#f5f2ec; border:1px solid var(--border-subtle); border-radius:14px; padding:14px 18px; margin-bottom:20px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:10px;">
             <div style="display:flex; align-items:center; gap:10px;">
               <span style="font-size:22px;">🤖</span>
               <div>
-                <strong style="color:#ffffff; font-size:13.5px;">Google Gemini AI Integration & Key</strong>
-                <p style="color:#a1a1aa; font-size:12px; margin:2px 0 0;">Manage your Gemini API key for automated editor evaluations, proposals, and Agency Copilot.</p>
+                <strong style="color:#121214; font-size:13.5px;">Google Gemini AI Integration</strong>
+                <p style="color:#5a5a62; font-size:12px; margin:2px 0 0;">Connected securely to backend server environment (<code>process.env.GEMINI_API_KEY</code> / <code>.env</code>). Zero frontend exposure.</p>
               </div>
             </div>
-            <button type="button" onclick="switchAdminTab('gemini')" class="primary-btn" style="background:#8b5cf6; border:none; padding:7px 16px; font-size:12px; font-weight:800; border-radius:8px; cursor:pointer;">
-              Configure AI Key ➔
-            </button>
+            <div style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.3); color:#059669; font-weight:800; padding:6px 14px; font-size:12px; border-radius:8px; display:inline-flex; align-items:center; gap:6px;">
+              <span>● AI Engine Connected</span>
+            </div>
           </div>
 
           <form id="dash-profile-form" class="admin-form">

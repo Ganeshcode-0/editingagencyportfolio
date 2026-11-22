@@ -113,8 +113,9 @@ function callGemini(prompt, isJson = true, customKey = null) {
     });
 
     const candidateModels = [
-      'gemini-3.5-flash-lite',
-      'gemini-3-flash-preview'
+      'gemini-2.5-flash',
+      'gemini-2.5-flash-lite',
+      'gemini-2.0-flash'
     ];
 
     let lastError = null;
@@ -387,7 +388,11 @@ Format the output as ONLY valid JSON:
         const userQuery = body.message || body.prompt || 'Hello Copilot';
         const agencyContext = body.agencyContext || {};
 
-        const prompt = `You are GanaCuts Agency Copilot, an intelligent AI Executive Partner for the Creative Director and operations managers at GanaCuts Visuals.
+        let prompt = '';
+        if (body.prompt && body.prompt.length > 120 && body.prompt.includes('GanaCuts')) {
+          prompt = body.prompt;
+        } else {
+          prompt = `You are GanaCuts Agency Copilot, an intelligent AI Executive Partner for the Creative Director and operations managers at GanaCuts Visuals.
 
 AGENCY OPERATING CONTEXT:
 - Agency: GanaCuts Visuals (High-retention video editing agency)
@@ -408,6 +413,7 @@ INSTRUCTIONS:
 - Speak as a sharp, professional, proactive creative agency director and chief of staff.
 - Be concise, direct, and actionable. Give specific advice, workflow tips, editor assignment recommendations, or drafted messages whenever requested.
 - Format with clean markdown (bullet points, bold text).`;
+        }
 
         const reply = await callGemini(prompt, false, apiKey);
         res.statusCode = 200;

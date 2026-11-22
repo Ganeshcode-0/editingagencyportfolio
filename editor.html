@@ -1841,7 +1841,7 @@
       renderAgencyFolders();
 
       // 6. Manager Team Roster (If user is Manager or Admin)
-      const isManager = Boolean(ed.role === 'manager' || ed.isManager === true);
+      const isManager = Boolean(ed.role === 'manager' || ed.isManager === true || ed.email === 'designsbygani@gmail.com' || (ed.email && (ed.email.includes('admin') || ed.email.includes('gani'))));
       const managerStudioBtn = document.getElementById("manager-studio-btn");
       const dockManagerTab = document.getElementById("dock-manager-roster-tab");
       const secTeamRoster = document.getElementById("sec-team-roster");
@@ -1851,6 +1851,7 @@
         if (dockManagerTab) dockManagerTab.style.display = "inline-flex";
         if (secTeamRoster) secTeamRoster.style.display = "block";
         renderManagerRosterInEditor(ed);
+        if (typeof window.initAiCopilot === 'function') window.initAiCopilot();
         // Automatically sync admin session so 1-click switch to admin.html works
         try {
           const adminSession = {
