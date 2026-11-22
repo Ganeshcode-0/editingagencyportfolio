@@ -880,6 +880,27 @@
           <div id="admin-submissions-table-container"></div>
         </div>
 
+        <!-- Supabase Database Connection & RLS Alert Banner -->
+        <div id="supabase-database-banner" style="display:none; margin-bottom:18px; background:#fffbeb; border:1.5px solid #f59e0b; border-radius:18px; padding:16px 20px; box-shadow:0 4px 16px rgba(245,158,11,0.08);">
+          <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+            <div style="display:flex; align-items:flex-start; gap:12px;">
+              <span style="font-size:24px; line-height:1;">⚠️</span>
+              <div>
+                <div style="font-weight:800; font-size:14px; color:#b45309;" id="supabase-banner-title">Supabase Cloud Database Notice: RLS Policy Active (Error 42501)</div>
+                <div style="font-size:12px; color:#78350f; margin-top:3px; max-width:720px;" id="supabase-banner-msg">New members signing in with Google and edits are currently blocked from saving to your database because Row Level Security (RLS) is denying public inserts. Run the quick 10-second SQL fix in Supabase to permanently enable multi-device sync.</div>
+              </div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <button type="button" class="primary-btn" onclick="copySupabaseSqlFix()" style="background:#d97706; border:none; padding:8px 14px; font-size:12px; font-weight:700; box-shadow:0 3px 10px rgba(217,119,6,0.3);">
+                📋 Copy 1-Click SQL Fix
+              </button>
+              <a href="https://supabase.com/dashboard/project/urrvvmmurxjwqocrpxct/sql" target="_blank" class="secondary-btn light-btn" style="padding:8px 14px; font-size:12px; font-weight:700; text-decoration:none;">
+                Open SQL Editor ↗
+              </a>
+            </div>
+          </div>
+        </div>
+
         <!-- Editor Phase Tiers & AI Operations Toolbar -->
         <div class="roster-tier-toolbar" style="background:#ffffff; border:1px solid var(--border-subtle); border-radius:18px; padding:18px 20px; margin-bottom:18px; box-shadow:0 4px 16px rgba(18,18,20,0.03); color:#121214;">
           <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px; margin-bottom:14px;">
@@ -891,6 +912,9 @@
               <small style="color:#5a5a62; font-size:12px; margin-top:2px; display:block;">Divided into Special, Normal, and Basic phases. Private to admin — hidden from editor portal.</small>
             </div>
             <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+              <button type="button" id="btn-sync-cloud-roster" class="secondary-btn light-btn" onclick="window.syncAllRosterToCloud()" style="padding:7px 14px; font-size:12px; font-weight:700;" title="Upload all current roster members and pending applications directly to Supabase cloud database">
+                <span>☁️ Sync Roster to Cloud</span>
+              </button>
               <button type="button" class="primary-btn" onclick="runBatchGeminiAnalysis()" style="background:linear-gradient(135deg, #8b5cf6, #6366f1); border:none; padding:7px 14px; font-size:12px; box-shadow:0 4px 14px rgba(139,92,246,0.25);" title="Analyze all editor profiles using Google Gemini AI">
                 <span>⚡ AI Analyze All Profiles</span>
               </button>
@@ -1808,8 +1832,74 @@
         if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
         if (typeof renderAdminToolsList === 'function') renderAdminToolsList();
         if (typeof renderAdminFeaturedEditorsList === 'function') renderAdminFeaturedEditorsList();
+
+        // Run automated Supabase cloud database health check
+        if (typeof checkSupabaseHealth === 'function') {
+          checkSupabaseHealth().then(health => {
+            if (typeof updateSupabaseBannerVisibility === 'function') {
+              updateSupabaseBannerVisibility(health.rlsBlocked);
+            }
+          });
+        }
       }
     }
+
+    window.updateSupabaseBannerVisibility = function(show) {
+      const banner = document.getElementById("supabase-database-banner");
+      if (banner) {
+        banner.style.display = show ? "block" : "none";
+      }
+    };
+
+    window.copySupabaseSqlFix = function() {
+      const sqlSnippet = `-- GANACUTS VISUALS — 10-SECOND DATABASE FIX
+-- 1. Ensure applicants table exists with all required columns
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS city TEXT DEFAULT 'Remote';
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS tools TEXT DEFAULT '';
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS portfolio TEXT DEFAULT '';
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS specialization TEXT DEFAULT 'Video Editing';
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS rate TEXT DEFAULT 'Negotiable';
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending';
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS admin_feedback TEXT DEFAULT '';
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS applied_at TEXT;
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS avatar_url TEXT DEFAULT NULL;
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS role TEXT DEFAULT 'editor';
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS is_manager BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS editor_tier TEXT DEFAULT 'normal';
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS admin_description TEXT DEFAULT '';
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS is_approved BOOLEAN DEFAULT FALSE;
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS is_deleted BOOLEAN DEFAULT FALSE;
+
+-- 2. Enable Row-Level Security and allow open operations
+ALTER TABLE public.applicants ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all on applicants" ON public.applicants;
+CREATE POLICY "Allow all on applicants" ON public.applicants FOR ALL TO public, anon, authenticated USING (true) WITH CHECK (true);
+
+-- 3. Enable messages live chat
+ALTER TABLE public.messages ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all on messages" ON public.messages;
+CREATE POLICY "Allow all on messages" ON public.messages FOR ALL TO public, anon, authenticated USING (true) WITH CHECK (true);
+
+-- 4. Enable categories & videos
+ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all on categories" ON public.categories;
+CREATE POLICY "Allow all on categories" ON public.categories FOR ALL TO public, anon, authenticated USING (true) WITH CHECK (true);`;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(sqlSnippet).then(() => {
+          if (typeof showToast === 'function') {
+            showToast("📋 1-Click Supabase SQL script copied! Paste into Supabase SQL Editor and click Run.");
+          } else {
+            alert("✓ Supabase SQL script copied to clipboard! Paste it into your Supabase Dashboard SQL Editor and click 'Run'.");
+          }
+        }).catch(() => {
+          prompt("Copy this SQL script and paste it into your Supabase SQL Editor:", sqlSnippet);
+        });
+      } else {
+        prompt("Copy this SQL script and paste it into your Supabase SQL Editor:", sqlSnippet);
+      }
+    };
 
     // Helper: Establish Admin Session from Google User
     async function handleAdminGoogleSession(gUser) {

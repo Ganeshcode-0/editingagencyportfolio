@@ -1611,7 +1611,11 @@
         applicants.unshift(newApp);
         saveApplicants();
         if (window.syncApplicantToSupabase) {
-          window.syncApplicantToSupabase(newApp);
+          try {
+            await window.syncApplicantToSupabase(newApp);
+          } catch (syncErr) {
+            console.warn("New member sync notice:", syncErr);
+          }
         }
         match = newApp;
       }
@@ -1722,7 +1726,11 @@
         applicants.unshift(newApp);
         saveApplicants();
         if (window.syncApplicantToSupabase) {
-          window.syncApplicantToSupabase(newApp);
+          try {
+            await window.syncApplicantToSupabase(newApp);
+          } catch (syncErr) {
+            console.warn("New member sync notice:", syncErr);
+          }
         }
         match = newApp;
       }
@@ -2524,7 +2532,7 @@
       input.value = "";
     };
 
-    window.handleSaveProfileModal = function(e) {
+    window.handleSaveProfileModal = async function(e) {
       if (e) e.preventDefault();
       if (!currentEditor) return;
 
@@ -2556,8 +2564,11 @@
       }
       saveApplicants();
 
+      let syncResult = null;
       if (window.syncApplicantToSupabase) {
-        window.syncApplicantToSupabase(currentEditor);
+        try {
+          syncResult = await window.syncApplicantToSupabase(currentEditor);
+        } catch (sErr) {}
       }
 
       localStorage.setItem("cutscale_editor_session", JSON.stringify({
@@ -2570,6 +2581,14 @@
 
       closeEditProfileModal();
       renderEditorStudio();
+
+      if (typeof showToast === 'function') {
+        if (syncResult && syncResult.success) {
+          showToast("✓ Profile & tools updated and synced to agency cloud!");
+        } else {
+          showToast("✓ Profile saved locally! (Waiting for Supabase cloud sync)");
+        }
+      }
     };
 
     // Trigger Photo Upload

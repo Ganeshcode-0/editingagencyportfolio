@@ -628,8 +628,8 @@ async function fetchSupabaseAgencyVault() {
 
 // Supabase Database Sync Operations
 async function syncApplicantToSupabase(app) {
-  if (!app) return;
-  if (app.id === '__agency_system_vault__' || (typeof app.id === 'string' && app.id.startsWith('__'))) return;
+  if (!app) return { success: false, error: 'No applicant provided' };
+  if (app.id === '__agency_system_vault__' || (typeof app.id === 'string' && app.id.startsWith('__'))) return { success: true };
 
   // Persist roster metadata permanently
   saveRosterMetadataItem(app.id, {
@@ -641,50 +641,102 @@ async function syncApplicantToSupabase(app) {
     isApproved: app.isApproved
   });
 
-  if (!globalSupabase) return;
-  try {
-    const payload = {
-      id: app.id,
-      name: app.name,
-      email: app.email,
-      phone: app.phone,
-      city: app.city || "Remote",
-      tools: [app.tools, app.otherTools].filter(Boolean).join(", ") || "Video Editor",
-      portfolio: app.portfolio || "",
-      specialization: app.specialization || "Video Editing",
-      rate: app.rate || "Negotiable",
-      status: app.status || "pending",
-      admin_feedback: app.adminFeedback || "",
-      applied_at: app.appliedAt || new Date().toISOString()
-    };
-    if (app.assignedProject) {
-      payload.assigned_project = app.assignedProject;
-    }
-    if (app.submittedDraft) {
-      payload.submitted_draft = app.submittedDraft;
-    }
-    if (app.avatarUrl || app.avatar_url) {
-      payload.avatar_url = app.avatarUrl || app.avatar_url;
-    }
+  const payload = {
+    id: app.id,
+    name: app.name,
+    email: app.email,
+    phone: app.phone,
+    city: app.city || "Remote",
+    tools: [app.tools, app.otherTools].filter(Boolean).join(", ") || "Video Editor",
+    portfolio: app.portfolio || "",
+    specialization: app.specialization || "Video Editing",
+    rate: app.rate || "Negotiable",
+    status: app.status || "pending",
+    admin_feedback: app.adminFeedback || "",
+    applied_at: app.appliedAt || new Date().toISOString()
+  };
+  if (app.assignedProject) payload.assigned_project = app.assignedProject;
+  if (app.submittedDraft) payload.submitted_draft = app.submittedDraft;
+  if (app.avatarUrl || app.avatar_url) payload.avatar_url = app.avatarUrl || app.avatar_url;
+  if (app.editorTier) payload.editor_tier = app.editorTier;
+  if (app.adminDescription !== undefined) payload.admin_description = app.adminDescription;
+  if (app.isApproved !== undefined) payload.is_approved = app.isApproved;
+  if (app.role) payload.role = app.role;
+  if (app.isManager !== undefined) payload.is_manager = app.isManager;
 
-    const { error } = await globalSupabase.from('applicants').upsert(payload, { onConflict: 'id' });
-    if (error && error.code === '42703') {
-      // If avatar_url does not exist yet in Supabase schema, omit and retry smoothly
-      delete payload.avatar_url;
-      await globalSupabase.from('applicants').upsert(payload, { onConflict: 'id' });
+  let directSuccess = false;
+  let lastError = null;
+
+  if (globalSupabase) {
+    try {
+      const { error } = await globalSupabase.from('applicants').upsert(payload, { onConflict: 'id' });
+      if (!error) {
+        directSuccess = true;
+      } else {
+        lastError = error;
+        // If column doesn't exist yet in Supabase schema (42703), omit new columns and retry smoothly
+        if (error.code === '42703') {
+          delete payload.avatar_url;
+          delete payload.editor_tier;
+          delete payload.admin_description;
+          delete payload.is_approved;
+          delete payload.role;
+          delete payload.is_manager;
+          const retry = await globalSupabase.from('applicants').upsert(payload, { onConflict: 'id' });
+          if (!retry.error) {
+            directSuccess = true;
+            lastError = null;
+          } else {
+            lastError = retry.error;
+          }
+        }
+      }
+    } catch (err) {
+      lastError = err;
+      console.warn("Supabase applicant sync notice:", err.message || err);
     }
-  } catch (err) {
-    // Non-blocking catch for offline/paused Supabase projects
-    console.warn("Supabase applicant sync notice:", err.message || err);
   }
+
+  // Guaranteed fallback via serverless /api/sync-applicant (uses service role if configured)
+  if (!directSuccess) {
+    try {
+      const serverRes = await fetch('/api/sync-applicant', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ applicant: app, payload })
+      });
+      if (serverRes.ok) {
+        const sData = await serverRes.json();
+        if (sData && sData.success) {
+          directSuccess = true;
+          lastError = null;
+        } else if (sData && sData.code === '42501') {
+          window._supabaseRlsBlocked = true;
+        }
+      }
+    } catch (e) {}
+  }
+
+  if (lastError && lastError.code === '42501') {
+    window._supabaseRlsBlocked = true;
+    console.error("[GanaCuts Sync] Supabase RLS is blocking inserts (Code 42501). Run supabase-fix-rls.sql in Supabase Dashboard.");
+    if (typeof window.updateSupabaseBannerVisibility === 'function') {
+      window.updateSupabaseBannerVisibility(true);
+    }
+  }
+
+  return { success: directSuccess, error: lastError };
 }
 
 async function syncAllApplicantsToSupabase() {
-  if (!globalSupabase || !Array.isArray(applicants)) return;
+  if (!Array.isArray(applicants) || applicants.length === 0) return { total: 0, synced: 0 };
+  let count = 0;
   for (const app of applicants) {
     if (!app || app.id === '__agency_system_vault__' || (typeof app.id === 'string' && app.id.startsWith('__'))) continue;
-    await syncApplicantToSupabase(app);
+    const res = await syncApplicantToSupabase(app);
+    if (res && res.success) count++;
   }
+  return { total: applicants.length, synced: count };
 }
 
 async function syncMessageToSupabase(msg) {
@@ -858,9 +910,92 @@ async function fetchSupabaseApplicants() {
       if (typeof window.updateAiCopilotBadge === 'function') {
         window.updateAiCopilotBadge();
       }
+    } else if (!error && (!data || data.length === 0)) {
+      // Supabase is accessible but table has 0 rows.
+      // If local storage also has 0 rows, populate from server backup
+      if (!applicants || applicants.length === 0) {
+        try {
+          const bRes = await fetch('/api/sync-applicant?action=backup');
+          if (bRes.ok) {
+            const bData = await bRes.json();
+            if (bData.success && Array.isArray(bData.applicants) && bData.applicants.length > 0) {
+              applicants = bData.applicants;
+              localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
+              if (typeof window !== "undefined") window.applicants = applicants;
+              if (typeof updateAdminUI === 'function') updateAdminUI();
+              if (typeof renderApplicantsManager === 'function') renderApplicantsManager();
+            }
+          }
+        } catch (be) {}
+      }
     }
   } catch (err) {
+    if (err && (err.code === '42501' || (err.message && err.message.includes('row-level security')))) {
+      window._supabaseRlsBlocked = true;
+    }
     console.warn("Supabase fetch applicants notice:", err.message || err);
+  }
+}
+
+// Supabase Connection & RLS Health Diagnostic Check
+async function checkSupabaseHealth() {
+  const result = { healthy: false, rlsBlocked: false, count: 0, error: null };
+  if (!globalSupabase) return { ...result, error: 'Supabase client not initialized' };
+
+  try {
+    const { data, error } = await globalSupabase.from('applicants').select('id');
+    if (error) {
+      const isRls = error.code === '42501' || (error.message && error.message.includes('row-level security'));
+      result.rlsBlocked = isRls;
+      result.error = error.message;
+      window._supabaseRlsBlocked = isRls;
+      return result;
+    }
+
+    result.count = Array.isArray(data) ? data.length : 0;
+
+    // Test write capabilities (probe for RLS check)
+    const probeRes = await fetch(`${SUPABASE_URL}/rest/v1/applicants`, {
+      method: 'POST',
+      headers: {
+        'apikey': SUPABASE_ANON,
+        'Authorization': `Bearer ${SUPABASE_ANON}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify({
+        id: '__probe_check__',
+        name: 'GanaCuts System Health Probe',
+        email: 'probe@ganacuts.com'
+      })
+    });
+
+    if (probeRes.status === 401 || probeRes.status === 403) {
+      const txt = await probeRes.text();
+      const isRls = txt.includes('42501') || txt.includes('row-level security');
+      result.rlsBlocked = isRls;
+      result.error = isRls ? 'Row-level security (RLS) is blocking inserts' : 'Write access denied';
+      window._supabaseRlsBlocked = isRls;
+      return result;
+    }
+
+    if (probeRes.ok) {
+      // Write succeeded! Clean up probe row
+      await fetch(`${SUPABASE_URL}/rest/v1/applicants?id=eq.__probe_check__`, {
+        method: 'DELETE',
+        headers: { 'apikey': SUPABASE_ANON, 'Authorization': `Bearer ${SUPABASE_ANON}` }
+      });
+      result.healthy = true;
+      result.rlsBlocked = false;
+      window._supabaseRlsBlocked = false;
+      return result;
+    }
+
+    result.healthy = true;
+    return result;
+  } catch (e) {
+    result.error = e.message;
+    return result;
   }
 }
 
@@ -1113,6 +1248,8 @@ async function fetchRemotePortfolioData() {
 
 if (typeof window !== "undefined") {
   window.syncApplicantToSupabase = syncApplicantToSupabase;
+  window.syncAllApplicantsToSupabase = syncAllApplicantsToSupabase;
+  window.checkSupabaseHealth = checkSupabaseHealth;
   window.syncMessageToSupabase = syncMessageToSupabase;
   window.syncAllCategoriesToSupabase = syncAllCategoriesToSupabase;
   window.syncAllVideosToSupabase = syncAllVideosToSupabase;
@@ -2774,6 +2911,7 @@ function renderApplicantsManager() {
   safeSetText("count-tier-basic", basicTotal);
   safeSetText("dash-applicants-total", applicants.length);
   safeSetText("cta-app-count", applicants.length);
+  safeSetText("cloud-sync-count", applicants.length);
   if (window.updateAiCopilotBadge) window.updateAiCopilotBadge();
 
   // Filter list by Search
