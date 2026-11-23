@@ -1622,12 +1622,15 @@
           city: "Remote",
           tools: "",
           otherTools: "",
+          languages: "",
           portfolio: "",
-          specialization: "Video Editing",
-          rate: "Standard / Discuss",
+          specialization: "",
+          rate: "",
           status: "pending",
           isApproved: false,
-          adminFeedback: "Welcome to GanaCuts Visuals! Direct access granted via Google Sign-In.",
+          editorTier: "pending",
+          hasEditedProfile: false,
+          adminFeedback: "Welcome to GanaCuts Visuals! Please update your tools, languages, and portfolio in Edit Profile.",
           appliedAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
           avatarUrl: gAvatar,
           authProvider: "google"
@@ -1737,12 +1740,15 @@
           city: "Remote",
           tools: "",
           otherTools: "",
+          languages: "",
           portfolio: "",
-          specialization: "Video Editing",
-          rate: "Standard / Discuss",
+          specialization: "",
+          rate: "",
           status: "pending",
           isApproved: false,
-          adminFeedback: "Welcome to GanaCuts Visuals! Please update your editing tools and portfolio in your profile.",
+          editorTier: "pending",
+          hasEditedProfile: false,
+          adminFeedback: "Welcome to GanaCuts Visuals! Please update your editing tools, languages, and portfolio in Edit Profile.",
           appliedAt: new Date().toLocaleDateString("en-IN", { day: '2-digit', month: 'short', year: 'numeric' }),
           avatarUrl: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(displayName)}&backgroundColor=d94e28,3b82f6,10b981&fontSize=42`,
           authProvider: "quick_access"
@@ -1976,17 +1982,17 @@
           </div>
           <div class="ig-bio-line">
             <span>🎬 Tools:</span>
-            <span class="ig-bio-highlight">${escapeHtml([ed.tools, ed.otherTools].filter(Boolean).join(", ") || 'No tools added yet (Click Edit Profile)')}</span>
+            <span class="ig-bio-highlight">${[ed.tools, ed.otherTools].filter(Boolean).join(", ") ? escapeHtml([ed.tools, ed.otherTools].filter(Boolean).join(", ")) : '<em style="color:#71717a; font-weight:normal;">None added yet (Click Edit Profile)</em>'}</span>
           </div>
           <div class="ig-bio-line">
             <span>🗣️ Languages:</span>
-            <span class="ig-bio-highlight" style="color:#10b981;">${escapeHtml(ed.languages || 'English, Telugu')}</span>
+            <span class="ig-bio-highlight" style="color:${ed.languages ? '#10b981' : '#71717a'};">${ed.languages ? escapeHtml(ed.languages) : '<em style="color:#71717a; font-weight:normal;">None added yet</em>'}</span>
           </div>
           <div class="ig-bio-line">
             <span>⚡ Specialization:</span>
-            <span class="ig-bio-highlight">${escapeHtml(ed.specialization || 'Talking Head Reels, Documentary Videos, AI Videos')}</span>
+            <span class="ig-bio-highlight">${ed.specialization ? escapeHtml(ed.specialization) : '<em style="color:#71717a; font-weight:normal;">Video Editing</em>'}</span>
             <span style="color:var(--text-dim);">•</span>
-            <span>💰 Expected payment per reel/video: <strong style="color:#fbbf24;">${escapeHtml(ed.rate || '₹1,200 / video')}</strong></span>
+            <span>💰 Expected payment per reel/video: <strong style="color:#fbbf24;">${ed.rate ? escapeHtml(ed.rate) : '<em style="color:#71717a; font-weight:normal;">Not specified</em>'}</strong></span>
           </div>
           <div class="ig-bio-line" style="margin-top:6px;">
             ${portfolioLink}
@@ -2631,6 +2637,7 @@
       currentEditor.tools = finalTools;
       currentEditor.specialization = finalSpec;
       currentEditor.languages = finalLanguages;
+      currentEditor.hasEditedProfile = true;
 
       const idx = applicants.findIndex(a => a.id === currentEditor.id);
       if (idx !== -1) {

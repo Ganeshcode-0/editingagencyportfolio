@@ -647,7 +647,7 @@ async function syncApplicantToSupabase(app) {
     email: app.email,
     phone: app.phone,
     city: app.city || "Remote",
-    tools: [app.tools, app.otherTools].filter(Boolean).join(", ") || "Video Editor",
+    tools: [app.tools, app.otherTools].filter(Boolean).join(", "),
     portfolio: app.portfolio || "",
     specialization: app.specialization || "Video Editing",
     rate: app.rate || "Negotiable",
@@ -865,20 +865,21 @@ async function fetchSupabaseApplicants() {
         const finalTier = (local && local.editorTier) || meta.editorTier || remote.editor_tier || remote.editorTier || 'normal';
         const finalDesc = (local && local.adminDescription !== undefined) ? local.adminDescription : (meta.adminDescription !== undefined ? meta.adminDescription : (remote.admin_description || remote.adminDescription || ''));
         const finalRole = (local && local.role) || meta.role || remote.role || (remote.is_manager ? 'manager' : 'editor');
-        const finalApproved = (local && local.isApproved !== undefined) ? local.isApproved : (meta.isApproved !== undefined ? meta.isApproved : remote.is_approved);
+        const finalApproved = (local && local.isApproved !== undefined) ? local.isApproved : (meta.isApproved !== undefined ? meta.isApproved : (remote.is_approved !== undefined ? remote.is_approved : Boolean(finalTier === 'special' || finalTier === 'basic')));
+        const finalStatus = (local && local.status) || meta.status || remote.status || (finalApproved ? "selected" : "pending");
 
         const mapped = {
           id: remote.id,
           name: (local && local.name) || remote.name,
           email: remote.email,
-          phone: (local && local.phone) || remote.phone,
-          city: (local && local.city) || remote.city,
-          tools: (local && local.tools) || remote.tools,
-          portfolio: (local && local.portfolio) || remote.portfolio,
-          specialization: (local && local.specialization) || remote.specialization,
-          rate: (local && local.rate) || remote.rate,
+          phone: (local && local.phone) || remote.phone || '',
+          city: (local && local.city) || remote.city || 'Remote',
+          tools: (local && local.tools) || remote.tools || '',
+          portfolio: (local && local.portfolio) || remote.portfolio || '',
+          specialization: (local && local.specialization) || remote.specialization || 'Video Editing',
+          rate: (local && local.rate) || remote.rate || '',
           password: remote.password || "1234",
-          status: (local && local.status) || meta.status || remote.status || "pending",
+          status: finalStatus,
           isApproved: finalApproved,
           adminFeedback: (local && local.adminFeedback) || remote.admin_feedback || remote.adminFeedback || "",
           appliedAt: (local && local.appliedAt) || remote.applied_at || remote.appliedAt,
@@ -889,7 +890,7 @@ async function fetchSupabaseApplicants() {
           isManager: Boolean(finalRole === 'manager' || remote.is_manager || remote.isManager),
           editorTier: finalTier,
           adminDescription: finalDesc,
-          languages: (local && local.languages) || remote.languages || 'English, Telugu'
+          languages: (local && local.languages) || remote.languages || ''
         };
 
         if (localIdx >= 0) {
@@ -1931,7 +1932,7 @@ function renderPortfolio() {
     card.addEventListener("mouseenter", () => prewarmVideoPlayer(id), { once: true });
     card.addEventListener("touchstart", () => prewarmVideoPlayer(id), { passive: true, once: true });
     card.addEventListener("click", (e) => {
-      if (e.target.closest(".ctrl-btn") || e.target.closest(".speaker-top-btn") || e.target.closest(".card-top-speaker-pill") || e.target.closest(".ctrl-btn-cinema-text")) return;
+      if (e.target.closest(".ctrl-btn") || e.target.closest(".speaker-top-btn") || e.target.closest(".card-top-speaker-pill") || e.target.closest(".ctrl-btn-cinema-text") || e.target.closest(".active-video-container")) return;
       playVideoInCard(id, card);
     });
   });
@@ -2041,7 +2042,6 @@ function createFrameHTML(v, cardClass, cat) {
       
       <div class="reel-overlay">
         <div class="reel-overlay-top">
-          <span class="reel-tag-badge">${v.duration || (cat.aspect === '9:16' ? '0:45' : '10:00')}</span>
           <button type="button" class="card-top-speaker-pill" onclick="toggleCardVideoSound('${v.id}', event)" title="Play with Sound / Toggle Sound">
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon><line x1="23" y1="9" x2="17" y2="15"></line><line x1="17" y1="9" x2="23" y2="15"></line></svg>
             <span>Sound</span>
@@ -2060,6 +2060,63 @@ function createFrameHTML(v, cardClass, cat) {
   `;
 }
 
+// In-Card Instant Player Play / Pause Toggle Function
+window.toggleCardVideoPlayPause = function(id, event) {
+  if (event) {
+    event.stopPropagation();
+    event.preventDefault();
+  }
+  const card = document.getElementById(`card-${id}`);
+  if (!card) return;
+  const container = card.querySelector(".active-video-container");
+  if (!container) return;
+
+  const nativeVid = container.querySelector("video");
+  const ytIframe = container.querySelector("iframe");
+  const ppIcon = container.querySelector(`#pp-icon-${id}`);
+  const badge = container.querySelector(`#playing-badge-${id}`);
+
+  if (nativeVid) {
+    if (nativeVid.paused) {
+      nativeVid.play().catch(() => {});
+      if (ppIcon) ppIcon.textContent = "⏸";
+      if (badge) {
+        badge.textContent = "▶ Playing";
+        badge.style.background = "rgba(217, 78, 40, 0.9)";
+      }
+    } else {
+      nativeVid.pause();
+      if (ppIcon) ppIcon.textContent = "▶";
+      if (badge) {
+        badge.textContent = "⏸ Paused";
+        badge.style.background = "rgba(100, 116, 139, 0.9)";
+      }
+    }
+    return;
+  }
+
+  if (ytIframe && ytIframe.contentWindow) {
+    window.cardPlayStates = window.cardPlayStates || {};
+    if (window.cardPlayStates[id] === "paused") {
+      sendYtMessage(ytIframe, "playVideo");
+      window.cardPlayStates[id] = "playing";
+      if (ppIcon) ppIcon.textContent = "⏸";
+      if (badge) {
+        badge.textContent = "▶ Playing";
+        badge.style.background = "rgba(217, 78, 40, 0.9)";
+      }
+    } else {
+      sendYtMessage(ytIframe, "pauseVideo");
+      window.cardPlayStates[id] = "paused";
+      if (ppIcon) ppIcon.textContent = "▶";
+      if (badge) {
+        badge.textContent = "⏸ Paused";
+        badge.style.background = "rgba(100, 116, 139, 0.9)";
+      }
+    }
+  }
+};
+
 // In-Card Instant Player
 function playVideoInCard(id, card, startUnmuted = false) {
   const video = videos.find(v => v.id === id);
@@ -2071,27 +2128,7 @@ function playVideoInCard(id, card, startUnmuted = false) {
 
   const existingContainer = card.querySelector(".active-video-container");
   if (existingContainer) {
-    const nativeVid = existingContainer.querySelector("video");
-    const ytIframe = existingContainer.querySelector("iframe");
-    if (nativeVid) {
-      if (nativeVid.paused) {
-        nativeVid.play().catch(() => {});
-      } else {
-        nativeVid.pause();
-      }
-      return;
-    }
-    if (ytIframe && ytIframe.contentWindow) {
-      window.cardPlayStates = window.cardPlayStates || {};
-      if (window.cardPlayStates[id] === "paused") {
-        sendYtMessage(ytIframe, "playVideo");
-        window.cardPlayStates[id] = "playing";
-      } else {
-        sendYtMessage(ytIframe, "pauseVideo");
-        window.cardPlayStates[id] = "paused";
-      }
-      return;
-    }
+    window.toggleCardVideoPlayPause(id);
     return;
   }
 
@@ -2132,6 +2169,9 @@ function playVideoInCard(id, card, startUnmuted = false) {
             <span class="sound-label">${!isMuted ? 'Sound ON' : 'Sound OFF'}</span>
           </button>
           <div class="video-control-top-actions">
+            <button type="button" class="ctrl-btn play-pause-btn" id="ctrl-pp-${id}" onclick="toggleCardVideoPlayPause('${id}', event)" title="Pause / Play Video" aria-label="Pause Video" style="background:rgba(0,0,0,0.7); color:#ffffff; font-weight:700; font-size:12px;">
+              <span id="pp-icon-${id}">⏸</span>
+            </button>
             <button type="button" class="ctrl-btn" onclick="openCinemaModal('${id}')" title="Full Cinema View" aria-label="Expand">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
             </button>
@@ -2141,7 +2181,7 @@ function playVideoInCard(id, card, startUnmuted = false) {
           </div>
         </div>
         <div class="video-control-bottom">
-          <span class="playing-badge">▶ Playing</span>
+          <span class="playing-badge" id="playing-badge-${id}" onclick="toggleCardVideoPlayPause('${id}', event)" style="cursor:pointer;" title="Click to Pause/Play">▶ Playing</span>
           <button type="button" class="ctrl-btn-cinema-text" onclick="openCinemaModal('${id}')" style="background:rgba(0,0,0,0.65); border:1px solid rgba(255,255,255,0.18); color:#cbd5e1; font-size:10.5px; padding:4px 10px; border-radius:12px; cursor:pointer;">
             Cinema View ⛶
           </button>
@@ -2185,6 +2225,9 @@ function playVideoInCard(id, card, startUnmuted = false) {
             <span class="sound-label">${!isMuted ? 'Sound ON' : 'Sound OFF'}</span>
           </button>
           <div class="video-control-top-actions">
+            <button type="button" class="ctrl-btn play-pause-btn" id="ctrl-pp-${id}" onclick="toggleCardVideoPlayPause('${id}', event)" title="Pause / Play Video" aria-label="Pause Video" style="background:rgba(0,0,0,0.7); color:#ffffff; font-weight:700; font-size:12px;">
+              <span id="pp-icon-${id}">⏸</span>
+            </button>
             <button type="button" class="ctrl-btn" onclick="openCinemaModal('${id}')" title="Full Cinema View" aria-label="Expand">
               <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
             </button>
@@ -2194,7 +2237,7 @@ function playVideoInCard(id, card, startUnmuted = false) {
           </div>
         </div>
         <div class="video-control-bottom">
-          <span class="playing-badge">▶ Playing</span>
+          <span class="playing-badge" id="playing-badge-${id}" onclick="toggleCardVideoPlayPause('${id}', event)" style="cursor:pointer;" title="Click to Pause/Play">▶ Playing</span>
           <button type="button" class="ctrl-btn-cinema-text" onclick="openCinemaModal('${id}')" style="background:rgba(0,0,0,0.65); border:1px solid rgba(255,255,255,0.18); color:#cbd5e1; font-size:10.5px; padding:4px 10px; border-radius:12px; cursor:pointer;">
             Cinema View ⛶
           </button>
@@ -2213,26 +2256,13 @@ function playVideoInCard(id, card, startUnmuted = false) {
     }
   }
 
-  // Allow clicking on video area to toggle play / pause
+  // Allow clicking on video area to toggle play / pause (with stopPropagation)
   container.addEventListener("click", (e) => {
+    e.stopPropagation();
     if (e.target.closest(".speaker-top-btn") || e.target.closest(".ctrl-btn") || e.target.closest(".ctrl-btn-cinema-text")) {
       return;
     }
-    const nativeVid = container.querySelector("video");
-    const ytIframe = container.querySelector("iframe");
-    if (nativeVid) {
-      if (nativeVid.paused) nativeVid.play().catch(() => {});
-      else nativeVid.pause();
-    } else if (ytIframe && ytIframe.contentWindow) {
-      window.cardPlayStates = window.cardPlayStates || {};
-      if (window.cardPlayStates[id] === "paused") {
-        sendYtMessage(ytIframe, "playVideo");
-        window.cardPlayStates[id] = "playing";
-      } else {
-        sendYtMessage(ytIframe, "pauseVideo");
-        window.cardPlayStates[id] = "paused";
-      }
-    }
+    window.toggleCardVideoPlayPause(id, e);
   });
 
   card.appendChild(container);
@@ -2280,7 +2310,7 @@ window.openCinemaModal = function(id) {
   }
 
   if (titleEl) titleEl.textContent = video.title;
-  if (categoryEl) categoryEl.textContent = `${getCategoryName(video.categoryId)} • ${video.duration || '0:45'}`;
+  if (categoryEl) categoryEl.textContent = getCategoryName(video.categoryId);
   if (waCta) waCta.href = `https://wa.me/917075081947?text=Hi%20Ganesh,%20I%20like%20this%20edit:%20"${encodeURIComponent(video.title)}".%20I%20would%20like%20to%20hire%20you%20for%20a%20video%20editing%20project.`;
   if (instaCta) instaCta.href = profile.instaUrl || "https://www.instagram.com/desimadhurivibes?fqnt=MWd1d3Q5bXhzOHZ1dw==";
 
@@ -2490,10 +2520,30 @@ window.updateApplicantTier = async function(id, newTier) {
   const app = applicants.find(a => a.id === id);
   if (!app) return;
   app.editorTier = newTier;
-  saveRosterMetadataItem(id, { editorTier: newTier });
+  // If placed in an active editing phase (special, normal, basic), permanently approve them!
+  if (['special', 'normal', 'basic'].includes(newTier)) {
+    app.isApproved = true;
+    if (app.status === 'pending') {
+      app.status = 'selected';
+    }
+  }
+  saveRosterMetadataItem(id, {
+    editorTier: newTier,
+    isApproved: app.isApproved,
+    status: app.status
+  });
   saveApplicants();
   if (window.syncApplicantToSupabase) {
     await window.syncApplicantToSupabase(app);
+  }
+  if (globalSupabase) {
+    try {
+      await globalSupabase.from('applicants').update({
+        editor_tier: newTier,
+        is_approved: app.isApproved,
+        status: app.status
+      }).eq('id', id);
+    } catch (e) {}
   }
   syncAgencyVaultToSupabase();
   const tierLabels = { special: "⭐ Special Editor", normal: "💼 Normal Editor", basic: "🔰 Basic Editor" };
@@ -2793,15 +2843,15 @@ function renderSingleApplicantCard(app) {
         </div>
         <div class="applicant-detail-item">
           <strong style="color:#121214;">Specialization & Tools</strong>
-          <span style="color:#5a5a62;">🎬 ${app.specialization || 'Video Editing'} (${[app.tools, app.otherTools].filter(Boolean).join(', ') || '<span style="color:#d97706; font-style:italic;">No tools specified yet</span>'})</span>
+          <span style="color:#5a5a62;">🎬 ${escapeHtml(app.specialization || 'Video Editing')} ${app.tools ? `(${escapeHtml(app.tools)})` : '<span style="color:#d97706; font-style:italic;">(Profile not edited yet - no tools added)</span>'}</span>
         </div>
         <div class="applicant-detail-item">
           <strong style="color:#121214;">Languages Known</strong>
-          <span style="color:#10b981; font-weight:700;">🗣️ ${escapeHtml(app.languages || 'English, Telugu')}</span>
+          <span style="color:${app.languages ? '#10b981' : '#71717a'}; font-weight:${app.languages ? '700' : '400'};">🗣️ ${app.languages ? escapeHtml(app.languages) : '<em style="color:#71717a;">Not specified yet (waiting for editor to edit profile)</em>'}</span>
         </div>
         <div class="applicant-detail-item">
           <strong style="color:#121214;">Expected Rate per reel/video</strong>
-          <span style="color:#5a5a62;">💰 ${app.rate || 'Standard / Discuss'}</span>
+          <span style="color:#5a5a62;">💰 ${app.rate ? escapeHtml(app.rate) : '<em style="color:#71717a;">Not specified</em>'}</span>
         </div>
       </div>
 
@@ -2841,7 +2891,7 @@ function renderSingleApplicantCard(app) {
             <div style="display:flex; align-items:center; gap:8px;">
               <span style="font-size:15px;">✨</span>
               <div>
-                <span style="font-size:12.5px; font-weight:800; color:#121214;">AI ARCHETYPE: ${escapeHtml(app.aiAnalysis.archetype || 'Video Editor')}</span>
+                <span style="font-size:12.5px; font-weight:800; color:#121214;">${escapeHtml(app.aiAnalysis.archetype || 'Video Editor')}</span>
                 <span style="font-size:11px; background:var(--accent-orange); color:#fff; font-weight:700; padding:1px 7px; border-radius:10px; margin-left:6px;">Score: ${app.aiAnalysis.rating || 85}/100</span>
               </div>
             </div>
@@ -2933,11 +2983,19 @@ function renderApplicantsManager() {
     return;
   }
 
+  // Helper to reliably check if an editor is genuinely awaiting approval
+  const isPendingReview = (a) => {
+    if (!a) return false;
+    if (a.editorTier === 'special' || a.editorTier === 'basic') return false;
+    if (a.isApproved === true && a.status !== 'pending') return false;
+    return a.status === 'pending' || a.isApproved === false || !a.editorTier || a.editorTier === 'pending';
+  };
+
   // Calculate Tier Counts & Pending Approvals
-  const pendingList = applicants.filter(a => a.status === 'pending' || a.isApproved === false);
-  const specialTotal = applicants.filter(a => (a.status !== 'pending' && a.isApproved !== false) && (a.editorTier === 'special' || (!a.editorTier && a.status === 'selected'))).length;
-  const normalTotal = applicants.filter(a => (a.status !== 'pending' && a.isApproved !== false) && ((!a.editorTier && a.status !== 'selected') || a.editorTier === 'normal')).length;
-  const basicTotal = applicants.filter(a => (a.status !== 'pending' && a.isApproved !== false) && a.editorTier === 'basic').length;
+  const pendingList = applicants.filter(isPendingReview);
+  const specialTotal = applicants.filter(a => !isPendingReview(a) && (a.editorTier === 'special' || (!a.editorTier && a.status === 'selected'))).length;
+  const normalTotal = applicants.filter(a => !isPendingReview(a) && ((!a.editorTier && a.status !== 'selected') || a.editorTier === 'normal')).length;
+  const basicTotal = applicants.filter(a => !isPendingReview(a) && a.editorTier === 'basic').length;
 
   safeSetText("count-tier-all", applicants.length);
   safeSetText("count-tier-pending", pendingList.length);
@@ -2967,10 +3025,10 @@ function renderApplicantsManager() {
   // Filter by Tier Tab if active
   if (currentRosterTierFilter !== "all") {
     if (currentRosterTierFilter === "pending") {
-      filtered = filtered.filter(a => a.status === 'pending' || a.isApproved === false);
+      filtered = filtered.filter(isPendingReview);
     } else {
       filtered = filtered.filter(a => {
-        if (a.status === 'pending' || a.isApproved === false) return false;
+        if (isPendingReview(a)) return false;
         const tier = a.editorTier || (a.status === 'selected' ? 'special' : (a.status === 'trial' ? 'normal' : 'basic'));
         return tier === currentRosterTierFilter;
       });
@@ -2989,10 +3047,10 @@ function renderApplicantsManager() {
 
   // DIVIDED PHASE SECTIONS VIEW MODE (Grouped into Pending, Special, Normal, Basic)
   if (currentRosterViewMode === "grouped" && currentRosterTierFilter === "all" && !currentRosterSearchQuery) {
-    const specialList = filtered.filter(a => (a.status !== 'pending' && a.isApproved !== false) && (a.editorTier === 'special' || (!a.editorTier && a.status === 'selected')));
-    const normalList = filtered.filter(a => (a.status !== 'pending' && a.isApproved !== false) && ((!a.editorTier && a.status !== 'selected') || a.editorTier === 'normal'));
-    const basicList = filtered.filter(a => (a.status !== 'pending' && a.isApproved !== false) && a.editorTier === 'basic');
-    const pendingListFiltered = filtered.filter(a => a.status === 'pending' || a.isApproved === false);
+    const specialList = filtered.filter(a => !isPendingReview(a) && (a.editorTier === 'special' || (!a.editorTier && a.status === 'selected')));
+    const normalList = filtered.filter(a => !isPendingReview(a) && ((!a.editorTier && a.status !== 'selected') || a.editorTier === 'normal'));
+    const basicList = filtered.filter(a => !isPendingReview(a) && a.editorTier === 'basic');
+    const pendingListFiltered = filtered.filter(isPendingReview);
 
     let pendingHtml = '';
     if (pendingListFiltered.length > 0) {
@@ -4160,7 +4218,7 @@ function renderVideosManager() {
         <img src="${getThumbnail(v)}" class="manage-thumb" alt="">
         <div>
           <div class="manage-item-title">${v.title}</div>
-          <div class="manage-item-meta">${getCategoryName(v.categoryId)} • ${v.duration || '0:45'}</div>
+          <div class="manage-item-meta">${getCategoryName(v.categoryId)}</div>
         </div>
       </div>
       <button class="delete-btn" onclick="deleteVideo('${v.id}')">Delete</button>
@@ -4810,55 +4868,29 @@ window.initAiCopilot = function() {
   win.id = "ai-copilot-window";
   win.style.cssText = "position:fixed; bottom:84px; right:24px; width:430px; max-width:calc(100vw - 32px); height:600px; max-height:calc(100vh - 110px); background:#ffffff; border:1px solid var(--border-subtle); border-radius:20px; box-shadow:0 20px 50px rgba(18,18,20,0.18); z-index:99999; display:none; flex-direction:column; overflow:hidden; font-family:inherit; color:#121214;";
   win.innerHTML = `
-    <!-- Copilot Header -->
-    <div style="background:#f5f2ec; padding:14px 18px; border-bottom:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
+    <!-- Copilot Header (Clean & Minimal) -->
+    <div style="background:#f5f2ec; padding:12px 18px; border-bottom:1px solid var(--border-subtle); display:flex; justify-content:space-between; align-items:center;">
       <div style="display:flex; align-items:center; gap:10px;">
-        <div style="width:36px; height:36px; border-radius:50%; background:rgba(217,78,40,0.15); color:var(--accent-orange, #d94e28); display:flex; align-items:center; justify-content:center; font-size:18px; box-shadow:0 2px 8px rgba(217,78,40,0.25);">
+        <div style="width:32px; height:32px; border-radius:50%; background:rgba(217,78,40,0.15); color:var(--accent-orange, #d94e28); display:flex; align-items:center; justify-content:center; font-size:16px;">
           🤖
         </div>
-        <div>
-          <div style="display:flex; align-items:center; gap:6px;">
-            <strong style="font-size:14px; color:#121214;">GanaCuts AI Copilot</strong>
-            <span style="background:rgba(16,185,129,0.12); color:#059669; font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:8px; border:1px solid rgba(16,185,129,0.3);">🟢 LIVE ROSTER ACCESS</span>
-          </div>
-          <span style="font-size:11px; color:#5a5a62;">Agency AI Intelligence • Backend Engine</span>
+        <div style="display:flex; align-items:center; gap:6px;">
+          <strong style="font-size:14px; color:#121214;">GanaCuts AI Copilot</strong>
+          <span style="background:rgba(16,185,129,0.12); color:#059669; font-size:9.5px; font-weight:800; padding:2px 7px; border-radius:8px; border:1px solid rgba(16,185,129,0.3);">🟢 READY</span>
         </div>
       </div>
-      <div style="display:flex; align-items:center; gap:8px;">
-        <button type="button" onclick="clearAiCopilotChat()" title="Clear conversation" style="background:transparent; border:none; color:#5a5a62; font-size:14px; cursor:pointer; padding:4px;">🧹</button>
-        <button type="button" onclick="toggleAiCopilot()" title="Close Copilot" style="background:transparent; border:none; color:#5a5a62; font-size:18px; cursor:pointer; padding:4px; line-height:1;">&times;</button>
+      <div>
+        <button type="button" onclick="toggleAiCopilot()" title="Close" style="background:transparent; border:none; color:#5a5a62; font-size:18px; cursor:pointer; padding:4px 8px; line-height:1;">✕</button>
       </div>
-    </div>
-
-    <!-- Quick Action Prompt Chips -->
-    <div style="background:#faf8f5; padding:8px 12px; border-bottom:1px solid var(--border-subtle); display:flex; gap:6px; overflow-x:auto; white-space:nowrap;" class="no-scrollbar">
-      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('Who is currently waiting for approval in the new members list?')" style="background:rgba(245,158,11,0.12); border:1px solid rgba(245,158,11,0.35); color:#b45309; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">⏳ Pending Approvals</button>
-      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('List all our Special Editors and their main editing strengths and tools.')" style="background:rgba(217,78,40,0.12); border:1px solid rgba(217,78,40,0.35); color:#d94e28; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">⭐ Special Editors</button>
-      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('Which editors know DaVinci Resolve or After Effects?')" style="background:rgba(59,130,246,0.12); border:1px solid rgba(59,130,246,0.35); color:#1d4ed8; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">🛠️ DaVinci / AE Editors</button>
-      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('Give me an executive summary of our full 32+ editor roster capacity, divided phases, and manager roles.')" style="background:#ffffff; border:1px solid var(--border-subtle); color:#121214; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">📊 Roster Summary</button>
-      <button type="button" class="copilot-chip" onclick="sendAiCopilotPreset('Recommend the top 2 editors best suited to cut a high-ticket commercial talking head reel under 36 hours.')" style="background:rgba(16,185,129,0.12); border:1px solid rgba(16,185,129,0.35); color:#059669; font-size:11px; font-weight:700; padding:4px 9px; border-radius:12px; cursor:pointer;">🚀 Project Recommender</button>
     </div>
 
     <!-- Messages Container -->
-    <div id="ai-copilot-messages" style="flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:12px; font-size:12.5px; line-height:1.5; background:#faf8f5;">
-      <!-- Welcome Message -->
-      <div style="background:#ffffff; border:1px solid var(--border-subtle); border-radius:14px; padding:12px 14px; color:#121214; box-shadow:0 2px 8px rgba(18,18,20,0.04);">
-        <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
-          <span style="font-size:16px;">👋</span>
-          <strong style="color:#121214; font-size:13px;">Welcome to GanaCuts AI Copilot.</strong>
-        </div>
-        <p style="margin:0 0 6px; color:#5a5a62; font-size:12px;">
-          I have <strong>real-time live access</strong> to all 32+ video editors, new members awaiting approval, divided editing phases (Special, Normal, Basic), rates, tools, and admin notes.
-        </p>
-        <div style="color:var(--accent-orange, #d94e28); font-size:11.5px; font-weight:700;">
-          Ask me anything — e.g. "Who can edit 3D reels?", "Review new applicant Rahul", or click a quick prompt above!
-        </div>
-      </div>
+    <div id="ai-copilot-messages" style="flex:1; overflow-y:auto; padding:14px; display:flex; flex-direction:column; gap:10px; font-size:12.5px; line-height:1.5; background:#faf8f5;">
     </div>
 
     <!-- Bottom Input Bar -->
     <div style="background:#ffffff; padding:10px 14px; border-top:1px solid var(--border-subtle); display:flex; gap:8px; align-items:flex-end;">
-      <textarea id="ai-copilot-input" rows="1" placeholder="Ask about editors, approvals, rates, or operations..." style="flex:1; background:#f5f2ec; color:#121214; border:1px solid var(--border-subtle); border-radius:10px; padding:9px 12px; font-size:12.5px; resize:none; max-height:90px; font-family:inherit; outline:none;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiCopilotMessage();}"></textarea>
+      <textarea id="ai-copilot-input" rows="1" placeholder="Ask AI Copilot anything about editors, projects, or tasks..." style="flex:1; background:#f5f2ec; color:#121214; border:1px solid var(--border-subtle); border-radius:10px; padding:9px 12px; font-size:12.5px; resize:none; max-height:90px; font-family:inherit; outline:none;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAiCopilotMessage();}"></textarea>
       <button type="button" id="ai-copilot-send-btn" onclick="sendAiCopilotMessage()" style="background:var(--accent-orange, #d94e28); border:none; color:#ffffff; border-radius:10px; width:38px; height:38px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:15px; flex-shrink:0; box-shadow:0 3px 10px rgba(217,78,40,0.3);">
         🚀
       </button>
