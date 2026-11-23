@@ -1540,6 +1540,30 @@
           <div id="modal-custom-skills-list" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;"></div>
         </div>
 
+        <!-- Languages Known Multi-Select & Custom Input -->
+        <div class="form-group" style="margin-bottom:16px;">
+          <label style="font-size:12px; font-weight:700; color:#121214; display:block; margin-bottom:6px;">🗣️ Languages Known (Select all that apply or add custom)</label>
+          <div style="display:flex; flex-wrap:wrap; gap:6px;" id="modal-langs-pills">
+            <span class="tool-pill" data-lang="English" onclick="this.classList.toggle('selected')">English</span>
+            <span class="tool-pill" data-lang="Telugu" onclick="this.classList.toggle('selected')">Telugu</span>
+            <span class="tool-pill" data-lang="Hindi" onclick="this.classList.toggle('selected')">Hindi</span>
+            <span class="tool-pill" data-lang="Tamil" onclick="this.classList.toggle('selected')">Tamil</span>
+            <span class="tool-pill" data-lang="Kannada" onclick="this.classList.toggle('selected')">Kannada</span>
+            <span class="tool-pill" data-lang="Malayalam" onclick="this.classList.toggle('selected')">Malayalam</span>
+            <span class="tool-pill" data-lang="Spanish" onclick="this.classList.toggle('selected')">Spanish</span>
+            <span class="tool-pill" data-lang="French" onclick="this.classList.toggle('selected')">French</span>
+            <span class="tool-pill" data-lang="German" onclick="this.classList.toggle('selected')">German</span>
+            <span class="tool-pill" data-lang="Arabic" onclick="this.classList.toggle('selected')">Arabic</span>
+          </div>
+          <div style="margin-top:10px;">
+            <div style="display:flex; gap:8px;">
+              <input type="text" id="modal-custom-lang-input" placeholder="e.g. Marathi, Bengali, Japanese, Russian" style="flex:1; padding:8px 12px; background:#f5f2ec; border:1px solid var(--border-subtle); border-radius:8px; color:#121214; font-size:12px;">
+              <button type="button" class="ig-btn" onclick="addCustomLanguageInModal()" style="font-size:11px;">+ Add Language</button>
+            </div>
+            <div id="modal-custom-langs-list" style="display:flex; flex-wrap:wrap; gap:6px; margin-top:8px;"></div>
+          </div>
+        </div>
+
         <div style="display:flex; justify-content:flex-end; gap:10px; margin-top:18px;">
           <button type="button" class="ig-btn" onclick="closeEditProfileModal()">Cancel</button>
           <button type="submit" class="ig-btn primary" style="padding:8px 22px;">Save Profile</button>
@@ -1953,6 +1977,10 @@
           <div class="ig-bio-line">
             <span>🎬 Tools:</span>
             <span class="ig-bio-highlight">${escapeHtml([ed.tools, ed.otherTools].filter(Boolean).join(", ") || 'No tools added yet (Click Edit Profile)')}</span>
+          </div>
+          <div class="ig-bio-line">
+            <span>🗣️ Languages:</span>
+            <span class="ig-bio-highlight" style="color:#10b981;">${escapeHtml(ed.languages || 'English, Telugu')}</span>
           </div>
           <div class="ig-bio-line">
             <span>⚡ Specialization:</span>
@@ -2509,6 +2537,31 @@
       const customSkillsList = document.getElementById("modal-custom-skills-list");
       if (customSkillsList) customSkillsList.innerHTML = "";
 
+      // Select active languages
+      const activeLangs = (currentEditor.languages || "").toLowerCase();
+      const standardLangNames = [];
+      document.querySelectorAll("#modal-langs-pills .tool-pill").forEach(p => {
+        const val = p.getAttribute("data-lang");
+        standardLangNames.push(val.toLowerCase());
+        p.classList.toggle("selected", activeLangs.includes(val.toLowerCase()));
+      });
+
+      // Populate custom languages list
+      const customLangsList = document.getElementById("modal-custom-langs-list");
+      if (customLangsList) {
+        customLangsList.innerHTML = "";
+        const allEditorLangs = (currentEditor.languages || "").split(",").map(s => s.trim()).filter(Boolean);
+        allEditorLangs.forEach(l => {
+          if (!standardLangNames.includes(l.toLowerCase())) {
+            const tag = document.createElement("div");
+            tag.className = "tool-pill selected";
+            tag.setAttribute("data-lang", l);
+            tag.innerHTML = `<span>${escapeHtml(l)}</span> <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:11px;margin-left:4px;">✕</button>`;
+            customLangsList.appendChild(tag);
+          }
+        });
+      }
+
       modal.style.display = "flex";
     };
 
@@ -2532,6 +2585,21 @@
       input.value = "";
     };
 
+    window.addCustomLanguageInModal = function() {
+      const input = document.getElementById("modal-custom-lang-input");
+      const list = document.getElementById("modal-custom-langs-list");
+      if (!input || !list) return;
+      const val = input.value.trim();
+      if (!val) return;
+
+      const tag = document.createElement("div");
+      tag.className = "tool-pill selected";
+      tag.setAttribute("data-lang", val);
+      tag.innerHTML = `<span>${escapeHtml(val)}</span> <button type="button" onclick="this.parentElement.remove()" style="background:none;border:none;color:#fff;cursor:pointer;font-size:11px;margin-left:4px;">✕</button>`;
+      list.appendChild(tag);
+      input.value = "";
+    };
+
     window.handleSaveProfileModal = async function(e) {
       if (e) e.preventDefault();
       if (!currentEditor) return;
@@ -2548,8 +2616,13 @@
       const selectedSpecs = Array.from(document.querySelectorAll("#modal-spec-pills .tool-pill.selected")).map(p => p.getAttribute("data-skill"));
       const customSkills = Array.from(document.querySelectorAll("#modal-custom-skills-list .custom-skill-tag")).map(p => p.getAttribute("data-skill"));
 
+      const standardSelectedLangs = Array.from(document.querySelectorAll("#modal-langs-pills .tool-pill.selected")).map(p => p.getAttribute("data-lang"));
+      const customAddedLangs = Array.from(document.querySelectorAll("#modal-custom-langs-list .tool-pill")).map(p => p.getAttribute("data-lang"));
+      const selectedLangs = Array.from(new Set([...standardSelectedLangs, ...customAddedLangs])).filter(Boolean);
+
       const finalTools = selectedTools.join(", ");
       const finalSpec = [...selectedSpecs, ...customSkills].join(", ") || "Video Editing";
+      const finalLanguages = selectedLangs.join(", ");
 
       currentEditor.name = name || currentEditor.name;
       currentEditor.phone = phone;
@@ -2557,6 +2630,7 @@
       currentEditor.rate = rate || "Standard / Discuss";
       currentEditor.tools = finalTools;
       currentEditor.specialization = finalSpec;
+      currentEditor.languages = finalLanguages;
 
       const idx = applicants.findIndex(a => a.id === currentEditor.id);
       if (idx !== -1) {

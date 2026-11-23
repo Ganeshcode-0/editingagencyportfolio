@@ -838,6 +838,26 @@
           </div>
         </div>
 
+        <!-- FRONT & CENTER: LIVE CLIENT PROJECT QUOTES INBOX (Zero clicking required!) -->
+        <div id="admin-front-quotes-inbox" class="submissions-queue-card" style="margin-bottom:20px; background:#ffffff; border:1.5px solid #2563eb; border-radius:18px; padding:20px; box-shadow:0 8px 28px rgba(37,99,235,0.08);">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; flex-wrap:wrap; gap:10px;">
+            <div style="display:flex; align-items:center; gap:10px;">
+              <span style="font-size:24px;">📥</span>
+              <div>
+                <div style="display:flex; align-items:center; gap:8px;">
+                  <h4 style="font-size:16px; font-weight:800; color:#121214; margin:0;">Incoming Client Project Quotes (<span id="front-inq-count">0</span>)</h4>
+                  <span class="badge-mini" id="front-inq-new-badge" style="background:#2563eb; color:#ffffff; font-weight:800; font-size:10px; padding:2px 8px; border-radius:8px;">LIVE INBOX</span>
+                </div>
+                <small style="color:#5a5a62; font-size:12px;">Submitted client briefs, budgets, and phone numbers from your portfolio. Visible right here on your main dashboard without having to click around!</small>
+              </div>
+            </div>
+            <div style="display:flex; align-items:center; gap:8px;">
+              <button type="button" class="secondary-btn light-btn" onclick="fetchClientInquiries(true)" style="padding:5px 12px; font-size:11.5px; font-weight:700;">🔄 Refresh Quotes</button>
+            </div>
+          </div>
+          <div id="front-quotes-list-container"></div>
+        </div>
+
         <!-- 1. Active Practice Tasks Management Card -->
         <div class="submissions-queue-card" style="margin-bottom:20px; background:#ffffff; border:1px solid var(--border-subtle); border-radius:18px; padding:20px; box-shadow:0 14px 36px rgba(18,18,20,0.04);">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px; flex-wrap:wrap; gap:8px;">
@@ -1832,6 +1852,8 @@
         if (typeof renderAdminSubmissionsQueue === 'function') renderAdminSubmissionsQueue();
         if (typeof renderAdminToolsList === 'function') renderAdminToolsList();
         if (typeof renderAdminFeaturedEditorsList === 'function') renderAdminFeaturedEditorsList();
+        if (typeof fetchClientInquiries === 'function') fetchClientInquiries();
+        if (typeof renderFrontQuotesInbox === 'function') renderFrontQuotesInbox();
 
         // Run automated Supabase cloud database health check
         if (typeof checkSupabaseHealth === 'function') {
@@ -1857,6 +1879,7 @@
 ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS phone TEXT;
 ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS city TEXT DEFAULT 'Remote';
 ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS tools TEXT DEFAULT '';
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS languages TEXT DEFAULT 'English, Telugu';
 ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS portfolio TEXT DEFAULT '';
 ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS specialization TEXT DEFAULT 'Video Editing';
 ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS rate TEXT DEFAULT 'Negotiable';
@@ -1884,7 +1907,26 @@ CREATE POLICY "Allow all on messages" ON public.messages FOR ALL TO public, anon
 -- 4. Enable categories & videos
 ALTER TABLE public.categories ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "Allow all on categories" ON public.categories;
-CREATE POLICY "Allow all on categories" ON public.categories FOR ALL TO public, anon, authenticated USING (true) WITH CHECK (true);`;
+CREATE POLICY "Allow all on categories" ON public.categories FOR ALL TO public, anon, authenticated USING (true) WITH CHECK (true);
+
+-- 5. Enable client_inquiries table (Quote Requests)
+CREATE TABLE IF NOT EXISTS public.client_inquiries (
+  id TEXT PRIMARY KEY,
+  client_name TEXT NOT NULL,
+  brand_name TEXT,
+  contact TEXT NOT NULL,
+  email TEXT,
+  project_type TEXT NOT NULL,
+  video_count TEXT,
+  budget TEXT,
+  footage_link TEXT,
+  notes TEXT,
+  status TEXT DEFAULT 'new',
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+ALTER TABLE public.client_inquiries ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Allow all on client_inquiries" ON public.client_inquiries;
+CREATE POLICY "Allow all on client_inquiries" ON public.client_inquiries FOR ALL TO public, anon, authenticated USING (true) WITH CHECK (true);`;
 
       if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(sqlSnippet).then(() => {

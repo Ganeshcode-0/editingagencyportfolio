@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS public.applicants (
 ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS phone TEXT;
 ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS city TEXT DEFAULT 'Remote';
 ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS tools TEXT DEFAULT '';
+ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS languages TEXT DEFAULT 'English, Telugu';
 ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS portfolio TEXT DEFAULT '';
 ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS specialization TEXT DEFAULT 'Video Editing';
 ALTER TABLE public.applicants ADD COLUMN IF NOT EXISTS rate TEXT DEFAULT 'Negotiable';

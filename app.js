@@ -663,6 +663,7 @@ async function syncApplicantToSupabase(app) {
   if (app.isApproved !== undefined) payload.is_approved = app.isApproved;
   if (app.role) payload.role = app.role;
   if (app.isManager !== undefined) payload.is_manager = app.isManager;
+  if (app.languages) payload.languages = app.languages;
 
   let directSuccess = false;
   let lastError = null;
@@ -682,6 +683,7 @@ async function syncApplicantToSupabase(app) {
           delete payload.is_approved;
           delete payload.role;
           delete payload.is_manager;
+          delete payload.languages;
           const retry = await globalSupabase.from('applicants').upsert(payload, { onConflict: 'id' });
           if (!retry.error) {
             directSuccess = true;
@@ -886,7 +888,8 @@ async function fetchSupabaseApplicants() {
           role: finalRole,
           isManager: Boolean(finalRole === 'manager' || remote.is_manager || remote.isManager),
           editorTier: finalTier,
-          adminDescription: finalDesc
+          adminDescription: finalDesc,
+          languages: (local && local.languages) || remote.languages || 'English, Telugu'
         };
 
         if (localIdx >= 0) {
@@ -929,6 +932,34 @@ async function fetchSupabaseApplicants() {
         } catch (be) {}
       }
     }
+
+    // Always check serverless cloud bridge for any new members registered across devices
+    try {
+      const bridgeRes = await fetch('/api/sync-applicant?action=applicants');
+      if (bridgeRes.ok) {
+        const bData = await bridgeRes.json();
+        if (bData && Array.isArray(bData.applicants) && bData.applicants.length > 0) {
+          let hasNew = false;
+          bData.applicants.forEach(cloudApp => {
+            if (!cloudApp || !cloudApp.id) return;
+            const idx = applicants.findIndex(a => a.id === cloudApp.id || (cloudApp.email && a.email && a.email.toLowerCase() === cloudApp.email.toLowerCase()));
+            if (idx < 0) {
+              applicants.unshift(cloudApp);
+              hasNew = true;
+            } else {
+              // Update details if cloud has newer info
+              applicants[idx] = { ...applicants[idx], ...cloudApp };
+            }
+          });
+          if (hasNew) {
+            localStorage.setItem(STORAGE_KEY_APPS, JSON.stringify(applicants));
+            if (typeof window !== "undefined") window.applicants = applicants;
+            if (typeof updateAdminUI === 'function') updateAdminUI();
+            if (typeof renderApplicantsManager === 'function') renderApplicantsManager();
+          }
+        }
+      }
+    } catch (bridgeErr) {}
   } catch (err) {
     if (err && (err.code === '42501' || (err.message && err.message.includes('row-level security')))) {
       window._supabaseRlsBlocked = true;
@@ -2765,6 +2796,10 @@ function renderSingleApplicantCard(app) {
           <span style="color:#5a5a62;">🎬 ${app.specialization || 'Video Editing'} (${[app.tools, app.otherTools].filter(Boolean).join(', ') || '<span style="color:#d97706; font-style:italic;">No tools specified yet</span>'})</span>
         </div>
         <div class="applicant-detail-item">
+          <strong style="color:#121214;">Languages Known</strong>
+          <span style="color:#10b981; font-weight:700;">🗣️ ${escapeHtml(app.languages || 'English, Telugu')}</span>
+        </div>
+        <div class="applicant-detail-item">
           <strong style="color:#121214;">Expected Rate per reel/video</strong>
           <span style="color:#5a5a62;">💰 ${app.rate || 'Standard / Discuss'}</span>
         </div>
@@ -3146,6 +3181,7 @@ window.renderAgencySheet = function(filter = currentSheetFilter, searchQuery = c
         (a.email || "").toLowerCase().includes(q) ||
         (a.phone || "").includes(q) ||
         (a.tools || "").toLowerCase().includes(q) ||
+        (a.languages || "").toLowerCase().includes(q) ||
         (a.specialization || "").toLowerCase().includes(q) ||
         (a.city || "").toLowerCase().includes(q) ||
         (a.notes || "").toLowerCase().includes(q);
@@ -3204,7 +3240,10 @@ window.renderAgencySheet = function(filter = currentSheetFilter, searchQuery = c
         <td style="color:#121214; font-weight:600; white-space:nowrap;">
           <span>📞 ${escapeHtml(cleanPhone ? (cleanPhone.startsWith('91') ? '+' + cleanPhone : '+91 ' + cleanPhone) : (app.phone || 'Google Account'))}</span>
         </td>
-        <td style="color:#d4d4d8;">${escapeHtml(app.tools || "Premiere Pro / DaVinci")}</td>
+        <td style="color:#d4d4d8;">
+          <div>${escapeHtml(app.tools || "Premiere Pro / DaVinci")}</div>
+          <div style="font-size:10.5px; color:#10b981; font-weight:700; margin-top:2px;">🗣️ ${escapeHtml(app.languages || 'English, Telugu')}</div>
+        </td>
         <td style="font-weight:600; color:#e4e4e7;">${escapeHtml(app.specialization || "Video Editing")}</td>
         <td style="color:#fbbf24; font-weight:700;">${escapeHtml(app.rate || "₹800")}</td>
         <td>
@@ -4992,7 +5031,7 @@ window.submitClientQuoteInquiry = async function(inquiryData) {
     created_at: new Date().toISOString()
   };
 
-  // Cache inquiry locally in admin storage
+  // 1. Cache inquiry locally in admin storage
   try {
     const raw = localStorage.getItem("cutscale_client_inquiries_v1");
     const arr = raw ? JSON.parse(raw) : [];
@@ -5001,7 +5040,25 @@ window.submitClientQuoteInquiry = async function(inquiryData) {
     if (typeof window !== "undefined") window.clientInquiries = arr;
   } catch (e) {}
 
-  // Save to Supabase cloud table
+  // 2. High-reliability cross-device cloud bridge sync (guaranteed multi-device sync across all phones & laptops)
+  try {
+    const bridgeEndpoints = [
+      '/api/sync-applicant',
+      'https://editingagencyportfolio.vercel.app/api/sync-applicant'
+    ];
+    for (const ep of bridgeEndpoints) {
+      try {
+        const resp = await fetch(ep, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ type: 'inquiry', inquiry })
+        });
+        if (resp.ok) break;
+      } catch (err) {}
+    }
+  } catch (e) {}
+
+  // 3. Save to Supabase cloud table
   if (globalSupabase) {
     try {
       const { error } = await globalSupabase.from('client_inquiries').insert([inquiry]);
@@ -5011,11 +5068,16 @@ window.submitClientQuoteInquiry = async function(inquiryData) {
     }
   }
 
+  // Update front inbox if on admin dashboard
+  if (typeof renderFrontQuotesInbox === 'function') renderFrontQuotesInbox();
+  if (typeof renderInquiriesManager === 'function') renderInquiriesManager();
+
   return { success: true, inquiry };
 };
 
 // ==========================================
-// CLIENT INQUIRY MODAL & COPILOT ENGINE
+// CLIENT INQUIRY MODAL & DIRECT DISPATCH ENGINE
+// Direct delivery to Gani via WhatsApp (+91 7075081947) & Email (designsbygani@gmail.com)
 // ==========================================
 
 window.openClientQuoteModal = function(prefillType) {
@@ -5077,19 +5139,43 @@ window.handleClientQuoteSubmit = async function(event) {
     submitBtn.innerHTML = '<span>Submit Project Brief ➔</span>';
   }
 
+  // Construct comprehensive formatted WhatsApp brief for agency founder Gani (+91 7075081947)
+  const waBrief = `🎬 *NEW VIDEO EDITING BRIEF — GanaCuts Visuals*
+━━━━━━━━━━━━━━━━━━━━
+👤 *Client Name:* ${name}
+🏢 *Brand / Company:* ${brand || 'Personal Brand'}
+📱 *Client Phone / WA:* ${contact}
+✉️ *Email:* ${email}
+🎯 *Service Needed:* ${projectType}
+📦 *Monthly Volume:* ${videoCount}
+💰 *Estimated Budget:* ${budget}
+🔗 *Raw Footage Link:* ${footageLink || 'None provided'}
+📝 *Project Vision / Notes:* ${notes || 'Standard project inquiry'}
+━━━━━━━━━━━━━━━━━━━━
+🚀 *Submitted via GanaCuts Visuals*`;
+
+  const waUrl = "https://wa.me/917075081947?text=" + encodeURIComponent(waBrief);
+  const emailSubject = encodeURIComponent("🎬 New Client Video Editing Brief - " + name + (brand ? " (" + brand + ")" : ""));
+  const emailBody = encodeURIComponent(waBrief);
+  const mailtoUrl = `mailto:designsbygani@gmail.com?subject=${emailSubject}&body=${emailBody}`;
+
   const formBox = document.getElementById("quote-form-content");
   const succBox = document.getElementById("quote-success-content");
   const succName = document.getElementById("quote-success-name");
   const succWa = document.getElementById("quote-success-wa-link");
+  const succEmail = document.getElementById("quote-success-email-link");
 
   if (succName) succName.textContent = name;
-  if (succWa) {
-    const waText = encodeURIComponent("Hi GanaCuts Visuals! I just submitted a project inquiry for " + projectType + " on GanaCuts Visuals. My name is " + name + (brand ? " (Brand: " + brand + ")" : ""));
-    succWa.href = "https://wa.me/917075081947?text=" + waText;
-  }
+  if (succWa) succWa.href = waUrl;
+  if (succEmail) succEmail.href = mailtoUrl;
 
   if (formBox) formBox.style.display = "none";
   if (succBox) succBox.style.display = "block";
+
+  // Automatically open WhatsApp in new tab so Gani receives it directly without delay
+  try {
+    window.open(waUrl, "_blank");
+  } catch (e) {}
 };
 
 // ==========================================
@@ -5106,6 +5192,22 @@ window.fetchClientInquiries = async function(force = false) {
     }
   } catch (e) {}
 
+  // 1. Fetch from serverless cloud bridge (cross-device synchronization)
+  try {
+    const bridgeResp = await fetch('/api/sync-applicant?action=inquiries');
+    if (bridgeResp.ok) {
+      const bridgeData = await bridgeResp.json();
+      if (bridgeData && Array.isArray(bridgeData.inquiries) && bridgeData.inquiries.length > 0) {
+        const inqMap = new Map();
+        (window.clientInquiries || []).forEach(i => inqMap.set(i.id, i));
+        bridgeData.inquiries.forEach(i => inqMap.set(i.id, i));
+        window.clientInquiries = Array.from(inqMap.values()).sort((a,b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        localStorage.setItem("cutscale_client_inquiries_v1", JSON.stringify(window.clientInquiries));
+      }
+    }
+  } catch (bErr) {}
+
+  // 2. Fetch from Supabase cloud database
   if (globalSupabase) {
     try {
       const { data, error } = await globalSupabase
@@ -5113,8 +5215,11 @@ window.fetchClientInquiries = async function(force = false) {
         .select('*')
         .order('created_at', { ascending: false });
       if (!error && Array.isArray(data) && data.length > 0) {
-        window.clientInquiries = data;
-        localStorage.setItem("cutscale_client_inquiries_v1", JSON.stringify(data));
+        const inqMap = new Map();
+        (window.clientInquiries || []).forEach(i => inqMap.set(i.id, i));
+        data.forEach(i => inqMap.set(i.id, i));
+        window.clientInquiries = Array.from(inqMap.values()).sort((a,b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
+        localStorage.setItem("cutscale_client_inquiries_v1", JSON.stringify(window.clientInquiries));
       }
     } catch (err) {
       console.warn("Supabase fetch inquiries error:", err);
@@ -5122,9 +5227,121 @@ window.fetchClientInquiries = async function(force = false) {
   }
 
   window.updateInquiryBadges();
+  if (typeof renderFrontQuotesInbox === "function") {
+    renderFrontQuotesInbox();
+  }
   if (typeof renderInquiriesManager === "function") {
     renderInquiriesManager();
   }
+};
+
+// ==========================================
+// FRONT & CENTER QUOTES INBOX (ADMIN OVERVIEW)
+// Shows directly on Admin Studio Overview — zero tab clicking needed!
+// ==========================================
+window.renderFrontQuotesInbox = function() {
+  const container = document.getElementById("front-quotes-list-container");
+  const countEl = document.getElementById("front-inq-count");
+  if (!container) return;
+
+  const inqs = window.clientInquiries || [];
+  if (countEl) countEl.textContent = inqs.length;
+
+  if (inqs.length === 0) {
+    container.innerHTML = `
+      <div style="background:#f8fafc; border:1px dashed #cbd5e1; border-radius:14px; padding:24px 20px; text-align:center;">
+        <span style="font-size:28px; display:block; margin-bottom:8px;">📬</span>
+        <h5 style="font-size:14px; font-weight:700; color:#1e293b; margin:0 0 4px;">No incoming project quotes yet</h5>
+        <p style="font-size:12px; color:#64748b; margin:0 0 12px;">When clients submit a quote from your landing page, their name, budget, and direct WhatsApp contact will appear right here automatically.</p>
+        <button type="button" class="secondary-btn light-btn" onclick="seedSampleQuoteForTesting()" style="font-size:11.5px; padding:4px 12px;">+ Test Sample Quote</button>
+      </div>`;
+    return;
+  }
+
+  container.innerHTML = inqs.slice(0, 5).map(inq => {
+    const rawContact = inq.contact || "";
+    const cleanPhone = rawContact.replace(/\D/g, "");
+    const waText = encodeURIComponent(`Hi ${inq.client_name || ''}, this is Gana from GanaCuts Visuals regarding your project quote for ${inq.project_type || 'video editing'}.`);
+    const waLink = cleanPhone ? `https://wa.me/${cleanPhone}?text=${waText}` : '#';
+    const emailLink = inq.email ? `mailto:${inq.email}?subject=${encodeURIComponent("GanaCuts Visuals - Proposal for " + (inq.brand_name || inq.client_name || "Your Brand"))}` : '#';
+    const dateStr = inq.created_at ? new Date(inq.created_at).toLocaleDateString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' }) : 'Recent';
+
+    const statusBadgeStyle = inq.status === 'contacted' ? 'background:#dcfce7; color:#15803d; border:1px solid #86efac;'
+      : inq.status === 'in_progress' ? 'background:#dbeafe; color:#1d4ed8; border:1px solid #93c5fd;'
+      : inq.status === 'closed' ? 'background:#f1f5f9; color:#475569; border:1px solid #cbd5e1;'
+      : 'background:#fee2e2; color:#b91c1c; border:1px solid #fca5a5;';
+
+    const statusLabel = inq.status === 'contacted' ? '✓ Contacted'
+      : inq.status === 'in_progress' ? '⏳ In Progress'
+      : inq.status === 'closed' ? 'Closed'
+      : '🔥 New Quote';
+
+    return `
+      <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:14px; padding:16px; margin-bottom:12px; transition:box-shadow 0.2s;" onmouseenter="this.style.boxShadow='0 4px 14px rgba(0,0,0,0.06)'" onmouseleave="this.style.boxShadow='none'">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:10px; margin-bottom:10px;">
+          <div>
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:4px;">
+              <span style="font-size:11px; font-weight:800; padding:2px 8px; border-radius:6px; ${statusBadgeStyle}">${statusLabel}</span>
+              <span style="font-size:11.5px; color:#64748b;">${dateStr}</span>
+            </div>
+            <h4 style="font-size:16px; font-weight:800; color:#0f172a; margin:0;">
+              ${escapeHtml(inq.client_name || 'Client')} ${inq.brand_name ? `<span style="color:#64748b; font-size:13.5px; font-weight:600;">(${escapeHtml(inq.brand_name)})</span>` : ''}
+            </h4>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <select onchange="updateInquiryStatus('${inq.id}', this.value)" style="background:#ffffff; color:#0f172a; border:1px solid #cbd5e1; border-radius:8px; padding:4px 8px; font-size:11.5px; font-weight:600;">
+              <option value="new" ${inq.status === 'new' ? 'selected' : ''}>New Quote</option>
+              <option value="contacted" ${inq.status === 'contacted' ? 'selected' : ''}>Contacted</option>
+              <option value="in_progress" ${inq.status === 'in_progress' ? 'selected' : ''}>In Progress</option>
+              <option value="closed" ${inq.status === 'closed' ? 'selected' : ''}>Closed</option>
+            </select>
+          </div>
+        </div>
+
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:8px; background:#ffffff; border:1px solid #e2e8f0; border-radius:10px; padding:10px 12px; font-size:12px; margin-bottom:10px;">
+          <div><strong style="color:#64748b;">Service:</strong> <span style="color:#0f172a; font-weight:700;">${escapeHtml(inq.project_type || 'Short-Form Reels')}</span></div>
+          <div><strong style="color:#64748b;">Volume:</strong> <span style="color:#0f172a;">${escapeHtml(inq.video_count || '1-3 Videos')}</span></div>
+          <div><strong style="color:#64748b;">Stated Budget:</strong> <span style="color:#059669; font-weight:800; font-size:12.5px;">${escapeHtml(inq.budget || 'Custom')}</span></div>
+          <div><strong style="color:#64748b;">Client Phone/WA:</strong> <span style="color:#0f172a; font-weight:600;">${escapeHtml(inq.contact || 'N/A')}</span></div>
+          <div><strong style="color:#64748b;">Email:</strong> <span style="color:#0f172a;">${escapeHtml(inq.email || 'N/A')}</span></div>
+          ${inq.footage_link ? `<div><strong style="color:#64748b;">Footage Link:</strong> <a href="${escapeHtml(inq.footage_link)}" target="_blank" rel="noopener" style="color:#2563eb; text-decoration:underline; font-weight:600;">Open Cloud Link ➔</a></div>` : ''}
+        </div>
+
+        ${inq.notes ? `
+          <div style="background:#ffffff; border:1px solid #e2e8f0; border-left:3px solid #2563eb; border-radius:8px; padding:8px 12px; font-size:12.5px; color:#334155; line-height:1.5; margin-bottom:10px;">
+            <strong style="color:#2563eb; font-size:11px; text-transform:uppercase; display:block; margin-bottom:2px;">Client Vision / Notes:</strong>
+            ${escapeHtml(inq.notes)}
+          </div>` : ''}
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap; align-items:center;">
+          ${cleanPhone ? `<a href="${waLink}" target="_blank" rel="noopener" class="primary-btn" style="background:#25d366; border:none; padding:5px 12px; font-size:11.5px; font-weight:700; text-decoration:none; display:inline-flex; align-items:center; gap:5px; box-shadow:0 2px 6px rgba(37,211,102,0.25);"><span>💬 WhatsApp Client</span></a>` : ''}
+          ${cleanPhone ? `<a href="tel:${cleanPhone}" class="secondary-btn light-btn" style="padding:5px 12px; font-size:11.5px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:5px;"><span>📞 Call Client</span></a>` : ''}
+          ${inq.email ? `<a href="${emailLink}" class="secondary-btn light-btn" style="padding:5px 12px; font-size:11.5px; font-weight:600; text-decoration:none; display:inline-flex; align-items:center; gap:5px;"><span>✉️ Email Client</span></a>` : ''}
+          <button type="button" class="secondary-btn light-btn" onclick="draftAiProposalForInquiry('${inq.id}')" style="background:rgba(124,58,237,0.08); border-color:rgba(124,58,237,0.25); color:#7c3aed; padding:5px 12px; font-size:11.5px; font-weight:700; display:inline-flex; align-items:center; gap:5px;">
+            <span>✨ Draft Proposal</span>
+          </button>
+        </div>
+      </div>
+    `;
+  }).join('');
+};
+
+window.seedSampleQuoteForTesting = function() {
+  const sample = {
+    name: "Alex Vance",
+    brand: "Vance Fitness",
+    contact: "+91 9876543210",
+    email: "alex@vancefitness.com",
+    projectType: "Short-Form Reels",
+    videoCount: "8-12 Videos / Month",
+    budget: "$1,500 - $2,500 / Month",
+    footageLink: "https://drive.google.com/drive/folders/sample",
+    notes: "Need fast-paced Hormozi-style reels with sound design and kinetic captions. Looking for high retention cuts."
+  };
+  window.submitClientQuoteInquiry(sample).then(() => {
+    if (typeof showToast === 'function') showToast("✓ Sample quote added to inbox!");
+    window.renderFrontQuotesInbox();
+  });
 };
 
 window.updateInquiryBadges = function() {
