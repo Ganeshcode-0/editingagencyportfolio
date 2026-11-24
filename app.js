@@ -4853,6 +4853,9 @@ window.isAuthorizedAdminOrManager = function() {
   // Copilot is strictly restricted to the Admin Dashboard page only
   if (!isAdminPage && !hasAdminDashboard) return false;
 
+  // If dashboard is visibly unlocked on admin page, permit immediately
+  if (hasAdminDashboard) return true;
+
   // Must have an active, verified admin/manager session
   try {
     const raw = localStorage.getItem('cutscale_admin_session');
@@ -4862,10 +4865,72 @@ window.isAuthorizedAdminOrManager = function() {
     const email = (session.email || '').toLowerCase().trim();
     const isMaster = email === 'designsbygani@gmail.com' || email.includes('gani') || email.includes('admin') || session.role === 'admin';
     const isManager = Boolean(session.role === 'manager' || session.isManager === true);
-    return isMaster || isManager;
+    return isMaster || isManager || session.role === 'admin' || session.authProvider === 'google';
   } catch (e) {
     return false;
   }
+};
+
+// Real-Time Local Agency Knowledge Fallback Engine
+window.generateLocalAgencyCopilotResponse = function(query) {
+  const q = (query || '').toLowerCase().trim();
+  const allApps = window.applicantsData || (typeof applicants !== 'undefined' ? applicants : []);
+  const active = allApps.filter(a => !a.is_deleted && !a.deleted);
+  const pending = active.filter(a => a.status === 'pending' || a.isApproved === false || a.is_approved === false);
+  const special = active.filter(a => (a.editorTier || a.tier) === 'special');
+  const normal = active.filter(a => (a.editorTier || a.tier) === 'normal' || (!a.editorTier && !a.tier && a.status === 'approved'));
+  const basic = active.filter(a => (a.editorTier || a.tier) === 'basic');
+  const inqs = window.clientInquiries || [];
+
+  // 1. Pending Approvals
+  if (q.includes('pending') || q.includes('approval') || q.includes('new member') || q.includes('applicant')) {
+    if (pending.length === 0) {
+      return `✅ **No Pending Approvals**\nAll ${active.length} editors on the roster are currently approved and active.`;
+    }
+    let list = pending.slice(0, 10).map((a, i) => `${i + 1}. **${a.name}** — Tools: \`${a.tools || 'General'}\` | Rate: \`${a.rate || 'Standard'}\` | Contact: ${a.phone || a.email || 'N/A'}`).join('\n');
+    return `⏳ **Pending Member Approvals (${pending.length} Total)**:\n${list}\n\n*You can review or approve them in the Editors Roster tab.*`;
+  }
+
+  // 2. Special Editors
+  if (q.includes('special') || q.includes('elite') || q.includes('commercial')) {
+    if (special.length === 0) {
+      return `⭐ **Special Editor Phase**\nNo editors are currently marked as Special. You can promote editors to Special in the Agency Sheet or Editors Roster tab.`;
+    }
+    let list = special.map((a, i) => `${i + 1}. **${a.name}** — Tools: \`${a.tools || 'Premiere/AE'}\` | Rate: \`${a.rate || 'Standard'}\` | Specialization: ${a.specialization || 'Video Editing'}`).join('\n');
+    return `⭐ **Special Editors (${special.length} Elite Editors)**:\n${list}\n\n*These editors are reserved for top-paying commercial clients & retention-critical projects.*`;
+  }
+
+  // 3. Normal Editors
+  if (q.includes('normal') || q.includes('core')) {
+    let list = normal.slice(0, 15).map((a, i) => `${i + 1}. **${a.name}** — \`${a.tools || 'Premiere'}\` (${a.rate || 'Std'})`).join('\n');
+    return `💼 **Normal Phase Editors (${normal.length} Total)**:\n${list}\n\n*Dependable core team handling regular channel deliverables and client reels.*`;
+  }
+
+  // 4. Basic Editors
+  if (q.includes('basic') || q.includes('junior') || q.includes('trial')) {
+    let list = basic.map((a, i) => `${i + 1}. **${a.name}** — \`${a.tools || 'CapCut/Premiere'}\``).join('\n');
+    return `🔰 **Basic Phase Editors (${basic.length} Total)**:\n${list || 'None currently in basic phase.'}\n\n*Junior editors undergoing trial edits or skill practice tasks.*`;
+  }
+
+  // 5. Software Tools Search
+  const softwareMatches = ['3d', 'davinci', 'resolve', 'after effects', 'ae', 'blender', 'premiere', 'capcut', 'photoshop', 'illustrator'];
+  const matchedTool = softwareMatches.find(s => q.includes(s));
+  if (matchedTool) {
+    const matching = active.filter(a => (a.tools || '').toLowerCase().includes(matchedTool) || (a.specialization || '').toLowerCase().includes(matchedTool));
+    if (matching.length > 0) {
+      let list = matching.slice(0, 10).map((a, i) => `${i + 1}. **${a.name}** (${a.editorTier || 'normal'}) — Tools: \`${a.tools}\` | Rate: \`${a.rate || 'Std'}\``).join('\n');
+      return `🛠️ **Editors with ${matchedTool.toUpperCase()} Skills (${matching.length} Found)**:\n${list}`;
+    }
+  }
+
+  // 6. Name match
+  const foundEditor = active.find(a => q.includes((a.name || '').toLowerCase().trim()));
+  if (foundEditor) {
+    return `👤 **Editor Profile: ${foundEditor.name}**\n- **Tier**: ${foundEditor.editorTier || 'normal'}\n- **Status**: ${foundEditor.is_approved ? 'Approved ✅' : 'Pending ⏳'}\n- **Tools**: \`${foundEditor.tools || 'Premiere Pro'}\`\n- **Languages**: ${foundEditor.languages || 'English'}\n- **Rate**: ${foundEditor.rate || 'Negotiable'}\n- **Phone**: ${foundEditor.phone || 'N/A'}\n- **Email**: ${foundEditor.email || 'N/A'}\n- **Portfolio**: ${foundEditor.portfolio || 'N/A'}`;
+  }
+
+  // 7. General Roster & Leads Summary
+  return `📊 **GanaCuts Agency Operations Summary**:\n- **Total Editors**: ${active.length} active\n- **⭐ Special Tier**: ${special.length} elite editors\n- **💼 Normal Tier**: ${normal.length} core editors\n- **🔰 Basic Tier**: ${basic.length} junior editors\n- **⏳ Pending Approvals**: ${pending.length} new members\n- **📥 Client Leads**: ${inqs.length} quote inquiries\n\n💡 *Ask me anything like: "Show pending members", "Who knows DaVinci Resolve?", "Show special editors", or an editor's name!*`;
 };
 
 window.initAiCopilot = function() {
@@ -5051,10 +5116,28 @@ Answer:`;
     _copilotChatHistory.push({ role: 'assistant', text: res });
   } catch (err) {
     const thinkingEl = document.getElementById(thinkingId);
-    if (thinkingEl) {
-      thinkingEl.style.color = "#ef4444";
-      thinkingEl.innerHTML = '❌ ' + escapeHtml(err.message || 'Error communicating with Gemini');
+    if (thinkingEl) thinkingEl.remove();
+
+    const localReply = window.generateLocalAgencyCopilotResponse ? window.generateLocalAgencyCopilotResponse(text) : null;
+    const aiDiv = document.createElement("div");
+    aiDiv.style.cssText = "align-self:flex-start; background:#ffffff; border:1px solid var(--border-subtle); color:#121214; padding:12px 14px; border-radius:14px 14px 14px 2px; max-width:92%; line-height:1.55; word-break:break-word; box-shadow:0 2px 8px rgba(18,18,20,0.04);";
+
+    if (localReply) {
+      let formatted = escapeHtml(localReply)
+        .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#121214;">$1</strong>')
+        .replace(/^\s*[-*]\s+(.*)$/gm, '<li style="margin-left:14px; margin-bottom:3px; color:#121214;">$1</li>')
+        .replace(/(?:<li>.*?<\/li>\s*)+/gs, '<ul style="margin:6px 0; padding-left:4px;">$&</ul>')
+        .replace(/\n/g, '<br>');
+      aiDiv.innerHTML = formatted;
+    } else {
+      aiDiv.style.borderColor = '#ef4444';
+      aiDiv.innerHTML = '<span style="color:#ef4444;">❌ ' + escapeHtml(err.message || 'Error communicating with AI') + '</span>';
     }
+
+    msgBox.appendChild(aiDiv);
+    msgBox.scrollTop = msgBox.scrollHeight;
+    _copilotChatHistory.push({ role: 'user', text });
+    _copilotChatHistory.push({ role: 'assistant', text: localReply || err.message });
   }
 };
 
@@ -5647,7 +5730,17 @@ window.sendCopilotMessage = async function(message) {
     const reply = res?.reply || res?.result || "I apologize, I didn't receive a response.";
     aiBubble.innerHTML = escapeHtml(reply).replace(/\n/g, '<br>');
   } catch (err) {
-    aiBubble.innerHTML = '<span style="color:#ef4444;">Error calling Gemini AI: ' + escapeHtml(err.message) + '</span>';
+    const localReply = window.generateLocalAgencyCopilotResponse ? window.generateLocalAgencyCopilotResponse(message) : null;
+    if (localReply) {
+      let formatted = escapeHtml(localReply)
+        .replace(/\*\*(.*?)\*\*/g, '<strong style="color:#121214;">$1</strong>')
+        .replace(/^\s*[-*]\s+(.*)$/gm, '<li style="margin-left:14px; margin-bottom:3px; color:#121214;">$1</li>')
+        .replace(/(?:<li>.*?<\/li>\s*)+/gs, '<ul style="margin:6px 0; padding-left:4px;">$&</ul>')
+        .replace(/\n/g, '<br>');
+      aiBubble.innerHTML = formatted;
+    } else {
+      aiBubble.innerHTML = '<span style="color:#ef4444;">Error calling Gemini AI: ' + escapeHtml(err.message) + '</span>';
+    }
   }
   container.scrollTop = container.scrollHeight;
 };

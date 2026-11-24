@@ -104,25 +104,32 @@ function callGemini(prompt, isJson = true, customKey = null) {
       return reject(new Error('GEMINI_API_KEY is not configured in server environment.'));
     }
 
+    const generationConfig = {
+      temperature: isJson ? 0.2 : 0.6
+    };
+    if (isJson) {
+      generationConfig.responseMimeType = 'application/json';
+    }
+
     const payload = JSON.stringify({
       contents: [{ parts: [{ text: prompt }] }],
-      generationConfig: {
-        response_mime_type: isJson ? 'application/json' : 'text/plain',
-        temperature: isJson ? 0.2 : 0.4
-      }
+      generationConfig
     });
 
     const candidateModels = [
+      'gemini-1.5-flash',
+      'gemini-1.5-flash-8b',
       'gemini-2.5-flash',
       'gemini-2.5-flash-lite',
-      'gemini-2.0-flash'
+      'gemini-1.5-pro',
+      'gemini-2.5-pro'
     ];
 
-    let lastError = null;
+    const modelErrors = [];
 
     function tryModel(index) {
       if (index >= candidateModels.length) {
-        return reject(lastError || new Error('All Gemini AI models currently busy or unreachable.'));
+        return reject(new Error(`All Gemini AI models currently unreachable: ${modelErrors.join(' | ')}`));
       }
       const model = candidateModels[index];
 
@@ -132,9 +139,10 @@ function callGemini(prompt, isJson = true, customKey = null) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'x-goog-api-key': apiKey,
           'Content-Length': Buffer.byteLength(payload)
         },
-        timeout: 9000
+        timeout: 10000
       }, res => {
         let body = '';
         res.on('data', chunk => body += chunk);
@@ -152,23 +160,21 @@ function callGemini(prompt, isJson = true, customKey = null) {
             } catch (err) {
               return reject(new Error('Failed to parse Gemini response: ' + err.message));
             }
-          } else if (res.statusCode === 404 || res.statusCode === 503 || res.statusCode === 429) {
-            lastError = new Error(`${model} returned HTTP ${res.statusCode}: ${body.slice(0, 150)}`);
-            return tryModel(index + 1);
           } else {
-            return reject(new Error(`Gemini API error (HTTP ${res.statusCode}): ${body.slice(0, 200)}`));
+            modelErrors.push(`${model} (HTTP ${res.statusCode}): ${body.slice(0, 150).replace(/\r?\n/g, ' ')}`);
+            return tryModel(index + 1);
           }
         });
       });
 
       req.on('timeout', () => {
         req.destroy();
-        lastError = new Error(`${model} timed out after 9s`);
+        modelErrors.push(`${model} timed out after 10s`);
         tryModel(index + 1);
       });
 
       req.on('error', err => {
-        lastError = err;
+        modelErrors.push(`${model} error: ${err.message}`);
         tryModel(index + 1);
       });
 
