@@ -117,12 +117,13 @@ function callGemini(prompt, isJson = true, customKey = null) {
     });
 
     const candidateModels = [
-      'gemini-1.5-flash',
-      'gemini-1.5-flash-8b',
+      'gemini-3.5-flash',
+      'gemini-3.5-flash-lite',
+      'gemini-3-flash-preview',
+      'gemini-3.5-pro',
       'gemini-2.5-flash',
       'gemini-2.5-flash-lite',
-      'gemini-1.5-pro',
-      'gemini-2.5-pro'
+      'gemini-1.5-flash'
     ];
 
     const modelErrors = [];
@@ -161,7 +162,7 @@ function callGemini(prompt, isJson = true, customKey = null) {
               return reject(new Error('Failed to parse Gemini response: ' + err.message));
             }
           } else {
-            modelErrors.push(`${model} (HTTP ${res.statusCode}): ${body.slice(0, 150).replace(/\r?\n/g, ' ')}`);
+            modelErrors.push(`${model} (HTTP ${res.statusCode}): ${body.slice(0, 300).replace(/\r?\n/g, ' ')}`);
             return tryModel(index + 1);
           }
         });
