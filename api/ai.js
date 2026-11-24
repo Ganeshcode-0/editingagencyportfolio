@@ -117,13 +117,12 @@ function callGemini(prompt, isJson = true, customKey = null) {
     });
 
     const candidateModels = [
+      'gemini-3.8-flash',
       'gemini-3.5-flash',
       'gemini-3.5-flash-lite',
       'gemini-3-flash-preview',
-      'gemini-3.5-pro',
       'gemini-2.5-flash',
-      'gemini-2.5-flash-lite',
-      'gemini-1.5-flash'
+      'gemini-2.5-flash-lite'
     ];
 
     const modelErrors = [];
@@ -143,7 +142,7 @@ function callGemini(prompt, isJson = true, customKey = null) {
           'x-goog-api-key': apiKey,
           'Content-Length': Buffer.byteLength(payload)
         },
-        timeout: 10000
+        timeout: 20000
       }, res => {
         let body = '';
         res.on('data', chunk => body += chunk);
@@ -170,7 +169,7 @@ function callGemini(prompt, isJson = true, customKey = null) {
 
       req.on('timeout', () => {
         req.destroy();
-        modelErrors.push(`${model} timed out after 10s`);
+        modelErrors.push(`${model} timed out after 20s`);
         tryModel(index + 1);
       });
 
