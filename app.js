@@ -4843,13 +4843,42 @@ Agency Asset Folders: ${(profile && profile.agencyFolders ? profile.agencyFolder
 `;
 };
 
+// Helper: Verify if current view is inside Admin Dashboard for Manager or Master Admin (Gani)
+window.isAuthorizedAdminOrManager = function() {
+  if (typeof window === 'undefined') return false;
+  const pathname = (window.location && window.location.pathname) || '';
+  const isAdminPage = pathname.endsWith('/admin') || pathname.endsWith('/admin.html') || pathname.includes('/admin/') || pathname.includes('admin.html');
+  const hasAdminDashboard = Boolean(document.getElementById('full-admin-app') && !document.getElementById('full-admin-app').classList.contains('hidden'));
+
+  // Copilot is strictly restricted to the Admin Dashboard page only
+  if (!isAdminPage && !hasAdminDashboard) return false;
+
+  // Must have an active, verified admin/manager session
+  try {
+    const raw = localStorage.getItem('cutscale_admin_session');
+    if (!raw) return false;
+    const session = JSON.parse(raw);
+    if (!session) return false;
+    const email = (session.email || '').toLowerCase().trim();
+    const isMaster = email === 'designsbygani@gmail.com' || email.includes('gani') || email.includes('admin') || session.role === 'admin';
+    const isManager = Boolean(session.role === 'manager' || session.isManager === true);
+    return isMaster || isManager;
+  } catch (e) {
+    return false;
+  }
+};
+
 window.initAiCopilot = function() {
+  // If not on admin dashboard or not authorized admin/manager, PURGE any copilot UI from DOM
+  if (!window.isAuthorizedAdminOrManager()) {
+    const existingLauncher = document.getElementById("ai-copilot-launcher");
+    if (existingLauncher) existingLauncher.remove();
+    const existingWindow = document.getElementById("ai-copilot-window");
+    if (existingWindow) existingWindow.remove();
+    return;
+  }
+
   if (document.getElementById("ai-copilot-launcher")) return;
-  // Accessible to Admin and Agency Managers
-  const isAdminOrManager = (typeof window !== 'undefined' && window.location && window.location.pathname && window.location.pathname.includes("admin")) ||
-    (typeof currentEditor !== 'undefined' && currentEditor && (currentEditor.role === 'manager' || currentEditor.isManager)) ||
-    Boolean(localStorage.getItem("cutscale_admin_session"));
-  if (!isAdminOrManager) return;
 
   // Floating trigger button (Warm agency orange styling)
   const btn = document.createElement("div");
@@ -5029,15 +5058,17 @@ Answer:`;
   }
 };
 
-// Initialize Copilot on page load (Admin Studio & Manager Editor Workspace)
+// Initialize Copilot strictly inside Admin Dashboard for Manager and Admin
 if (typeof document !== 'undefined') {
-  const shouldLoadCopilot = (typeof window !== 'undefined' && window.location && window.location.pathname && (window.location.pathname.includes("admin") || window.location.pathname.includes("editor"))) || Boolean(document.getElementById("pane-overview"));
-  if (shouldLoadCopilot) {
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', () => { setTimeout(window.initAiCopilot, 800); });
-    } else {
-      setTimeout(window.initAiCopilot, 800);
+  const bootAdminCopilot = () => {
+    if (typeof window.initAiCopilot === 'function') {
+      window.initAiCopilot();
     }
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => { setTimeout(bootAdminCopilot, 600); });
+  } else {
+    setTimeout(bootAdminCopilot, 600);
   }
 }
 

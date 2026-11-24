@@ -569,6 +569,10 @@
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
           <span>Overview</span>
         </button>
+        <button class="admin-tab" data-tab="copilot" style="border-left:2px solid var(--accent-orange); font-weight:700;">
+          <span style="font-size:13px;">🤖</span>
+          <span>AI Copilot</span>
+        </button>
         <button class="admin-tab" data-tab="sheet">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><line x1="10" y1="9" x2="8" y2="9"></line></svg>
           <span>Agency Sheet (<span id="dash-sheet-badge" style="color:#34d399; font-weight:800;">0 Selected</span>)</span>
@@ -645,6 +649,9 @@
         <div class="quick-add-cta" style="background:#18181c; border:1px solid rgba(255,255,255,0.08); border-radius:18px; padding:24px; margin-top:20px;">
           <h3 style="color:#fff; margin-bottom:12px;">Quick Operations</h3>
           <div class="quick-btn-group">
+            <button class="primary-btn" onclick="switchAdminTab('copilot')" style="background:var(--accent-orange); border:none; display:inline-flex; align-items:center; gap:6px;">
+              <span>🤖 AI Copilot</span>
+            </button>
             <button class="primary-btn" onclick="switchAdminTab('submissions')" style="background:linear-gradient(135deg, #2563eb, #1d4ed8); border:none;">
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
               <span>Review Submitted Cuts (<span id="cta-submissions-count">0</span>)</span>
@@ -1017,21 +1024,10 @@
         </div>
 
         <div class="copilot-container">
-          <div class="copilot-messages" id="copilot-messages-container">
-            <div class="copilot-bubble-ai">
-              <strong>👋 Hello Admin!</strong> I'm your GanaCuts Agency Copilot. I have live awareness of your active editor roster, applicant phases (⭐ Special, 💼 Normal, 🔰 Basic), client quote inquiries, and project workflows. How can I help you manage the agency today?
-            </div>
-          </div>
-
-          <div class="copilot-quick-prompts">
-            <button type="button" class="copilot-chip" onclick="quickSendCopilot('Give me an executive summary of our active editor roster and tier breakdown.')">📊 Roster Summary</button>
-            <button type="button" class="copilot-chip" onclick="quickSendCopilot('Which editors should I assign for a high-retention commercial video edit?')">⭐ Assign Best Editor</button>
-            <button type="button" class="copilot-chip" onclick="quickSendCopilot('Summarize recent client inquiries and recommend immediate follow-up steps.')">📥 Client Leads Brief</button>
-            <button type="button" class="copilot-chip" onclick="quickSendCopilot('Draft an encouraging WhatsApp update for our editors about new client project batches.')">✍️ Draft Announcement</button>
-          </div>
+          <div class="copilot-messages" id="copilot-messages-container"></div>
 
           <form class="copilot-input-bar" onsubmit="handleCopilotSubmit(event)">
-            <input type="text" id="copilot-input" placeholder="Ask anything about editors, client projects, workflows, or instructions..." autocomplete="off">
+            <input type="text" id="copilot-input" placeholder="Ask AI Copilot anything about editors, client projects, workflows, or instructions..." autocomplete="off">
             <button type="submit" id="copilot-send-btn" class="primary-btn" style="background:var(--accent-orange); border:none; padding:10px 20px; font-weight:800; font-size:13px;">
               <span>Send ➔</span>
             </button>
@@ -1854,6 +1850,7 @@
         if (typeof renderAdminFeaturedEditorsList === 'function') renderAdminFeaturedEditorsList();
         if (typeof fetchClientInquiries === 'function') fetchClientInquiries();
         if (typeof renderFrontQuotesInbox === 'function') renderFrontQuotesInbox();
+        if (typeof window.initAiCopilot === 'function') window.initAiCopilot();
 
         // Run automated Supabase cloud database health check
         if (typeof checkSupabaseHealth === 'function') {
@@ -2105,6 +2102,10 @@ CREATE POLICY "Allow all on client_inquiries" ON public.client_inquiries FOR ALL
           try { await supabaseClient.auth.signOut(); } catch (e) {}
         }
         localStorage.removeItem("cutscale_admin_session");
+        const launcher = document.getElementById("ai-copilot-launcher");
+        if (launcher) launcher.remove();
+        const win = document.getElementById("ai-copilot-window");
+        if (win) win.remove();
         window.location.reload();
       });
     }

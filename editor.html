@@ -1889,7 +1889,11 @@
         if (dockManagerTab) dockManagerTab.style.display = "inline-flex";
         if (secTeamRoster) secTeamRoster.style.display = "block";
         renderManagerRosterInEditor(ed);
-        if (typeof window.initAiCopilot === 'function') window.initAiCopilot();
+        // AI Copilot is strictly reserved for the Admin Dashboard
+        const oldLauncher = document.getElementById("ai-copilot-launcher");
+        if (oldLauncher) oldLauncher.remove();
+        const oldWin = document.getElementById("ai-copilot-window");
+        if (oldWin) oldWin.remove();
         // Automatically sync admin session so 1-click switch to admin.html works
         try {
           const adminSession = {
